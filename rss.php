@@ -1,5 +1,5 @@
 <?php
-/* $Id: rss.php,v 1.46.2.9 2008/10/15 16:31:27 cknudsen Exp $
+/* $Id: rss.php,v 1.46.2.8 2008/04/04 17:56:14 umcesrjones Exp $
  *
  * Description:
  * This script is intended to be used outside of normal WebCalendar use,
@@ -328,11 +328,9 @@ countentries==' . $entrycnt . ' ' . $rentrycnt . '
         echo '
     <item>';
         $unixtime = $rentries[$j]->getDateTimeTS ();
-        // Constructing the TS for the current repeating event
-        $unixtime = strtotime( date ( 'D, d M Y ', $i ) . date ( 'H:i:s', $unixtime ) ); 
-        $dateinfo = ( $date_in_title
-          ? date ( $date_format, $unixtime )
-           . ( $rentries[$j]->isTimed ()
+        $dateinfo = ( $date_in_title == true
+          ? date ( $date_format, $i )
+           . ( $rentries[$j]->isAllDay () || $rentries[$j]->isUntimed ()
             ? $time_separator . date ( $time_format, $unixtime ) : '' ) . ' '
           : '' );
 
@@ -345,7 +343,7 @@ countentries==' . $entrycnt . ' ' . $rentrycnt . '
       <category><![CDATA[' . $category . ']]></category>' )
         // . '<creator><![CDATA[' . $creator . ']]></creator>'
         . '
-      <pubDate>' . gmdate ( 'D, d M Y H:i:s', $unixtime ) . ' GMT</pubDate>
+      <pubDate>' . $pubDate . ' ' . gmdate ( 'H:i:s', $unixtime ) . ' GMT</pubDate>
       <guid>' . $SERVER_URL . 'view_entry.php?id=' . $rentries[$j]->getID ()
          . '&amp;friendly=1&amp;rssuser=' . $login . '&amp;date=' . $d . '</guid>
     </item>';

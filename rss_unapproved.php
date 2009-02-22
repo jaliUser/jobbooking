@@ -1,5 +1,5 @@
 <?php
-/* $Id: rss_unapproved.php,v 1.1.2.3 2008/10/27 02:19:09 cknudsen Exp $
+/* $Id: rss_unapproved.php,v 1.1.2.2 2008/03/07 17:49:23 cknudsen Exp $
  *
  * Description:
  *	Generates RSS 2.0 output of unapproved events for a user.
@@ -25,7 +25,7 @@
  *	If running as CGI, the following instructions should set the
  *	PHP_AUTH_xxxx variables. This has only been tested with apache2,
  *	so far. If using php as CGI, you'll need to include this in your
- *	httpd.conf file or possibly in an .htaccess file.
+ *	php.ini file or possibly in an .htaccess file.
  *
  *	<IfModule mod_rewrite.c>
  *	  RewriteEngine on

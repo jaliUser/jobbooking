@@ -1,11 +1,14 @@
 <?php
-/* $Id: edit_layer_handler.php,v 1.31.2.3 2008/10/20 02:27:14 cknudsen Exp $ */
+/* $Id: edit_layer_handler.php,v 1.31.2.2 2008/03/04 00:58:49 cknudsen Exp $ */
 include_once 'includes/init.php';
 
 $error = '';
 
 if ( $ALLOW_VIEW_OTHER != 'Y' )
   $error = print_not_auth (7);
+
+if ( empty ( $dups ) )
+  $dups = 'N';
 
 $public = getPostValue ( 'public' );
 $layeruser = getPostValue ( 'layeruser' );
@@ -14,9 +17,6 @@ $dups = getPostValue ( 'dups' );
 $is_mine = getPostValue ( 'is_mine' );
 $cal_login = getPostValue ( 'cal_login' );
 $id = getPostValue ( 'id' );
-
-if ( empty ( $dups ) )
-  $dups = 'N';
 
 $updating_public = false;
 if ( $is_admin && ! empty ( $public ) && $PUBLIC_ACCESS == 'Y' ) {

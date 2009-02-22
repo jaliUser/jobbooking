@@ -1,5 +1,5 @@
 <?php
-/* $Id: login.php,v 1.111.2.8 2008/11/10 15:30:56 cknudsen Exp $ */
+/* $Id: login.php,v 1.111.2.7 2008/04/22 17:53:27 umcesrjones Exp $ */
 @session_start ();
 foreach ( $_SESSION as $key=>$value ) {
   $dummy[$key]=$value;  // copy to a dummy array
@@ -84,7 +84,6 @@ $appStr =  generate_application_name ();
 
 $login = getPostValue ( 'login' );
 $password = getPostValue ( 'password' );
-$remember = getPostValue ( 'remember' );
 
 // calculate path for cookie
 if ( empty ( $PHP_SELF ) ) {

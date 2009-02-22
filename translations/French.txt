@@ -16,7 +16,7 @@
 # 'The Coolest DHTML Calendar',
 # http://sourceforge.net/projects/jscalendar/
 #
-# $Id: French.txt,v 1.56.2.4 2008/11/25 22:38:57 cknudsen Exp $
+# $Id: French.txt,v 1.56.2.3 2008/09/05 17:59:20 bbannon Exp $
 # Translation last updated on 09-05-2008
 
 
@@ -209,7 +209,7 @@ Menu theme: Thème du menu
 fonts-help: Permet de définir une liste de polices pour l'affichage (par exemple "Helvetica, Arial, sans-serif").
 Fonts: Polices
 display-sm_month-help: Si activé, affiche les mois courts dans la vue mensuelle
-Display small months: Afficher les mois au format court
+Display small months: Afficher les ois au format court
 display-weekends-help: Inclure les week-ends lors de la visualisation de la semaine.
 Display weekends: Afficher les week-ends
 display-long-daynames-help: Si activé, les noms longs pour les jours seront affichés
@@ -1320,7 +1320,7 @@ You must define XXX in: Vous devez définir "XXX" dans le fichier "settings.php".
 #
 December: décembre
 Dec: Déc
-LANGUAGE DEFINED: LANGAGE DÉFINI
+LANGUAGE DEFINED: LANGAGE DÉFINIT
 
 ########################################
 # Page: includes/dbi4php.php
