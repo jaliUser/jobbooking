@@ -757,5 +757,9 @@ class Event {
   function setClone ( $date ) {
     $this->_clone = $date;
   }
+  
+  static function cast(Event $event) {
+  	return $event;
+  }
 }
 ?>

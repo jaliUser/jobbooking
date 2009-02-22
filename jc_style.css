@@ -1,0 +1,67 @@
+BODY, P, UL, LI, TABLE, FORM {
+	FONT-SIZE: 14px; 
+	COLOR: #000000; 
+	FONT-FAMILY: Verdana, sans-serif, Arial, Helvetica
+}
+INPUT, TEXTAREA, SELECT {
+	FONT-SIZE: 14px; 
+	FONT-FAMILY: Verdana, sans-serif, Arial, Helvetica; 
+/*	COLOR: #000000; 
+	BACKGROUND-COLOR: #000000; */s
+}
+RADIO {
+	FONT-SIZE: 14px; 
+	FONT-FAMILY: Verdana, sans-serif, Arial, Helvetica; 
+/*	BORDER-LEFT-COLOR: #000000; 
+	BORDER-BOTTOM-COLOR: #000000; 
+	BORDER-TOP-COLOR: #000000; 
+	BORDER-RIGHT-COLOR: #000000; 
+	COLOR: #FFFFFF; */
+}
+A {
+	COLOR: #000000; 
+	TEXT-DECORATION: underline
+}
+A:link {
+	COLOR: blue; 
+	TEXT-DECORATION: none
+}
+A:visited {
+	COLOR: blue; 
+	TEXT-DECORATION: none
+}
+A:active {
+	COLOR: red; 
+	TEXT-DECORATION: none
+}
+A:hover {
+	COLOR: red; 
+	FONT-STYLE: normal; 
+	TEXT-DECORATION: underline
+}
+.cellbg {
+	FONT-SIZE: 9px; 
+	BACKGROUND-IMAGE: url(../../../demo/spirit/admin/web2004.jpg); 
+	BACKGROUND-REPEAT: no-repeat; 
+	FONT-FAMILY: Verdana, Arial, Helvetica, sans-serif
+}
+BODY {
+	BACKGROUND-IMAGE: none; 
+	MARGIN: 5px
+}
+h1 {
+	text-align: center;
+	font-size: 20px;
+}
+.h3 {
+	text-align: left;
+	font-size: 20px;
+}
+.help {
+	font-size: 10px;
+}
+table.help {
+	font-size: 10px;
+	text-align: left;
+	width: 400px;
+}
