@@ -1,5 +1,5 @@
 <?php
-/* $Id: icalclient.php,v 1.30.2.10 2008/10/27 02:19:09 cknudsen Exp $
+/* $Id: icalclient.php,v 1.30.2.9 2008/01/28 15:32:18 cknudsen Exp $
  *
  *               WARNING * WARNING * WARNING * WARNING * WARNING
  *                 This script is still considered alpha level.
@@ -109,7 +109,7 @@ $appStr = generate_application_name ();
 
 If running as CGI, the following instructions should set the PHP_AUTH_xxxx
 variables. This has only been tested with apache2, so far. If using php as CGI,
-you'll need to include this in your httpd.conf file or possibly in an .htaccess file.
+you'll need to include this in your php.ini file or possibly in an .htaccess file.
 
   <IfModule mod_rewrite.c>
     RewriteEngine on

@@ -1,5 +1,5 @@
 <?php
-/* $Id: usersel.php,v 1.34.2.3 2008/10/15 03:05:11 cknudsen Exp $ */
+/* $Id: usersel.php,v 1.34.2.2 2007/08/06 02:28:31 cknudsen Exp $ */
 include_once 'includes/init.php';
 
 // input args in URL
@@ -7,9 +7,6 @@ include_once 'includes/init.php';
 // form:   name of form on parent page
 // listid: element id of user selection object in form
 //         ... to be used like form.elements[$listid]
-$users = getGetValue ( 'users' );
-$form = getGetValue ( 'form' );
-$listid = getGetValue ( 'listid' );
 $progErrStr = translate ( 'Program Error No XXX specified!' );
 if ( empty ( $form ) ) {
   echo str_replace ( 'XXX', translate ( 'form' ), $progErrStr );

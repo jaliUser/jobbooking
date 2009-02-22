@@ -1,5 +1,5 @@
 <?php
-/* $Id: pref.php,v 1.149.2.14 2008/10/25 20:05:57 cknudsen Exp $ */
+/* $Id: pref.php,v 1.149.2.13 2008/04/04 17:56:14 umcesrjones Exp $ */
 include_once 'includes/init.php';
 
 //force the css cache to clear by incrementing webcalendar_csscache cookie
@@ -77,8 +77,6 @@ if ( ! empty ( $_POST ) && empty ( $error )) {
     include_once $theme;
     save_pref ( $webcal_theme, 'theme' );
   }
-  // Reload preferences
-  load_user_preferences ();
 }
 
 
