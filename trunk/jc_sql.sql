@@ -124,6 +124,7 @@ CREATE TABLE IF NOT EXISTS `job` (
   `description` varchar(255) NULL,
   `place` varchar(64) NULL,
   `notes` varchar(255) NULL,
+  `status` char(1) NOT NULL default 'A' COMMENT 'Waiting/Approved/Deleted',
   PRIMARY KEY  (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=10 ;
 

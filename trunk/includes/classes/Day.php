@@ -15,8 +15,8 @@ class Day {
 		return $day;
 	}
 	
-	function getDateDMY() {
-		return $this->date;
+	function getDateYMD() {
+		return date("Ymd", $this->getDateTS());
 	}
 	
 	function getDateTS() {

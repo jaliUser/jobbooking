@@ -1,5 +1,38 @@
 <?php
 
+function valid_time($hour, $min) {
+if ((is_numeric($hour) && $hour >= 0 && $hour <= 23) &&
+	(is_numeric($min) && $min >= 0 && $min <= 59)) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+function get_caltime($hour, $min) {
+	if (strlen($min) != 2) {
+		$min = "0".$min;
+	}
+	return $hour.$min."00";
+}
+
+function get_caltime_date() {
+	return date("His");
+}
+
+function get_caldate_date() {
+	return date("Ymd");
+}
+
+function get_calduration($start_time, $end_time) {
+	return (get_cal_unixtime('20000101', $end_time) - get_cal_unixtime('20000101', $start_time))/60;
+}
+
+function user_is_admin() {
+	global $current_role;
+	return $current_role->id == 1;
+}
+
 function get_cal_unixtime($cal_date, $cal_time) {
 	return gmmktime(substr($cal_time,0,-4), substr($cal_time,-4,-2), substr($cal_time,-2), substr($cal_date,4,2), substr($cal_date,6,2), substr($cal_date,0,4));
 }

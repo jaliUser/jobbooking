@@ -480,7 +480,7 @@ if ( ! $error ) {
             <p><label for="admin_STARTVIEW" title="'
    . tooltip ( 'preferred-view-help' ) . '">' . translate ( 'Preferred view' )
    . ':</label>
-              <select name="admin_STARTVIEW" id="admin_STARTVIEW">' . $prefer_vu
+              <select name="admin_STARTVIEW" id="admin_STARTVIEW"><option value="jc_menu.php">JobBooking Menu</option>' . $prefer_vu
    . $user_vu . '
               </select></p>
             <p><label>' . translate ( 'Allow top menu' ) . ':</label>'
