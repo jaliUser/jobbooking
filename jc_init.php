@@ -12,6 +12,7 @@ include_once 'jc_group_func.php';
 include_once 'jc_job_func.php';
 include_once 'jc_role_func.php';
 include_once 'jc_subcamp_func.php';
+include_once 'jc_timeslot_func.php';
 include_once 'jc_user_func.php';
 
 include_once 'includes/classes/Area.php';
@@ -22,6 +23,7 @@ include_once 'includes/classes/Group.php';
 include_once 'includes/classes/Job.php';
 include_once 'includes/classes/Role.php';
 include_once 'includes/classes/Subcamp.php';
+include_once 'includes/classes/Timeslot.php';
 include_once 'includes/classes/User.php';
 
 //get site id and name

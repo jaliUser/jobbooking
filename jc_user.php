@@ -35,12 +35,12 @@ function show_list() {
 
 //allow public access
 function show_create() {
-	global $PHP_SELF, $login, $site_id, $site_name, $current_role;
+	global $PHP_SELF, $login, $site_id, $site_name;
 	html_top("$site_name - Opret bruger");
 
 	//generate rolesHTML: if not admin, only show 1 role  
 	$rolesHTML = '<select name="role_id">';
-	if($current_role->id == 1) {
+	if(user_is_admin()) {
 		$roles = listRoles();
 		foreach ($roles as $role) {
 			$role = Role::cast($role);
