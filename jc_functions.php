@@ -34,7 +34,13 @@ function user_is_admin() {
 }
 
 function get_cal_unixtime($cal_date, $cal_time) {
-	return gmmktime(substr($cal_time,0,-4), substr($cal_time,-4,-2), substr($cal_time,-2), substr($cal_date,4,2), substr($cal_date,6,2), substr($cal_date,0,4));
+	$hour = substr($cal_time,0,-4);
+	$min = substr($cal_time,-4,-2);
+	$sec = substr($cal_time,-2);
+	$month = substr($cal_date,4,2);
+	$day = substr($cal_date,6,2);
+	$year = substr($cal_date,0,4);
+	return gmmktime($hour, $min, $sec, $month, $day, $year);
 }
 
 function html_top($title) {

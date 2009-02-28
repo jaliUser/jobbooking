@@ -32,19 +32,39 @@ class Timeslot {
 	}
 	
 	function getStartHour() {
-		return substr($this->startTime,0,-4);
+		$hour = substr($this->startTime,0,-4);
+		if(empty($hour)) {
+			return '00';
+		} else {
+			return $hour;
+		}
 	}
 	
 	function getStartMin() {
-		return substr($this->startTime,-4,-2);
+		$min = substr($this->startTime,-4,-2);
+		if(empty($min)) {
+			return '00';
+		} else {
+			return $min;
+		}
 	}
 	
 	function getEndHour() {
-		return substr($this->getEndTime(),0,-4);
+		$hour = substr($this->getEndTime(),0,-4);
+		if(empty($hour)) {
+			return '00';
+		} else {
+			return $hour;
+		}
 	}
 	
 	function getEndMin() {
-		return substr($this->getEndTime(),-4,-2);
+		$min = substr($this->getEndTime(),-4,-2);
+		if(empty($min)) {
+			return '00';
+		} else {
+			return $min;
+		}
 	}
 	
 //	function setEndTime($duration) {
