@@ -4,13 +4,11 @@ class Subcamp {
 	var $id;
 	var $siteID;
 	var $name;
-	var $districtID;
 	
-	function Subcamp($id, $siteID, $name, $districtID) {
+	function Subcamp($id, $siteID, $name) {
 		$this->id = $id;
 		$this->siteID = $siteID;
 		$this->name = $name;
-		$this->districtID = $districtID;
 	}
 
 	static function cast(Subcamp $subcamp) {

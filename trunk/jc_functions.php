@@ -34,9 +34,9 @@ function user_is_admin() {
 }
 
 function get_cal_unixtime($cal_date, $cal_time) {
-	$hour = substr($cal_time,0,-4);
-	$min = substr($cal_time,-4,-2);
-	$sec = substr($cal_time,-2);
+	$hour = ($cal_time == 0) ? 0 : substr($cal_time,0,-4);
+	$min = ($cal_time == 0) ? 0 : substr($cal_time,-4,-2);
+	$sec = ($cal_time == 0) ? 0 : substr($cal_time,-2);
 	$month = substr($cal_date,4,2);
 	$day = substr($cal_date,6,2);
 	$year = substr($cal_date,0,4);

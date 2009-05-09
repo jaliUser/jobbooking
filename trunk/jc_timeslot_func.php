@@ -30,6 +30,15 @@ function updateTimeslot(Timeslot $t) {
 }
 
 function updateTimeslotNeed($timeslot_id, $person_need) {
+//	$sql = 'SELECT COUNT(id) FROM webcal_entry';
+//	$rows = dbi_get_cached_rows($sql, array($t->jobID, $t->date, $t->startTime, $t->duration));
+//	
+//	if($rows[0][0] > 0) { 
+//		return true;
+//	} else {
+//		return false;		
+//	}
+	
 	if (is_numeric($person_need) && intval($person_need) > 0) {
 		$sql = 'UPDATE webcal_entry SET person_need=? WHERE cal_id=?';
 		dbi_execute($sql, array($person_need, $timeslot_id));
@@ -76,7 +85,7 @@ function getTimeslot($timeslot_id) {
 	return $t;
 }
 
-function isDuplicateTimeslot(Timeslot $t) {
+function existTimeslot(Timeslot $t) {
 	$sql = 'SELECT COUNT(cal_id) FROM webcal_entry WHERE job_id=? AND cal_date=? AND cal_time=? AND cal_duration=?';
 	$rows = dbi_get_cached_rows($sql, array($t->jobID, $t->date, $t->startTime, $t->duration));
 	
@@ -86,5 +95,16 @@ function isDuplicateTimeslot(Timeslot $t) {
 		return false;		
 	}
 }
+
+//function existTimeslotID($timeslot_id) {
+//	$sql = 'SELECT COUNT(cal_id) FROM webcal_entry WHERE ';
+//	$rows = dbi_get_cached_rows($sql, array($t->jobID, $t->date, $t->startTime, $t->duration));
+//	
+//	if($rows[0][0] > 0) { 
+//		return true;
+//	} else {
+//		return false;		
+//	}
+//}
 
 ?>

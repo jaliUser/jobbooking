@@ -97,12 +97,17 @@ function do_update_timeslots() {
 	reject_public_access();
 	global $PHP_SELF;
 	//$temps = list_templates($login);
-	$timeslots = listTimeslots($_POST['job_id']); //$all_groups = list_resource_groups($login);
+	$timeslots = listTimeslots($_POST['job_id']);
 	foreach ($timeslots as $ts) {
 		$person_need = $_POST['timeslot-'.$ts->id];
+//		if () {
+//			
+//		} else {
+//			
+//		}
 		updateTimeslotNeed($ts->id, $person_need);
 	}
-	do_redirect($PHP_SELF.'?action=show_update&job_id='.$_POST['job_id']);
+	//do_redirect($PHP_SELF.'?action=show_update&job_id='.$_POST['job_id']);
 }
 
 function do_create_timeslot() {
@@ -143,7 +148,7 @@ function do_create_timeslot() {
 			$date = $day->getDateYMD();
 			$timeslot = new Timeslot(null, $date, $start_caltime, $duration, $_POST['job_id'], $need_list[$i]);
 			
-			$exist = isDuplicateTimeslot($timeslot);
+			$exist = existTimeslot($timeslot);
 			if ($exist) {
 				echo 'Fejl: Der findes allerede en registrering for det job, på den dag, på det tidspunkt!<br>
 				      Redigér eksisterende registrering i stedet for at oprette en ny.';
