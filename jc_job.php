@@ -23,8 +23,10 @@ function show_list() {
 		}
 		echo "</td> <td>$area->name</td> <td>$job->name</td> <td>$job->description</td> <td>$job->ownerID</td> <td>$job->place</td> <td>$job->notes</td> <td>".jobStatus($job->status)."</td> <td>";
 		if(user_is_admin() || $job->ownerID == $login) {
-			echo "<a href='jc_timeslot.php?action=show_update&job_id=$job->id'>Behov</a> - 
-				<a href='jc_timeslot.php?action=show_signup&job_id=$job->id'>Tilmelding</a>";
+			echo "<a href='jc_timeslot.php?action=show_update&job_id=$job->id'>Behov</a>
+				 - <a href='jc_signup.php?action=show_update&job_id=$job->id'>Tilmelding</a>
+				 - <a href='jc_signup.php?action=show_list&job_id=$job->id'>Tilmeldinger</a>
+				 ";
 		}
 		echo "</td></tr>";
 
@@ -168,7 +170,7 @@ if ($_REQUEST['action'] == 'show_create') {
 } elseif ($_REQUEST['action'] == 'do_delete') {
 	do_delete();
 } else {
-	echo 'Error: Paramers missing!';
+	echo 'Error: Page parameter missing!';
 }
 
 html_bottom();

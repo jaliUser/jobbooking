@@ -31,7 +31,6 @@ function show_list() {
 			<td>$role->name</td>
 			<td>$subcamp->name</td>
 			</tr>";
-
 	}
 	echo '</table>';
 	menu_link();
@@ -205,7 +204,7 @@ if ($_REQUEST['action'] == 'show_create') {
 } elseif ($_REQUEST['action'] == 'do_delete') {
 	do_delete();
 } else {
-	echo 'Error: Paramers missing!';
+	echo 'Error: Page parameter missing!';
 }
 
 html_bottom();

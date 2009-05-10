@@ -8,6 +8,7 @@ class Timeslot {
 	var $duration;
 	var $jobID;
 	var $personNeed;
+	var $remainingNeed; //calcualted (not in DB)
 
 	function Timeslot($id, $date, $startTime, $duration, $jobID, $personNeed) {
 		$this->id = $id;
@@ -15,7 +16,9 @@ class Timeslot {
 		$this->startTime = $startTime;
 		$this->duration = $duration;
 		$this->jobID = $jobID;
-		$this->personNeed = $personNeed;
+		if (!empty($personNeed)) {
+			$this->personNeed = $personNeed; //dont initialise empty value (dbi4php will fail) 
+		}
 	}
 
 	static function cast(Timeslot $timeslot) {
@@ -64,6 +67,14 @@ class Timeslot {
 			return '00';
 		} else {
 			return $min;
+		}
+	}
+	
+	static function isValidPersonNeed($personNeed) {
+		if ((!empty($personNeed) && !is_numeric($personNeed)) || $personNeed < 0) {
+			return false;
+		} else {
+			return true;
 		}
 	}
 	
