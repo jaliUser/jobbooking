@@ -14,6 +14,7 @@ include_once 'jc_role_func.php';
 include_once 'jc_subcamp_func.php';
 include_once 'jc_timeslot_func.php';
 include_once 'jc_user_func.php';
+include_once 'jc_signup_func.php';
 
 include_once 'includes/classes/Area.php';
 include_once 'includes/classes/Day.php';
@@ -44,5 +45,7 @@ $current_user = User::cast(getUser($login));
 if($login != "__public__") {	
 	$current_role = Role::cast(getRole($login));
 }
+
+$phpdbiVerbose = true;
 
 ?>

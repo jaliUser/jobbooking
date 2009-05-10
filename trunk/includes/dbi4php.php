@@ -348,11 +348,12 @@ function dbi_query ( $sql, $fatalOnError = true, $showError = true ) {
     $res = mssql_query ( $sql );
   } elseif ( strcmp ( $GLOBALS['db_type'], 'oracle' ) == 0 ) {
     if ( false === $GLOBALS['oracle_statement'] =
-      OCIParse ( $GLOBALS['oracle_connection'], $sql ) )
+      OCIParse ( $GLOBALS['oracle_connection'], $sql ) ) {
+      error_log("dbi4php: ".dbi_error () ." - SQL: ".$sql);
       dbi_fatal_error ( translate ( 'Error executing query.' )
          . $phpdbiVerbose ? ( dbi_error () . "\n\n<br />\n" . $sql ) : ''
          . '', $fatalOnError, $showError );
-
+    }
     return OCIExecute ( $GLOBALS['oracle_statement'], OCI_COMMIT_ON_SUCCESS );
   } elseif ( strcmp ( $GLOBALS['db_type'], 'postgresql' ) == 0 ) {
     $found_db_type = true;
@@ -371,11 +372,12 @@ function dbi_query ( $sql, $fatalOnError = true, $showError = true ) {
   }
 
   if ( $found_db_type ) {
-    if ( ! $res )
+    if ( ! $res ) {
+      error_log("dbi4php: ".dbi_error () ." - SQL: ".$sql);
       dbi_fatal_error ( translate ( 'Error executing query.' )
          . ( $phpdbiVerbose ? ( dbi_error () . "\n\n<br />\n" . $sql ) : '' ),
         $fatalOnError, $showError );
-
+    }
     return $res;
   } else
     dbi_fatal_error ( 'dbi_query (): ' . translate ( 'db_type not defined.' ) );
