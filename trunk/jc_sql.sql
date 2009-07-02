@@ -125,6 +125,7 @@ CREATE TABLE IF NOT EXISTS `job` (
   `place` varchar(64) NULL,
   `notes` varchar(255) NULL,
   `status` char(1) NOT NULL default 'A' COMMENT 'Waiting/Approved/Deleted',
+  `priority` tinyint(4) NOT NULL DEFAULT 3,
   PRIMARY KEY  (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=10 ;
 
@@ -221,3 +222,14 @@ ALTER TABLE `group`
 -- 
 ALTER TABLE `subcamp`
   ADD CONSTRAINT `subcamp_ibfk_1` FOREIGN KEY (`district_id`) REFERENCES `district` (`id`);
+
+
+CREATE TABLE `jobcategory` (
+`id` TINYINT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
+`name` VARCHAR( 32 ) NOT NULL
+); 
+
+CREATE TABLE `user_jobcategory` (
+`cal_login` VARCHAR( 25 ) NOT NULL ,
+`jobcategory_id` TINYINT NOT NULL
+)

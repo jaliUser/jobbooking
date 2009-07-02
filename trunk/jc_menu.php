@@ -23,6 +23,8 @@ echo '
 	'.($current_role->id == 1 ? '<tr><td><a href="jc_user.php?action=show_list">Vis brugere</a></td></tr>' :'').'
 	
 	<tr><td>-</td></tr>
+	<tr><td><a href="jc_subcamp.php?action=show_list">Underlejre</a></td></tr>
+	<tr><td>-</td></tr>
 	<tr><td><a href="month.php">Kalendervisning</a></td></tr> <!-- goto users startview, e.g. week.php or chosen view -->
 	<tr><td><a href="jc_user.php?action=show_update&amp;login='.$login.'">Rediger egen bruger</a></td></tr> 
 	<tr><td><a href="login.php?action=logout">Log ud</a></td></tr>
