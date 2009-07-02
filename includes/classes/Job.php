@@ -10,8 +10,9 @@ class Job {
 	var $place;
 	var $notes;
 	var $status;
+	var $priority;
 
-	function Job($id, $siteID, $areaID, $ownerID, $name, $description, $place, $notes, $status) {
+	function Job($id, $siteID, $areaID, $ownerID, $name, $description, $place, $notes, $status, $priority) {
 		$this->id = $id;
 		$this->siteID = $siteID;
 		$this->areaID = $areaID;
@@ -21,6 +22,7 @@ class Job {
 		$this->place = $place;
 		$this->notes = $notes;
 		$this->status = $status;
+		$this->priority = $priority;
 	}
 
 	static function cast(Job $job) {

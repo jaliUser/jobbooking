@@ -5,7 +5,7 @@ db_type: mysql
 db_host: localhost
 db_database: see2010jobcenter
 db_login: see2010jobcenter
-db_password: mercedes
+db_password: spejderjobcenter
 db_persistent: false
 readonly: false
 user_inc: user.php

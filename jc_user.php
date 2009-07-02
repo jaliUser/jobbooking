@@ -12,7 +12,7 @@ function show_list() {
 	$users = listUsers($site_id);
 	echo '<h1>Brugerliste</h1>
 		<table align="center" border="1">
-		<tr> <th>Brugernavn</th> <th>Fornavn</th> <th>Efternavn</th> <th>E-mail</th> <th>Telefon</th> <th>Adresse</th> <th>Alder</th> <th>Gruppe</th> <th>Rolle</th> <th>(Underlejr)</th> </tr>';
+		<tr> <th>Brugernavn</th> <th>Fornavn</th> <th>Efternavn</th> <th>Klan/Pladsnr</th> <th>E-mail</th> <th>Telefon</th> <th>Adresse</th> <th>Alder</th> <th>Gruppe</th> <th>Rolle</th> <th>Antal</th> <th>Underlejr</th> <th>Kvalifikationer</th> <th>Noter</th> </tr>';
 	foreach ($users as $user) {
 		$user = User::cast($user);
 		$role = Role::cast(getRole($user->login));
@@ -23,13 +23,17 @@ function show_list() {
 			<td><a href=\"$PHP_SELF?action=show_update&login=$user->login\">$user->login</a></td>
 			<td>$user->firstname</td>
 			<td>$user->lastname</td>
+			<td>$user->title</td>
 			<td>$user->email</td>
 			<td>$user->telephone</td>
 			<td width='50'>$user->address</td>
-			<td>$user->birthday</td>
+			<td>$user->ageRange</td>
 			<td>$group->name</td>
 			<td>$role->name</td>
+			<td>$user->count</td>
 			<td>$subcamp->name</td>
+			<td>$user->qualifications</td>
+			<td>$user->notes</td>
 			</tr>";
 	}
 	echo '</table>';
@@ -41,7 +45,7 @@ function show_create() {
 	global $PHP_SELF, $login, $site_id, $site_name;
 	html_top("$site_name - Opret bruger");
 
-	//generate rolesHTML: if not admin, only show 1 role  
+	//if not admin, only show 1 role  
 	$rolesHTML = '<select name="role_id">';
 	if(user_is_admin()) {
 		$roles = listRoles();
@@ -55,8 +59,7 @@ function show_create() {
 		$rolesHTML .= '<option value="'.$role->id.'">'.$role->name.'</option>';
 	}
 	$rolesHTML .= '</select>';
-	
-	//generate groupsHTML  
+	  
 	$groupsHTML = '<select name="group_id">';
 			$groups = listAllGroups($site_id);
 		foreach ($groups as $group) {
@@ -64,6 +67,13 @@ function show_create() {
 			$groupsHTML .= '<option value="'.$group->id.'">'.$group->name.'</option>';
 		}
 	$groupsHTML .= '</select>';
+
+	$jobcategoryHTML = '';
+	$jobcats = listAllJobCategories($site_id);
+	foreach ($jobcats as $jobcat) {
+		$jobcat = JobCategory::cast($jobcat);
+		$jobcategoryHTML .= '<input type="checkbox" name="jobcategory[]" value="'.$jobcat->id.'">'.$jobcat->name.'</input>&nbsp;&nbsp;';
+	}
 	
 	echo '<h1>Opret bruger</h1>
 		<form action="'.$PHP_SELF.'" method="POST">
@@ -76,9 +86,14 @@ function show_create() {
 		<tr><td>E-mail:</td><td><input type="text" name="email" size="25" maxlength="75" /></td></tr>
 		<tr><td>Telefon (mobil):</td><td><input type="text" name="telephone" size="25" maxlength="50" /> *</td></tr>
 		<tr><td>Adresse/postnr/by:</td><td><input type="text" name="address" size="25" maxlength="75" /> *</td></tr>
-		<tr><td>Alder under lejren:</td><td><input type="text" name="birthday" size="2" maxlength="2" /> *</td></tr>
+		<tr><td>Alder under lejren:</td><td><input type="text" name="age_range" size="10" maxlength="10" /> *</td></tr>
+		<tr><td>Antal:</td><td><input type="text" name="count" size="2" maxlength="3" /> * <span class="help">Hvor mange hjælpere er I?</span></td></tr>
+		<tr><td>Kvalifikationer:</td><td><input type="text" name="qualifications" size="25" maxlength="255" /></td></tr>
+		<tr><td>Klannavn/pladsnr:</td><td><input type="text" name="title" size="25" maxlength="75" /></td></tr>
 		<tr><td>Gruppe:</td><td>'.$groupsHTML.'</td></tr>
 		<tr><td>Rolle:</td><td>'.$rolesHTML.'</td></tr>
+		<tr><td>Foretrukne jobkategorier:</td><td>'.$jobcategoryHTML.'</td></tr>
+		<tr><td>Noter:</td><td><textarea name="notes" cols="50" rows="3"></textarea></td></tr>
 		<tr><td colspan="2" class="help">* markerer et obligatorisk felt</td></tr>
 
 		<tr><td colspan="2"><input type="submit" value="Opret"/></td></tr>
@@ -96,13 +111,15 @@ function show_create() {
 //allow public access
 function do_create() {
 	global $PHP_SELF, $login, $site_id, $site_name;
-	require_params(array($_POST['login'], $_POST['password'], $_POST['lastname'], $_POST['firstname'], $_POST['telephone'], $_POST['address'], $_POST['birthday'], $_POST['role_id']));
+	require_params(array($_POST['login'], $_POST['password'], $_POST['lastname'], $_POST['firstname'], $_POST['telephone'], $_POST['address'], $_POST['age_range'], $_POST['count'], $_POST['role_id']));
 	
-	$user = new User($_POST['login'], null, $_POST['lastname'], $_POST['firstname'], null, $_POST['email'], null, $_POST['telephone'], $_POST['address'], null, $_POST['birthday'], null, $_POST['role_id'], $site_id, $_POST['group_id']);
+	$user = new User($_POST['login'], null, $_POST['lastname'], $_POST['firstname'], null, $_POST['email'], null, $_POST['telephone'], $_POST['address'], $_POST['title'], null, null, $_POST['role_id'], $site_id, $_POST['group_id'], $_POST['count'], $_POST['age_range'], $_POST['qualifications'], $_POST['notes']);
 	$user->setPasswd($_POST['password']);
 	
 	$ok = createUser($user);
 	if ($ok) {
+		updateUserJobCategories($_POST['login'], $_POST['jobcategory']);
+		
 		if($login == "__public__") {
 			do_redirect('login.php');
 		} else {
@@ -132,8 +149,7 @@ function show_update() {
 		$rolesHTML .= '<option value="'.$role->id.'" '.($role->id == $user->roleID ? "selected" : "").'>'.$role->name.'</option>';
 	}
 	$rolesHTML .= '</select>';
-	
-	//generate groupsHTML  
+	  
 	$groupsHTML = '<select name="group_id">';
 	$groups = listAllGroups($site_id);
 	foreach ($groups as $group) {
@@ -141,6 +157,20 @@ function show_update() {
 		$groupsHTML .= '<option value="'.$group->id.'" '.($user->groupID == $group->id ? "selected" : "").'>'.$group->name.'</option>';
 	}
 	$groupsHTML .= '</select>';
+	
+	$jobcategoryHTML = '';
+	$jobcats = listAllJobCategories($site_id);
+	$userJobcats = listUserJobCategories($user->login);
+	foreach ($jobcats as $jobcat) {
+		$jobcat = JobCategory::cast($jobcat);
+		$jobcategoryHTML .= '<input type="checkbox" name="jobcategory[]" value="'.$jobcat->id.'"';
+		foreach ($userJobcats as $userJobcat) {
+			if ($jobcat->id == $userJobcat->id) {
+				$jobcategoryHTML .= ' checked';
+			}
+		}
+		$jobcategoryHTML .= '>'.$jobcat->name.'</input>&nbsp;&nbsp;';
+	}
 	
 	echo '<h1>Rediger bruger</h1>
 		<form action="'.$PHP_SELF.'" method="POST">
@@ -154,14 +184,19 @@ function show_update() {
 		<tr><td>E-mail:</td><td><input type="text" name="email" size="25" maxlength="75" value="'.$user->email.'" /></td></tr>
 		<tr><td>Telefon (mobil):</td><td><input type="text" name="telephone" size="25" maxlength="50" value="'.$user->telephone.'" /> *</td></tr>
 		<tr><td>Adresse/postnr/by:</td><td><input type="text" name="address" size="25" maxlength="75" value="'.$user->address.'" /> *</td></tr>
-		<tr><td>Alder under lejren:</td><td><input type="text" name="birthday" size="2" maxlength="2" value="'.$user->birthday.'" /> *</td></tr>
+		<tr><td>Alder under lejren:</td><td><input type="text" name="age_range" size="10" maxlength="10" value="'.$user->ageRange.'" /> *</td></tr>
+		<tr><td>Antal:</td><td><input type="text" name="count" size="2" maxlength="3" value="'.$user->count.'" /> * <span class="help">Hvor mange hjælpere er I?</span></td></tr>
+		<tr><td>Kvalifikationer:</td><td><input type="text" name="qualifications" size="25" maxlength="255" value="'.$user->qualifications.'" /></td></tr>
+		<tr><td>Klannavn/pladsnr:</td><td><input type="text" name="title" size="25" maxlength="75" value="'.$user->title.'" /></td></tr>
 		<tr><td>Gruppe:</td><td>'.$groupsHTML.'</td></tr>
 		<tr><td>Rolle:</td><td>'.$rolesHTML.'</td></tr>
-			<input type="hidden" name="role_id" value="'.$user->roleID.'" />
+		<tr><td>Foretrukne jobkategorier:</td><td>'.$jobcategoryHTML.'</td></tr>
+		<tr><td>Noter:</td><td><textarea name="notes" cols="50" rows="3">'.$user->notes.'</textarea></td></tr>
 		<tr><td colspan="2" class="help">* markerer et obligatorisk felt</td></tr>
 
 		<tr><td colspan="2"><input type="submit" value="Opdater"/></td></tr>
 		<input type="hidden" name="action" value="do_update">
+		<input type="hidden" name="role_id" value="'.$user->roleID.'" />
 		
 		</table>
 		</form>';
@@ -172,11 +207,12 @@ function show_update() {
 function do_update() {
 	reject_public_access();
 	global $PHP_SELF, $login, $site_id, $site_name;
-	require_params(array($_POST['login'], $_POST['lastname'], $_POST['firstname'], $_POST['telephone'], $_POST['address'], $_POST['birthday'], $_POST['role_id']));
+	require_params(array($_POST['login'], $_POST['lastname'], $_POST['firstname'], $_POST['telephone'], $_POST['address'], $_POST['age_range'], $_POST['count'], $_POST['role_id']));
 	
-	$user = new User($_POST['login'], null, $_POST['lastname'], $_POST['firstname'], null, $_POST['email'], null, $_POST['telephone'], $_POST['address'], null, $_POST['birthday'], null, $_POST['role_id'], $site_id, $_POST['group_id']);
+	$user = new User($_POST['login'], null, $_POST['lastname'], $_POST['firstname'], null, $_POST['email'], null, $_POST['telephone'], $_POST['address'], $_POST['title'], null, null, $_POST['role_id'], $site_id, $_POST['group_id'], $_POST['count'], $_POST['age_range'], $_POST['qualifications'], $_POST['notes']);
 	
 	updateUser($user);
+	updateUserJobCategories($_POST['login'], $_POST['jobcategory']);
 
 	if($_POST['password']) {
 		$user->setPasswd($_POST['password']);

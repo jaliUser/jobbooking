@@ -16,8 +16,12 @@ class User {
 	var $roleID;
 	var $siteID;
 	var $groupID;
+	var $count;
+	var $ageRange;
+	var $qualifications;
+	var $notes;
 	
-	function User($login, $passwd, $lastname, $firstname, $isAdmin, $email, $enabled, $telephone, $address, $title, $birthday, $lastLogin, $roleID, $siteID, $groupID) {
+	function User($login, $passwd, $lastname, $firstname, $isAdmin, $email, $enabled, $telephone, $address, $title, $birthday, $lastLogin, $roleID, $siteID, $groupID, $count, $ageRange, $qualifications, $notes) {
 		$this->login = $login;
 		$this->passwd = $passwd;
 		$this->lastname = $lastname;
@@ -33,6 +37,10 @@ class User {
 		$this->roleID = $roleID;
 		$this->siteID = $siteID;
 		$this->groupID = $groupID;
+		$this->count = $count;
+		$this->ageRange = $ageRange;
+		$this->qualifications = $qualifications;
+		$this->notes = $notes;
 	}
 
 	static function cast(User $user) {
