@@ -45,6 +45,8 @@ function show_create() {
 	global $PHP_SELF, $login, $site_id, $site_name;
 	html_top("$site_name - Opret bruger");
 
+	$site_id = (empty($site_id) ? $_GET['site_id'] : $site_id);
+	
 	//if not admin, only show 1 role  
 	$rolesHTML = '<select name="role_id">';
 	if(user_is_admin()) {
@@ -98,6 +100,7 @@ function show_create() {
 
 		<tr><td colspan="2"><input type="submit" value="Opret"/></td></tr>
 		<input type="hidden" name="action" value="do_create">
+		<input type="hidden" name="site_id" value="'.$site_id.'">
 		
 		</table>
 		</form>';
@@ -110,10 +113,43 @@ function show_create() {
 
 //allow public access
 function do_create() {
-	global $PHP_SELF, $login, $site_id, $site_name;
-	require_params(array($_POST['login'], $_POST['password'], $_POST['lastname'], $_POST['firstname'], $_POST['telephone'], $_POST['address'], $_POST['age_range'], $_POST['count'], $_POST['role_id']));
+	global $PHP_SELF, $login;
+	$error = "";
+	if (strlen($_POST['login']) < 4) {
+		$error .= "Brugernavn skal være mindst 4 karakterer.<br>";
+	} 
+	if (strlen($_POST['password']) < 4) {
+		$error .= "Kodeordet skal være mindst 4 karakterer.<br>";
+	}
+	if (strlen($_POST['lastname']) < 2) {
+		$error .= "Efternavn skal være mindst 2 karakterer.<br>";
+	}
+	if (strlen($_POST['firstname']) < 2) {
+		$error .= "Fornavn skal være mindst 2 karakterer.<br>";
+	}
+	if (strlen($_POST['telephone']) < 8) {
+		$error .= "Telefonnr. skal være mindst 8 karakterer.<br>";
+	}
+	if (strlen($_POST['address']) < 4) {
+		$error .= "Adresse skal være mindst 4 karakterer.<br>";
+	}
+	if (strlen($_POST['age_range']) < 1) {
+		$error .= "Alder skal være mindst 1 karakter.<br>";
+	}
+	if (strlen($_POST['count']) < 1) {
+		$error .= "Antal skal være mindst 1 karakterer.<br>";
+	}
+	if (empty($_POST['site_id'])) {
+		$error .= "SiteID mangler.";
+	}
+	if (!empty($error)) {
+		echo print_error($error);
+		exit;
+	}
 	
-	$user = new User($_POST['login'], null, $_POST['lastname'], $_POST['firstname'], null, $_POST['email'], null, $_POST['telephone'], $_POST['address'], $_POST['title'], null, null, $_POST['role_id'], $site_id, $_POST['group_id'], $_POST['count'], $_POST['age_range'], $_POST['qualifications'], $_POST['notes']);
+	//require_params(array($_POST['login'], $_POST['password'], $_POST['lastname'], $_POST['firstname'], $_POST['telephone'], $_POST['address'], $_POST['age_range'], $_POST['count'], $_POST['role_id'], $_POST['site_id']));
+	
+	$user = new User($_POST['login'], null, $_POST['lastname'], $_POST['firstname'], null, $_POST['email'], null, $_POST['telephone'], $_POST['address'], $_POST['title'], null, null, $_POST['role_id'], $_POST['site_id'], $_POST['group_id'], $_POST['count'], $_POST['age_range'], $_POST['qualifications'], $_POST['notes']);
 	$user->setPasswd($_POST['password']);
 	
 	$ok = createUser($user);

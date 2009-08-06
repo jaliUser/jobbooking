@@ -81,6 +81,7 @@ if ( ! empty ( $return_path ) ) {
 // If Application Name is set to Title then get translation
 // If not, use the Admin defined Application Name
 $appStr =  generate_application_name ();
+// TODO: get site name (appStr) from $site_id (show list?) 
 
 $login = getPostValue ( 'login' );
 $password = getPostValue ( 'password' );
@@ -254,7 +255,7 @@ if ( ! empty ( $return_path ) ) {
 <tr><td colspan="4" class="aligncenter">
  <input type="submit" value="<?php etranslate ( 'Login' )?>" tabindex="4" />
 </td></tr>
-<tr><td colspan="3" align="center" style="font-weight: bold;"><a href="jc_user.php?action=show_create">Opret bruger</a><br /></td></tr>
+<tr><td colspan="3" align="center" style="font-weight: bold;"><a href="jc_user.php?action=show_create&site_id=<?php echo (empty($_REQUEST['site_id']) ? '1' : $_REQUEST['site_id'])?>">Opret bruger</a><br /></td></tr>
 </table>
 </form>
 

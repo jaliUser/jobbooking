@@ -872,6 +872,7 @@ Invalid user login: Ugyldig brugerlogin
 ########################################
 # Page: includes/user-nis.php
 #
+incorrect password: Forkert kodeord
 no such user: bruger findes ikke
 
 ########################################
