@@ -4,11 +4,13 @@ class Day {
 	var $id;
 	var $siteID;
 	var $date;
+	var $time;
 
-	function Day($id, $siteID, $date) {
+	function Day($id, $siteID, $date, $time) {
 		$this->id = $id;
 		$this->site_id = $siteID;
 		$this->date = $date;
+		$this->time = $time;
 	}
 
 	static function cast(Day $day) {
@@ -21,6 +23,11 @@ class Day {
 	
 	function getDateTS() {
 		return strtotime($this->date);
+	}
+	
+	function getTimeHM() {		 
+		$tmp = get_cal_unixtime($this->getDateYMD(), $this->time);
+		return gmdate("H:i", $tmp);
 	}
 	
 }

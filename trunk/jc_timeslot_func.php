@@ -15,16 +15,16 @@ function createTimeslot(Timeslot $t) {
     }
         
 	//auto-increment id
-	$sql = 'INSERT INTO webcal_entry (cal_id, cal_date, cal_time, cal_duration, job_id, person_need, cal_create_by, cal_name) VALUES (?,?,?,?,?,?,?,?)';
-	dbi_execute($sql, array($id, $t->date, $t->startTime, $t->duration, $t->jobID, $t->personNeed, $login, "autogen"));
+	$sql = 'INSERT INTO webcal_entry (cal_id, cal_date, cal_time, cal_duration, job_id, person_need, cal_create_by, cal_name, contact_id) VALUES (?,?,?,?,?,?,?,?,?)';
+	dbi_execute($sql, array($id, $t->date, $t->startTime, $t->duration, $t->jobID, $t->personNeed, $login, "autogen", $t->contactID));
 
 	dbi_clear_cache();
 	//	return $id;
 }
 
 function updateTimeslot(Timeslot $t) {
-	$sql = 'UPDATE webcal_entry SET cal_date, cal_time, cal_duration, job_id, person_need WHERE cal_id=?';
-	dbi_execute($sql, array($t->date, $t->startTime, $t->duration, $t->jobID, $t->personNeed, $t->id));	
+	$sql = 'UPDATE webcal_entry SET cal_date, cal_time, cal_duration, job_id, person_need, contact_id WHERE cal_id=?';
+	dbi_execute($sql, array($t->date, $t->startTime, $t->duration, $t->jobID, $t->personNeed, $t->contactID, $t->id));	
 
 	dbi_clear_cache();
 }
@@ -41,6 +41,18 @@ function updateTimeslotNeed($timeslot_id, $person_need) {
 	dbi_clear_cache();
 }
 
+function updateContact($timeslot_id, $contact_id) {
+	if (!empty($contact_id)) {
+		$sql = 'UPDATE webcal_entry SET contact_id=? WHERE cal_id=?';
+		dbi_execute($sql, array($contact_id, $timeslot_id));
+	} else {
+		$sql = 'UPDATE webcal_entry SET contact_id=NULL WHERE cal_id=?';
+		dbi_execute($sql, array($timeslot_id));
+	}
+
+	dbi_clear_cache();
+}
+
 function deleteTimeslot(Timeslot $t) {
 	$sql = 'DELETE FROM webcal_entry WHERE cal_id=?';
 	dbi_execute($sql, array($t->id));
@@ -49,7 +61,7 @@ function deleteTimeslot(Timeslot $t) {
 }
 
 function listTimeslots($job_id) {
-	$sql = 'SELECT we.cal_id, cal_date, cal_time, cal_duration, job_id, person_need, SUM(count)
+	$sql = 'SELECT we.cal_id, cal_date, cal_time, cal_duration, job_id, person_need, contact_id, SUM(count)
 			FROM webcal_entry we
 			LEFT JOIN webcal_entry_user weu
 			ON we.cal_id=weu.cal_id 
@@ -61,7 +73,7 @@ function listTimeslots($job_id) {
 	$tsArr = array();
 	for ($i=0; $i<count($rows); $i++) { 
 		$row = $rows[$i];		
-		$t = new Timeslot($row[0], $row[1], $row[2], $row[3], $row[4], $row[5]);
+		$t = new Timeslot($row[0], $row[1], $row[2], $row[3], $row[4], $row[5], $row[6]);
 		if ($row[5] != 0) {
 			 $t->remainingNeed = $row[5] - $row[6];
 		}
@@ -89,13 +101,13 @@ function groupTimeslotsByTime($timeslots) {
 }
 
 function getTimeslot($timeslot_id) {
-	$sql = 'SELECT cal_id, cal_date, cal_time, cal_duration, job_id, person_need FROM webcal_entry WHERE cal_id=?';
+	$sql = 'SELECT cal_id, cal_date, cal_time, cal_duration, job_id, person_need, contact_id FROM webcal_entry WHERE cal_id=?';
 	$rows = dbi_get_cached_rows($sql, array($timeslot_id));
 	
 	$t = null;
 	if(count($rows) == 1) { 
 		$row = $rows[0];
-		$t = new Timeslot($row[0], $row[1], $row[2], $row[3], $row[4], $row[5]);
+		$t = new Timeslot($row[0], $row[1], $row[2], $row[3], $row[4], $row[5], $row[6]);
 	}
 	
 	return $t;

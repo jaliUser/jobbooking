@@ -116,7 +116,7 @@ function show_list() {
 		
 	echo "<h1>Tilmeldinger til <i> $job->name</i></h1>";
 	//generate rows for existing timeslots
-	echo '<table name="outer" width="400" align="center" border="0" cellspacing="3" cellpadding="3">';
+	echo '<table name="outer" width="800" align="center" border="0" cellspacing="3" cellpadding="3">';
 
 	$days = listDays($site_id);
 	$signups = listJobSignups($job->id);	
@@ -127,7 +127,7 @@ function show_list() {
 		$firstTS = $distinctTimeArr[0];
 		//build time-row from first TS in distinctTimeArr
 		echo '<tr><td><table name="timeperiod_and_days" border="1" width="100%">
-				<tr><td align="center" style="font-weight:bold">Tidsperiode: '.$firstTS->getStartHour().':'.$firstTS->getStartMin().' - '.$firstTS->getEndHour().':'.$firstTS->getEndMin().'</td></tr>';
+				<tr class="timeperiodheader"><td align="center">Tidsperiode: '.$firstTS->getStartHour().':'.$firstTS->getStartMin().' - '.$firstTS->getEndHour().':'.$firstTS->getEndMin().'</td></tr>';
 		
 		for ($dayNo=0; $dayNo<count($days); $dayNo++) {
 			$timeslot = Timeslot::cast($distinctTimeArr[$dayNo]);
@@ -135,18 +135,27 @@ function show_list() {
 			
 			if (!empty($timeslot->personNeed)) {
 				$day = Day::cast($days[$dayNo]);
+				$contact = User::cast(getUser($timeslot->contactID));
 				echo '<tr><td><table name="day_and_signups" width="100%">
-						<tr><td width="40%" style="font-weight:bold">'.date("D d/m", $day->getDateTS()).'</td>
-							<td width="30%">Behov: '.$timeslot->personNeed.'</td>
-							<td width="30%">Rest: '.$timeslot->remainingNeed.'</td></tr>';				
+						<tr class="timeslotheader">
+							<td width="35%" style="font-weight:bold">'.date("D d/m", $day->getDateTS()).'</td>
+							<td width="10%">Antal</td>	
+							<td width="10%">Behov: '.$timeslot->personNeed.'</td>
+							<td width="10%">Rest: '.$timeslot->remainingNeed.'</td>
+							<td width="35%">Jobkonsulent: '.$contact->firstname.'</td>
+						</tr>';
 			
 				//TODO: use dictionery
 				foreach ($signups as $signup) {
 					$signup = Signup::cast($signup);
 					if ($signup->timeslotID == $timeslot->id) {
 						$user = getUser($signup->userID);
-						echo '<tr><td colspan="2">'.$user->getFullName().'</td>
-								  <td align="right">'.$signup->count.'</td></tr>';
+						echo '<tr><td>'.$user->getFullName().'</td>
+								  <td>'.$signup->count.'</td>
+								  <td>&nbsp;</td>
+								  <td>&nbsp;</td>
+								  <td>&nbsp;</td>
+							  </tr>';
 					}
 				}
 				echo '</table></td></tr>';

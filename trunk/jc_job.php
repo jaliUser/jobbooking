@@ -26,6 +26,7 @@ function show_list() {
 			echo "<a href='jc_timeslot.php?action=show_update&job_id=$job->id'>Behov</a>
 				 - <a href='jc_signup.php?action=show_update&job_id=$job->id'>Tilmelding</a>
 				 - <a href='jc_signup.php?action=show_list&job_id=$job->id'>Tilmeldinger</a>
+				 - <a href='jc_timeslot.php?action=show_assign&job_id=$job->id'>Konsulenter</a>
 				 ";
 		}
 		echo "</td></tr>";
