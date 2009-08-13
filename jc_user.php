@@ -63,7 +63,7 @@ function show_create() {
 	$rolesHTML .= '</select>';
 	  
 	$groupsHTML = '<select name="group_id">';
-			$groups = listAllGroups($site_id);
+		$groups = listAllGroups($site_id);
 		foreach ($groups as $group) {
 			$group = Group::cast($group);
 			$groupsHTML .= '<option value="'.$group->id.'">'.$group->name.'</option>';
@@ -115,8 +115,8 @@ function show_create() {
 function do_create() {
 	global $PHP_SELF, $login;
 	$error = "";
-	if (strlen($_POST['login']) < 4) {
-		$error .= "Brugernavn skal være mindst 4 karakterer.<br>";
+	if (strlen($_POST['login']) < 2) {
+		$error .= "Brugernavn skal være mindst 2 karakterer.<br>";
 	} 
 	if (strlen($_POST['password']) < 4) {
 		$error .= "Kodeordet skal være mindst 4 karakterer.<br>";
@@ -174,8 +174,7 @@ function show_update() {
 	html_top("$site_name - Rediger bruger");
 	require_params(array($_GET['login']));
 	
-	$user = getUser($_GET['login']);
-	$user = User::cast($user);
+	$user = User::cast(getUser($_GET['login']));
 	$role = getRole($user->login);
 	
 	$rolesHTML = '<select name="role_id" disabled>';

@@ -65,3 +65,10 @@ table.help {
 	text-align: left;
 	width: 400px;
 }
+tr.timeslotheader {
+	BACKGROUND-COLOR: silver;
+}
+tr.timeperiodheader {
+	font-weight:bold;
+	background-color: gray;
+}

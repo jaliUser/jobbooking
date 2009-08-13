@@ -8,14 +8,16 @@ class Timeslot {
 	var $duration;
 	var $jobID;
 	var $personNeed;
+	var $contactID;
 	var $remainingNeed; //calcualted (not in DB)
 
-	function Timeslot($id, $date, $startTime, $duration, $jobID, $personNeed) {
+	function Timeslot($id, $date, $startTime, $duration, $jobID, $personNeed, $contactID) {
 		$this->id = $id;
 		$this->date = $date;
 		$this->startTime = $startTime;
 		$this->duration = $duration;
 		$this->jobID = $jobID;
+		$this->contactID = $contactID;
 		if (!empty($personNeed)) {
 			$this->personNeed = $personNeed; //dont initialise empty value (dbi4php will fail) 
 		}
