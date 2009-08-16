@@ -60,14 +60,14 @@ function deleteTimeslot(Timeslot $t) {
 	dbi_clear_cache();
 }
 
-function listTimeslots($job_id) {
+function listTimeslotsOrderBy($job_id, $orderBy) {
 	$sql = 'SELECT we.cal_id, cal_date, cal_time, cal_duration, job_id, person_need, contact_id, SUM(count)
 			FROM webcal_entry we
 			LEFT JOIN webcal_entry_user weu
 			ON we.cal_id=weu.cal_id 
 			WHERE job_id=? 
 			GROUP BY we.cal_id
-			ORDER BY cal_time, cal_duration, cal_date';
+			ORDER BY '.$orderBy;
 	$rows = dbi_get_cached_rows($sql, array($job_id));
 		
 	$tsArr = array();
@@ -75,12 +75,20 @@ function listTimeslots($job_id) {
 		$row = $rows[$i];		
 		$t = new Timeslot($row[0], $row[1], $row[2], $row[3], $row[4], $row[5], $row[6]);
 		if ($row[5] != 0) {
-			 $t->remainingNeed = $row[5] - $row[6];
+			 $t->remainingNeed = $row[5] - $row[7];
 		}
 		$tsArr[] = $t;
 	}
 	
 	return $tsArr;
+}
+
+function listTimeslots($job_id) {
+	return listTimeslotsOrderBy($job_id, "cal_time, cal_duration, cal_date");
+}
+
+function listTimeslotsByDate($job_id) {
+	return listTimeslotsOrderBy($job_id, "cal_date, cal_time, cal_duration");
 }
 
 function groupTimeslotsByTime($timeslots) {
@@ -98,6 +106,23 @@ function groupTimeslotsByTime($timeslots) {
 		$previousTS = $ts;
 	}
 	return $distinctTimes;
+}
+
+function groupTimeslotsByDate($timeslots) {
+	$distinctDays = array();
+	$distinctDaysIdx = -1;
+	$previousTS = null;
+	foreach ($timeslots as $ts) {
+		$ts = Timeslot::cast($ts);
+		if ($ts->date == $previousTS->date) {
+			$distinctDays[$distinctDaysIdx][] = $ts;
+		} else {
+			$distinctDaysIdx++;
+			$distinctDays[$distinctDaysIdx][] = $ts;
+		}
+		$previousTS = $ts;
+	}
+	return $distinctDays;
 }
 
 function getTimeslot($timeslot_id) {

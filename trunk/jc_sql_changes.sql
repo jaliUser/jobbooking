@@ -11,4 +11,5 @@ ADD `job_id` TINYINT NULL,
 ADD `person_need` TINYINT NULL DEFAULT '0' ;
 
 ALTER TABLE `webcal_entry_user`
-ADD `count` INT NULL;
+ADD `count` INT NULL,
+ADD `notes` VARCHAR(255) NULL;

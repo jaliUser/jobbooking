@@ -16,7 +16,7 @@ function show_update() {
 	
 	echo "<h1>Redigér behov for <i> $job->name</i></h1>";
 	//generate rows for existing timeslots
-	echo '<table align="center" border="1" cellspacing="3" cellpadding="3">
+	echo '<table align="center" class="border1">
 		<form action="'.$PHP_SELF.'" method="POST">
 		<tr><th>Tid</th>';
 	$days = listDays($site_id);
@@ -24,8 +24,6 @@ function show_update() {
 	//generate header with days
 	foreach ($days as $day) {
 		$day = Day::cast($day);
-		setlocale(LC_ALL, 'dan');
-		//echo '<th valign="top">'.date("D d/m", $day->getDateTS()));
 		echo '<th valign="top">'.strftime("%a %d/%m", $day->getDateTS());
 		if (!empty($day->time) && $day->date == $days[0]->date) {
 			echo '<br>Tidligst '.$day->getTimeHM();
@@ -49,23 +47,23 @@ function show_update() {
 			$timeslot = Timeslot::cast($distinctTimeArr[$dayNo]);
 			$signup = $signups[$timeslot->id];
 			echo '<td align="center">
-				<input type="text" name="timeslot-'.$timeslot->id.'" value="'.$timeslot->personNeed.'" size="2" maxlength="3"/>
+				<input type="text" name="timeslot-'.$timeslot->id.'" value="'.$timeslot->personNeed.'" size="1" maxlength="3"/>
 				</td>';
 		}
 		echo '</tr>';
 	}
-	echo '<tr><td colspan="'.(count($days)+1).'"><input type="submit" value="Opdatér"/></td></tr>
+	echo '<tr><td colspan="'.(count($days)+1).'"><input type="submit" value="Opdatér"/><br><br></td></tr>
 		<input type="hidden" name="action" value="do_update">
 		<input type="hidden" name="job_id" value="'.$job->id.'">
 		</form>';
 	
 	//show form for creating new timeslot
-	echo '<tr><td colspan="'.(count($days)+1).'">Opret ny tidsperiode: Angiv starttid & sluttid, samt behov på de enkelte dage.</td></tr>';
+	echo '<tr><th colspan="'.(count($days)+1).'">Opret ny tidsperiode: Angiv starttid & sluttid, samt behov på de enkelte dage.</th></tr>';
 	echo '<form action="'.$PHP_SELF.'" method="POST">
 		<tr><td><input type="text" name="start_hour" size="1" maxlength="2" value="00" />:<input type="text" name="start_min" size="1" maxlength="2" value="00" />
 		 - <input type="text" name="end_hour" size="1" maxlength="2" value="00" />:<input type="text" name="end_min" size="1" maxlength="2" value="00" /></td>';
 	for ($i=0; $i<count($days); $i++) {
-		echo '<td align="center"><input type="text" name="person_need-'.$i.'" size="2" maxlength="3" />	</td>';
+		echo '<td align="center"><input type="text" name="person_need-'.$i.'" size="1" maxlength="3" />	</td>';
 	}	
 	echo '</tr>
 		<tr><td colspan="'.(count($days)+1).'"><input type="submit" value="Indsæt"/></td></tr>
@@ -109,7 +107,7 @@ function show_assign() {
 	
 	echo "<h1>Tilknyt jobkonsulenter for <i> $job->name</i></h1>";
 	//generate rows for existing timeslots
-	echo '<table align="center" border="1" cellspacing="3" cellpadding="3">
+	echo '<table align="center" class="border1">
 		<form action="'.$PHP_SELF.'" method="POST">
 		<tr><th>Tid</th>';
 	$days = listDays($site_id);
@@ -127,8 +125,7 @@ function show_assign() {
 	foreach ($groupedTimeslots as $distinctTimeArr) {
 		//build time-row from first TS in distinctTimeArr			
 		$firstTS = $distinctTimeArr[0];
-		echo '<tr><td><input type="text" name="start_hour" size="1" maxlength="2" value="'.$firstTS->getStartHour().'" disabled/>:<input type="text" name="start_min" size="1" maxlength="2" value="'.$firstTS->getStartMin().'" disabled/>
-			        - <input type="text" name="end_hour" size="1" maxlength="2" value="'.$firstTS->getEndHour().'" disabled    />:<input type="text" name="end_min" size="1" maxlength="2" value="'.$firstTS->getEndMin().'" disabled/></td>';
+		echo '<tr><td>'.$firstTS->getStartHour().':'.$firstTS->getStartMin().'-'.$firstTS->getEndHour().':'.$firstTS->getEndMin().'</td>';
 
 		for ($dayNo=0; $dayNo<count($days); $dayNo++) {
 			$timeslot = Timeslot::cast($distinctTimeArr[$dayNo]);
@@ -142,7 +139,7 @@ function show_assign() {
 			}
 			
 			echo '<td align="center">
-				<input type="text" name="timeslot-'.$timeslot->id.'" value="'.$timeslot->personNeed.'" size="2" maxlength="3" disabled/>
+				<input type="text" name="timeslot-'.$timeslot->id.'" value="'.$timeslot->personNeed.'" size="1" maxlength="3" disabled/>
 				<select name="contactID-'.$timeslot->id.'">'.$contactsHTML.'</select>
 				</td>';
 		}

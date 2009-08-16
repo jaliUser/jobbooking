@@ -7,11 +7,11 @@ include_once 'jc_init.php';
 function show_list() {
 	reject_public_access();
 	global $PHP_SELF, $login, $site_id, $site_name;
-	html_top("$site_name - Underlejre");
+	html_top("$site_name - Jobkonsulenter i underlejrene");
 
 	$subcamps = listSubcamps($site_id);
-	echo '<h1>Underlejre</h1>
-		<table align="center" border="1">
+	echo '<h1>Jobkonsulenter i underlejrene</h1>
+		<table align="center" class="border1">
 		<tr> <th>Underlejr</th> <th></th> <th>Jobkonsulent</th> <th>Telefon</th> <th>E-mail</th></tr>';
 	foreach ($subcamps as $subcamp) {
 		$subcamp = Subcamp::cast($subcamp);

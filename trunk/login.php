@@ -297,7 +297,7 @@ if ( $DEMO_MODE == 'Y' ) {
 <span class="cookies"><?php etranslate ( 'cookies-note' )?></span><br />
 <hr />
 <br />
-<a href="<?php echo $PROGRAM_URL ?>" id="programname"><?php echo $PROGRAM_NAME?></a>
+<!--<a href="<?php echo $PROGRAM_URL ?>" id="programname"><?php echo $PROGRAM_NAME?></a>-->
 <?php // Print custom trailer (since we do not call print_trailer function)
 if ( ! empty ( $CUSTOM_TRAILER ) && $CUSTOM_TRAILER == 'Y' ) {
   echo load_template ( $login, 'T' );
