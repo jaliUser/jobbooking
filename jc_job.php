@@ -3,13 +3,21 @@ include_once 'includes/init.php';
 include_once 'jc_init.php';
 //use reject_public_access() in individual functions
 
+function getPlaces() {
+	$places[] = "";
+	$places[] = "Storetorv";
+	$places[] = "Parkeringspladsen";
+	$places[] = "Andet";
+	return $places;
+}
+
 function show_list() {
 	global $PHP_SELF, $login, $site_id, $site_name;
 	html_top($site_name . " - Jobliste");
 
 	$jobs = listJobs($site_id);
 	echo '<h1>Jobliste</h1>
-		<table align="center">
+		<table align="center" class="border1">
 		<tr> <th>ID</th> <th>Område</th> <th>Navn</th> <th>Beskrivelse</th> <th>Kontakt</th> <th>Sted</th> <th>Noter</th> <th>Status</th> <th>Prioritet</th> <th></th> </tr>';
 	foreach ($jobs as $job) {
 		$job = Job::cast($job);
@@ -27,6 +35,7 @@ function show_list() {
 				 - <a href='jc_signup.php?action=show_update&job_id=$job->id'>Tilmelding</a>
 				 - <a href='jc_signup.php?action=show_list&job_id=$job->id'>Tilmeldinger</a>
 				 - <a href='jc_timeslot.php?action=show_assign&job_id=$job->id'>Konsulenter</a>
+				 - <a href='jc_signup.php?action=show_evals&job_id=$job->id'>Eval</a>
 				 ";
 		}
 		echo "</td></tr>";
@@ -68,16 +77,26 @@ function show_create() {
 					<option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option>
 					</select>';
 	
+	$places = getPlaces();
+	$placesHTML = '<select name="place-predef">';
+	foreach ($places as $place) {
+		$placesHTML .= "<option>$place</option>";
+	}
+	$placesHTML .= '</select>'; 
+
 	echo '<h1>Opret job</h1>
 		<form action="'.$PHP_SELF.'" method="POST">
 		<table align="center" border="0" cellspacing="3" cellpadding="3">
 		
 		<tr><td>Ansvarlig:</td><td>'.$ownerHTML.'</td></tr>
 		<tr><td>Område:</td><td>'.$areasHTML.'</td></tr>
-		<tr><td>Navn:</td><td><input type="text" name="name" size="25" maxlength="25" /></td></tr>
-		<tr><td>Beskrivelse af opgaven:</td><td><input type="text" name="description" size="25" maxlength="25" /></td></tr>
-		<tr><td>Mødested:</td><td><input type="text" name="place" size="25" maxlength="25" /></td></tr>
-		<tr><td>Bemærkninger:</td><td><input type="text" name="notes" size="25" maxlength="25" /></td></tr>
+		<tr><td>Navn:</td><td><input type="text" name="name" size="64" maxlength="64" /></td></tr>
+		<tr><td>Beskrivelse af opgaven:</td><td><textarea name="description" cols="48" rows="5"></textarea></td></tr>
+		<tr><td>Mødested:</td><td>'.$placesHTML.' Hvis andet: <input type="text" name="place" size="25" maxlength="25" /></td></tr>
+		<tr><td>Bemærkninger:</td><td><textarea name="notes" cols="48" rows="5">F.eks. noget om:
+- drikkevarer
+- særlig beklædning
+- transport</textarea></td></tr>
 		<tr><td>Status:</td><td>'.$statusHTML.'</td></tr>
 		<tr><td>Prioritet:</td><td>'.$priorityHTML.'</td></tr>
 
@@ -95,7 +114,15 @@ function do_create() {
 	reject_public_access();
 	global $PHP_SELF, $site_id;
 	require_params(array($_REQUEST['area_id'], $_REQUEST['owner_id'], $_REQUEST['name'], $_REQUEST['status'], $_REQUEST['priority']));
-	$job = new Job(null, $site_id, $_REQUEST['area_id'], $_REQUEST['owner_id'], $_REQUEST['name'], $_REQUEST['description'], $_REQUEST['place'], $_REQUEST['notes'], $_REQUEST['status'], $_REQUEST['priority']);
+
+	$place = "";
+	if (!empty($_POST['place-predef'])) {
+		$place = $_POST['place-predef'];
+	} else {
+		$place = $_POST['place'];
+	}
+	
+	$job = new Job(null, $site_id, $_REQUEST['area_id'], $_REQUEST['owner_id'], $_REQUEST['name'], $_REQUEST['description'], $place, $_REQUEST['notes'], $_REQUEST['status'], $_REQUEST['priority']);
 
 	createJob($job);
 	do_redirect($PHP_SELF.'?action=show_list');
@@ -134,7 +161,14 @@ function show_update() {
 	
 	$priorityHTML = '<select name="priority">
 					<option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option>
-					</select>';				
+					</select>';
+	
+	$places = getPlaces();
+	$placesHTML = '<select name="place-predef">';
+	foreach ($places as $place) {
+		$placesHTML .= "<option".($job->place == $place ? ' selected' : '').">$place</option>";
+	}
+	$placesHTML .= '</select>'; 
 
 	echo '<h1>Rediger job</h1>
 		<form action="'.$PHP_SELF.'" method="POST">
@@ -142,10 +176,10 @@ function show_update() {
 		
 		<tr><td>Ansvarlig:</td><td>'.$ownerHTML.'</td></tr>
 		<tr><td>Område:</td><td>'.$areasHTML.'</td></tr>
-		<tr><td>Navn:</td><td><input type="text" name="name" size="25" maxlength="25" value="'.$job->name.'" /></td></tr>
-		<tr><td>Beskrivelse af opgaven:</td><td><input type="text" name="description" size="25" maxlength="25" value="'.$job->description.'" /></td></tr>
-		<tr><td>Mødested:</td><td><input type="text" name="place" size="25" maxlength="25" value="'.$job->place.'" /></td></tr>
-		<tr><td>Bemærkninger:</td><td><input type="text" name="notes" size="25" maxlength="25" value="'.$job->notes.'" /></td></tr>
+		<tr><td>Navn:</td><td><input type="text" name="name" size="64" maxlength="64" value="'.$job->name.'" /></td></tr>
+		<tr><td>Beskrivelse af opgaven:</td><td><textarea name="description" cols="48" rows="5">'.$job->description.'</textarea></td></tr>
+		<tr><td>Mødested:</td><td>'.$placesHTML.' Hvis andet: <input type="text" name="place" size="25" maxlength="25" value="'.$job->place.'" /></td></tr>
+		<tr><td>Bemærkninger:</td><td><textarea name="notes" cols="48" rows="5">'.$job->notes.'</textarea></td></tr>
 		<tr><td>Status:</td><td>'.$statusHTML.'</td></tr>
 		<tr><td>Prioritet:</td><td>'.$priorityHTML.'</td></tr>
 
@@ -162,7 +196,15 @@ function do_update() {
 	reject_public_access();
 	global $PHP_SELF, $site_id;
 	require_params(array($_REQUEST['job_id'], $_REQUEST['area_id'], $_REQUEST['owner_id'], $_REQUEST['name'], $_REQUEST['status'], $_REQUEST['priority']));
-	$job = new Job($_REQUEST['job_id'], $site_id, $_REQUEST['area_id'], $_REQUEST['owner_id'], $_REQUEST['name'], $_REQUEST['description'], $_REQUEST['place'], $_REQUEST['notes'], $_REQUEST['status'], $_REQUEST['priority']);
+	
+	$place = "";
+	if (!empty($_POST['place-predef'])) {
+		$place = $_POST['place-predef'];
+	} else {
+		$place = $_POST['place'];
+	}
+	
+	$job = new Job($_REQUEST['job_id'], $site_id, $_REQUEST['area_id'], $_REQUEST['owner_id'], $_REQUEST['name'], $_REQUEST['description'], $place, $_REQUEST['notes'], $_REQUEST['status'], $_REQUEST['priority']);
 
 	updateJob($job);
 	do_redirect($PHP_SELF.'?action=show_list');
@@ -178,8 +220,6 @@ if ($_REQUEST['action'] == 'show_create') {
 	do_update();
 } elseif ($_REQUEST['action'] == 'show_list') {
 	show_list();
-} elseif ($_REQUEST['action'] == 'do_delete') {
-	do_delete();
 } else {
 	echo 'Error: Page parameter missing!';
 }

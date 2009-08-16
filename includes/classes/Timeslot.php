@@ -72,6 +72,27 @@ class Timeslot {
 		}
 	}
 	
+	function getStartTS() {
+		$hour = ($this->startTime == 0) ? 0 : substr($this->startTime,0,-4);
+		$min = ($this->startTime == 0) ? 0 : substr($this->startTime,-4,-2);
+		$sec = ($this->startTime == 0) ? 0 : substr($this->startTime,-2);
+		$month = substr($this->date,4,2);
+		$day = substr($this->date,6,2);
+		$year = substr($this->date,0,4);
+		return mktime($hour, $min, $sec, $month, $day, $year);
+	}
+	
+	function getEndTS() {
+		$endTime = $this->getEndTime();
+		$hour = ($endTime == 0) ? 0 : substr($endTime,0,-4);
+		$min = ($endTime == 0) ? 0 : substr($endTime,-4,-2);
+		$sec = ($endTime == 0) ? 0 : substr($endTime,-2);
+		$month = substr($this->date,4,2);
+		$day = substr($this->date,6,2);
+		$year = substr($this->date,0,4);
+		return mktime($hour, $min, $sec, $month, $day, $year);
+	}
+		
 	static function isValidPersonNeed($personNeed) {
 		if ((!empty($personNeed) && !is_numeric($personNeed)) || $personNeed < 0) {
 			return false;

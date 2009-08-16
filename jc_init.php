@@ -11,6 +11,7 @@ include_once 'jc_event_func.php';
 include_once 'jc_group_func.php';
 include_once 'jc_job_func.php';
 include_once 'jc_jobcategory_func.php';
+include_once 'jc_qualification_func.php';
 include_once 'jc_role_func.php';
 include_once 'jc_subcamp_func.php';
 include_once 'jc_timeslot_func.php';
@@ -24,6 +25,7 @@ include_once 'includes/classes/Event.class';
 include_once 'includes/classes/Group.php';
 include_once 'includes/classes/Job.php';
 include_once 'includes/classes/JobCategory.php';
+include_once 'includes/classes/Qualification.php';
 include_once 'includes/classes/Role.php';
 include_once 'includes/classes/Subcamp.php';
 include_once 'includes/classes/Timeslot.php';
@@ -49,5 +51,6 @@ if($login != "__public__") {
 }
 
 $phpdbiVerbose = true;
+setlocale(LC_ALL, "dan");
 
 ?>

@@ -11,8 +11,8 @@ function show_list() {
 
 	$users = listUsers($site_id);
 	echo '<h1>Brugerliste</h1>
-		<table align="center" border="1">
-		<tr> <th>Brugernavn</th> <th>Fornavn</th> <th>Efternavn</th> <th>Klan/Pladsnr</th> <th>E-mail</th> <th>Telefon</th> <th>Adresse</th> <th>Alder</th> <th>Gruppe</th> <th>Rolle</th> <th>Antal</th> <th>Underlejr</th> <th>Kvalifikationer</th> <th>Noter</th> </tr>';
+		<table align="center" class="border1">
+		<tr> <th>Brugernavn</th> <th>Fornavn</th> <th>Efternavn</th> <th>Klan/Pladsnr</th> <th>E-mail</th> <th>Telefon</th> <th>Adresse</th> <th>Alder</th> <th>Gruppe</th> <th>Rolle</th> <th>Antal</th> <th>Underlejr</th> <th>Noter</th> </tr>';
 	foreach ($users as $user) {
 		$user = User::cast($user);
 		$role = Role::cast(getRole($user->login));
@@ -32,7 +32,6 @@ function show_list() {
 			<td>$role->name</td>
 			<td>$user->count</td>
 			<td>$subcamp->name</td>
-			<td>$user->qualifications</td>
 			<td>$user->notes</td>
 			</tr>";
 	}
@@ -77,6 +76,13 @@ function show_create() {
 		$jobcategoryHTML .= '<input type="checkbox" name="jobcategory[]" value="'.$jobcat->id.'">'.$jobcat->name.'</input>&nbsp;&nbsp;';
 	}
 	
+	$qualificationHTML = '';
+	$quals = listAllQualifications($site_id);
+	foreach ($quals as $qual) {
+		$qual = Qualification::cast($qual);
+		$qualificationHTML .= '<input type="checkbox" name="qualification[]" value="'.$qual->id.'">'.$qual->name.'</input>&nbsp;&nbsp;';
+	}
+	
 	echo '<h1>Opret bruger</h1>
 		<form action="'.$PHP_SELF.'" method="POST">
 		<table align="center" border="0" cellspacing="3" cellpadding="3">
@@ -86,11 +92,12 @@ function show_create() {
 		<tr><td>Fornavn:</td><td><input type="text" name="firstname" size="25" maxlength="25" /> *</td></tr>
 		<tr><td>Efternavn:</td><td><input type="text" name="lastname" size="25" maxlength="25" /> *</td></tr>
 		<tr><td>E-mail:</td><td><input type="text" name="email" size="25" maxlength="75" /></td></tr>
-		<tr><td>Telefon (mobil):</td><td><input type="text" name="telephone" size="25" maxlength="50" /> *</td></tr>
+		<tr><td>Telefon (helst mobil):</td><td><input type="text" name="telephone" size="25" maxlength="50" /> * <span class="help">Bruges til SMS-service for påmindelse og evt. ændringer af jobs.</span></td></tr>
 		<tr><td>Adresse/postnr/by:</td><td><input type="text" name="address" size="25" maxlength="75" /> *</td></tr>
 		<tr><td>Alder under lejren:</td><td><input type="text" name="age_range" size="10" maxlength="10" /> *</td></tr>
 		<tr><td>Antal:</td><td><input type="text" name="count" size="2" maxlength="3" /> * <span class="help">Hvor mange hjælpere er I?</span></td></tr>
-		<tr><td>Kvalifikationer:</td><td><input type="text" name="qualifications" size="25" maxlength="255" /></td></tr>
+		<tr><td>Kvalifikationer:</td><td>'.$qualificationHTML.'<br><span class="help">Hvis der kr&aelig;ves certifikater, skal disse medbringes på lejren!</span></td></tr>
+		<tr><td>Specielle kvalifikationer:</td><td><input type="text" name="qualifications" size="25" maxlength="255" /></td></tr>
 		<tr><td>Klannavn/pladsnr:</td><td><input type="text" name="title" size="25" maxlength="75" /></td></tr>
 		<tr><td>Gruppe:</td><td>'.$groupsHTML.'</td></tr>
 		<tr><td>Rolle:</td><td>'.$rolesHTML.'</td></tr>
@@ -155,6 +162,7 @@ function do_create() {
 	$ok = createUser($user);
 	if ($ok) {
 		updateUserJobCategories($_POST['login'], $_POST['jobcategory']);
+		updateUserQualifications($_POST['login'], $_POST['qualification']);
 		
 		if($login == "__public__") {
 			do_redirect('login.php');
@@ -207,6 +215,20 @@ function show_update() {
 		$jobcategoryHTML .= '>'.$jobcat->name.'</input>&nbsp;&nbsp;';
 	}
 	
+	$qualificationHTML = '';
+	$quals = listAllQualifications($site_id);
+	$userQuals = listUserQualifications($user->login);
+	foreach ($quals as $qual) {
+		$qual = Qualification::cast($qual);
+		$qualificationHTML .= '<input type="checkbox" name="qualification[]" value="'.$qual->id.'"';
+		foreach ($userQuals as $userQual) {
+			if ($qual->id == $userQual->id) {
+				$qualificationHTML .= ' checked';
+			}
+		}
+		$qualificationHTML .= '>'.$qual->name.'</input>&nbsp;&nbsp;';
+	}
+	
 	echo '<h1>Rediger bruger</h1>
 		<form action="'.$PHP_SELF.'" method="POST">
 		<table align="center" border="0" cellspacing="3" cellpadding="3">
@@ -217,11 +239,12 @@ function show_update() {
 		<tr><td>Fornavn:</td><td><input type="text" name="firstname" size="25" maxlength="25" value="'.$user->firstname.'" /> *</td></tr>
 		<tr><td>Efternavn:</td><td><input type="text" name="lastname" size="25" maxlength="25" value="'.$user->lastname.'" /> *</td></tr>
 		<tr><td>E-mail:</td><td><input type="text" name="email" size="25" maxlength="75" value="'.$user->email.'" /></td></tr>
-		<tr><td>Telefon (mobil):</td><td><input type="text" name="telephone" size="25" maxlength="50" value="'.$user->telephone.'" /> *</td></tr>
+		<tr><td>Telefon (helst mobil):</td><td><input type="text" name="telephone" size="25" maxlength="50" value="'.$user->telephone.'" /> * <span class="help">Bruges til SMS-service for påmindelse og evt. ændringer af jobs.</span></td></tr>
 		<tr><td>Adresse/postnr/by:</td><td><input type="text" name="address" size="25" maxlength="75" value="'.$user->address.'" /> *</td></tr>
 		<tr><td>Alder under lejren:</td><td><input type="text" name="age_range" size="10" maxlength="10" value="'.$user->ageRange.'" /> *</td></tr>
 		<tr><td>Antal:</td><td><input type="text" name="count" size="2" maxlength="3" value="'.$user->count.'" /> * <span class="help">Hvor mange hjælpere er I?</span></td></tr>
-		<tr><td>Kvalifikationer:</td><td><input type="text" name="qualifications" size="25" maxlength="255" value="'.$user->qualifications.'" /></td></tr>
+		<tr><td>Kvalifikationer:</td><td>'.$qualificationHTML.'<br><span class="help">Hvis der kr&aelig;ves certifikater, skal disse medbringes på lejren!</span></td></tr>
+		<tr><td>Specielle kvalifikationer:</td><td><input type="text" name="qualifications" size="25" maxlength="255" value="'.$user->qualifications.'" /></td></tr>
 		<tr><td>Klannavn/pladsnr:</td><td><input type="text" name="title" size="25" maxlength="75" value="'.$user->title.'" /></td></tr>
 		<tr><td>Gruppe:</td><td>'.$groupsHTML.'</td></tr>
 		<tr><td>Rolle:</td><td>'.$rolesHTML.'</td></tr>
@@ -248,6 +271,7 @@ function do_update() {
 	
 	updateUser($user);
 	updateUserJobCategories($_POST['login'], $_POST['jobcategory']);
+	updateUserQualifications($_POST['login'], $_POST['qualification']);
 
 	if($_POST['password']) {
 		$user->setPasswd($_POST['password']);
