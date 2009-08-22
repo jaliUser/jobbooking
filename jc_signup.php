@@ -4,7 +4,7 @@ include_once 'jc_init.php';
 //use reject_public_access() in individual functions
 
 function show_update() {
-	//reject_public_access();
+	reject_public_access();
 	global $PHP_SELF, $login, $site_id, $site_name;
 	html_top($site_name . " - Tilmelding til job");
 	
@@ -17,9 +17,10 @@ function show_update() {
 		$user = User::cast(getUser($login));
 	}
 	
-	echo "<h1>Tilmelding til <i> $job->name</i> for <i>".$user->getFullName()."</i> (".$user->count." pers.)</h1>";
+	echo "<h1>Tilmelding til <i><a href=\"jc_job.php?action=show_one&job_id=$job->id\">$job->name</a></i> for <i><a href=\"jc_user.php?action=show_one&login=$user->login\">".$user->getFullName()."</a></i> (".$user->count." pers.)</h1>".
+		'<p class="help">I kolonnerne <i>Behov</i> kan du se det aktuelle behov for personer til de forskellige tidsperioder. Hvis du eller dit hold ønsker at hjælpe med dette job, udfyld det antal personer du/I kan stille med, for en given tidsperiode. Efter du har klikket på <i>Opdatér</i>, vil du se behovet blive reduceret med det antal personer du har tilmeldt.</p>';
 	//generate rows for existing timeslots
-	echo '<table align="center" class="border1" >
+	echo '<table align="center" class="border1">
 		<form action="'.$PHP_SELF.'" method="POST">
 		<tr><th>Tid</th>';
 	$days = listDays($site_id);
@@ -29,16 +30,21 @@ function show_update() {
 		$day = Day::cast($day);
 		echo '<th>'.strftime("%a %d/%m", $day->getDateTS()).'</th>';
 	}
+	echo '</tr><tr><td>';
 	
-	$signups = listJobUserSignups($job->id, $user->login);	
+	foreach ($days as $day) {
+		echo '<td><table class="border0" width="100%"><tr><td align="center">'.vertical("Behov").'</td><td align="center">'.vertical("Tilmeld").'</td></tr></table></td>';
+	}
+	echo '</tr>';
+	
+	$signups = listJobUserSignups($job->id, $user->login);
 	$timeslots = listTimeslots($job->id);
 	$groupedTimeslots = groupTimeslotsByTime($timeslots);
 	
 	foreach ($groupedTimeslots as $distinctTimeArr) {
 		//build time-row from first TS in distinctTimeArr			
 		$firstTS = $distinctTimeArr[0];
-		echo '<tr><td><input type="text" name="start_hour" size="1" maxlength="2" value="'.$firstTS->getStartHour().'" disabled/>:<input type="text" name="start_min" size="1" maxlength="2" value="'.$firstTS->getStartMin().'" disabled/>
-			        - <input type="text" name="end_hour" size="1" maxlength="2" value="'.$firstTS->getEndHour().'" disabled    />:<input type="text" name="end_min" size="1" maxlength="2" value="'.$firstTS->getEndMin().'" disabled/></td>';
+		echo '<tr><td>'.$firstTS->getStartHour().':'.$firstTS->getStartMin().' - '.$firstTS->getEndHour().':'.$firstTS->getEndMin().'</td>';
 
 		for ($dayNo=0; $dayNo<count($days); $dayNo++) {
 			$timeslot = Timeslot::cast($distinctTimeArr[$dayNo]);
@@ -90,7 +96,7 @@ function show_update() {
 }
 
 function do_update() {
-	//reject_public_access();
+	reject_public_access();
 	global $PHP_SELF;
 	require_params($_POST['job_id'], $_POST['user_id']);
 	$timeslots = listTimeslots($_POST['job_id']);
@@ -117,7 +123,7 @@ function do_update() {
 function show_list() {
 	//reject_public_access();
 	global $PHP_SELF, $login, $site_id, $site_name;
-	require_params(array($_GET['job_id']));
+	require_params(array($_GET['job_id'], $site_id));
 	html_top($site_name . " - Tilmeldinger til job");
 	
 	$job = getJob($_GET['job_id']);
@@ -128,52 +134,53 @@ function show_list() {
 	echo '<table name="outer" width="800" align="center" border="0">';
 
 	$days = listDays($site_id);
-	$signups = listJobSignups($job->id);	
-	$timeslots = listTimeslots($job->id);
-	$groupedTimeslots = groupTimeslotsByTime($timeslots);
-
-	foreach ($groupedTimeslots as $distinctTimeArr) {
-		$firstTS = $distinctTimeArr[0];
-		//build time-row from first TS in distinctTimeArr
-		echo '<tr><td><table name="timeperiods" class="border1" width="100%">
-				<tr><th align="center">Tidsperiode: '.$firstTS->getStartHour().':'.$firstTS->getStartMin().' - '.$firstTS->getEndHour().':'.$firstTS->getEndMin().'</td></tr>';
+	//$signups = listJobSignups($job->id);
+	$timeslots = listTimeslotsByDate($job->id);
+	$groupedTimeslots = groupTimeslotsByDate($timeslots);
+	foreach ($days as $key => $day) {
+		$day = Day::cast($day);
+		$distinctDateArr = $groupedTimeslots[$key];
 		
-		for ($dayNo=0; $dayNo<count($days); $dayNo++) {
-			$timeslot = Timeslot::cast($distinctTimeArr[$dayNo]);
-			$signup = $signups[$timeslot->id];
-			
-			if (!empty($timeslot->personNeed)) {
-				$day = Day::cast($days[$dayNo]);
+		echo '<tr><td><table align="center" class="border1" width="100%">
+			<tr><th width="15%">'.strftime("%a %d/%m", $day->getDateTS()).'</th>
+				<th width="5%">Behov</th>
+				<th width="5%">Rest</th>
+				<th width="15%">Jobkonsulent</th>
+				<th width="30%">Klannavn</th>
+				<th width="10%">Tilmeldt</th>
+			</tr>';
+		
+		foreach ($distinctDateArr as $timeslot) {
+			$timeslot = Timeslot::cast($timeslot);
+			if ($timeslot->personNeed != "" && (empty($_GET['filter']) || $timeslot->remainingNeed > 0)) {
 				$contact = User::cast(getUser($timeslot->contactID));
-				echo '<tr><td><table name="days_in_timeperiod_and_signups_within" class="border1" width="100%">
-						<tr class="timeslotheader">
-							<th width="40%" style="font-weight:bold">'.date("D d/m", $day->getDateTS()).'</th>
-							<td width="10%">Behov: '.$timeslot->personNeed.'</td>
-							<td width="10%">Rest: '.$timeslot->remainingNeed.'</td>
-							<td width="40%">Jobkonsulent: '.$contact->firstname.'</td>
-						</tr>';
-			
-				//TODO: use dictionery
+				echo '<tr class="subth">
+					<td>'.strftime("%H:%M", $timeslot->getStartTS()).strftime("-%H:%M", $timeslot->getEndTS()).'</td>
+					<td>'.$timeslot->personNeed.'</td>
+					<td '.($timeslot->remainingNeed > 0 ? 'class="redalert"':'').'>'.$timeslot->remainingNeed.'</td>
+					<td>'.$contact->firstname.'</td>
+					<td colspan="2"></td>
+			  	  </tr>';
+
+				$signups = listTimeslotSignups($timeslot->id);
 				foreach ($signups as $signup) {
 					$signup = Signup::cast($signup);
-					if ($signup->timeslotID == $timeslot->id) {
-						$user = getUser($signup->userID);
-						echo '<tr><td>'.$user->getFullName().'</td>
-								  <td colspan="3">'.$signup->count.' pers.</td>
-							  </tr>';
-					}
+					$user = getUser($signup->userID);
+					echo "<tr><td colspan=\"4\"><a href=\"jc_user.php?action=show_one&login=$user->login\">".$user->getFullName()."</a></td>
+							<td>$user->title</td>
+							<td>$signup->count</td>
+						</tr>";
 				}
-				echo '</table></td></tr>';
 			}
 		}
-		echo '</table></td></tr><tr><td>&nbsp;</td></tr>';
+		echo '</table></td></tr><tr><td>&nbsp;</td></tr>';	
 	}
 	echo '</table>';
 	menu_link();
 }
 
 function show_evals() {
-	//reject_public_access();
+	reject_public_access();
 	global $PHP_SELF, $login, $site_id, $site_name;
 	html_top($site_name . " - Evaluering af job");
 	
@@ -191,27 +198,28 @@ function show_evals() {
 	
 	foreach ($days as $key => $day) {
 		$day = Day::cast($day);
-		echo '<tr><th>'.strftime("%a %d/%m", $day->getDateTS()).'</th><th>Evalueringer</th><th>Fremmøde</th></tr>';
+		echo '<tr><th>'.strftime("%a %d/%m", $day->getDateTS()).'</th><th>Kommentar</th><th>Tilmeldt</th><th>Fremmødt</th></tr>';
 	
 		$distinctDateTimeslotArr = $groupedTimeslots[$key];
 		foreach ($distinctDateTimeslotArr as $timeslot) {
 			$timeslot = Timeslot::cast($timeslot);
-			echo '<tr><td colspan="3">'.$timeslot->getStartHour().':'.$timeslot->getStartMin().' - '.$timeslot->getEndHour().':'.$timeslot->getEndMin().'</td></tr>';
+			echo '<tr class="subth"><td colspan="4">'.$timeslot->getStartHour().':'.$timeslot->getStartMin().' - '.$timeslot->getEndHour().':'.$timeslot->getEndMin().'</td></tr>';
 			
 			//TODO: use dictionery
 			foreach ($signups as $signup) {
 				$signup = Signup::cast($signup);
 				if ($signup->timeslotID == $timeslot->id) {
 					$user = getUser($signup->userID);
-					echo '<tr><td>'.$user->getFullName().'</td>
+					echo '<tr>'."<td><a href=\"jc_user.php?action=show_one&login=$user->login\">".$user->getFullName()."</a></td>".'
 							  <td><input type="text" name="notes-'.$signup->timeslotID.'~'.$signup->userID.'" value="" size="100" maxlength="255" /></td>
-							  <td><input type="checkbox" name="percent-'.$signup->timeslotID.'~'.$signup->userID.'" /></td></tr>';
+							  <td align="center">'.$signup->count.'</td>
+							  <td align="center"><input type="text" name="percent-'.$signup->timeslotID.'~'.$signup->userID.'" size="1" maxlength="3"/></td></tr>';
 				}
 			}
 		}
 	}
 	
-	echo '<tr><td><input type="submit" value="Opdatér"/></td></tr>
+	echo '<tr><td colspan="4"><input type="submit" value="Opdatér"/></td></tr>
 		<input type="hidden" name="action" value="do_evals">
 		<input type="hidden" name="job_id" value="'.$job->id.'">
 		</form>';
@@ -221,9 +229,9 @@ function show_evals() {
 }
 
 function show_mine() {
-	//reject_public_access();
+	reject_public_access();
 	global $PHP_SELF, $login, $site_id, $site_name;
-	html_top($site_name . " - Jobtilmeldinger");
+	html_top($site_name . " - ". (empty($_GET['show_block'])? "Jobtilmeldinger" : "Blokeringer"));
 	
 	if (!empty($_GET['user_id'])) {
 		$user = User::cast(getUser($_GET['user_id']));
@@ -232,21 +240,21 @@ function show_mine() {
 	}
 
 	$days = listDays($site_id);
-	$signups = listUserSignups($user->login);	
+	$signups = empty($_GET['show_block'])? listUserSignups($user->login) : listUserSignups($user->login, true);	
 	
-	echo "<h1>Jobtilmeldinger for <i>".$user->getFullName()." ($user->login)</i></h1>";
+	echo "<h1>".(empty($_GET['show_block'])? "Jobtilmeldinger" : "Blokeringer")." for <i><a href=\"jc_user.php?action=show_one&login=$user->login\">".$user->getFullName()."</a></i></h1>";
 	echo '<table align="center" class="border1">
-			<tr><th>Dato</th><th>Tid</th><th>Personer</th><th>Job</th></tr>';
+			<tr><th>Dato</th><th>Tid</th><th>Personer</th>'.(empty($_GET['show_block'])? "<th>Job</th>" : "").'</tr>';
 	
 	foreach ($signups as $signup) {
 		$signup = Signup::cast($signup);
 		$timeslot = getTimeslot($signup->timeslotID);
 		$job = getJob($timeslot->jobID);
 		
-		echo '<tr><td>'.strftime("%a %d/%m %H:%M", $timeslot->getStartTS()).'</td>
+		echo '<tr><td>'.strftime("%a %d/%m", $timeslot->getStartTS()).'</td>
 				  <td>'.strftime("%H:%M", $timeslot->getStartTS()).strftime("-%H:%M", $timeslot->getEndTS()).'</td>
 				  <td>'.$signup->count.'</td>
-				  <td>'.$job->name.'</td>
+				  '.(empty($_GET['show_block'])? '<td><a href="jc_job.php?action=show_one&job_id='.$job->id.'">'.$job->name.'</a></td>' : "").'
 				  </tr>';
 	
 	}

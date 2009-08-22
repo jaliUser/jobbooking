@@ -28,6 +28,39 @@ class Job {
 	static function cast(Job $job) {
 		return $job;
 	}
+	
+	function getLongStatus() {
+		switch($this->status) {
+			case 'A':
+				return 'Godkendt';
+			case 'W':
+				return 'Afventer';
+			case 'D':
+				return 'Slettet'; 
+		}
+	}
+	
+	function getShortStatus() {
+		switch($this->status) {
+			case 'A':
+				return 'G';
+			case 'W':
+				return 'A';
+			case 'D':
+				return 'S'; 
+		}
+	}
+	
+	static function jobStatus($status) {
+		switch($status) {
+			case 'A':
+				return 'Godkendt';
+			case 'W':
+				return 'Afventer';
+			case 'D':
+				return 'Slettet'; 
+		}
+	}
 /*	
 	function getID() {
 		return $this->id;

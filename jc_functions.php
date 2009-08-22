@@ -33,6 +33,21 @@ function user_is_admin() {
 	return $current_role->id == 1;
 }
 
+function user_is_employer() {
+	global $current_role;
+	return $current_role->id == 2;
+}
+
+function user_is_helper() {
+	global $current_role;
+	return $current_role->id == 3;
+}
+
+function user_is_subcampcontact() {
+	global $current_role;
+	return $current_role->id == 4;
+}
+
 function get_cal_unixtime($cal_date, $cal_time) {
 	$hour = ($cal_time == 0) ? 0 : substr($cal_time,0,-4);
 	$min = ($cal_time == 0) ? 0 : substr($cal_time,-4,-2);
@@ -72,6 +87,20 @@ function reject_public_access() {
 }
 
 ### GENERAL FUNCTIONS ###
+
+function vertical($text) {
+	if (strpos($_SERVER['HTTP_USER_AGENT'], "MSIE") === false) {
+		$result = "<div align=\"center\">";
+		$chars = str_split($text);
+		foreach ($chars as $char) {
+			$result .= $char."<br/>";
+		}
+		$result .= "</div>";
+		return $result;
+	} else {
+		return "<span style=\"writing-mode: tb-rl; filter: flipV flipH;\">$text</span>";
+	}
+}
 
 function sqlNULL($obj) {
 	if($obj != null) {
