@@ -14,29 +14,48 @@ function getPlaces() {
 function show_list() {
 	global $PHP_SELF, $login, $site_id, $site_name;
 	html_top($site_name . " - Jobliste");
-
-	$jobs = listJobs($site_id);
-	echo '<h1>Jobliste</h1>
+	$role = getRole($login);
+	
+	$jobs = listJobs($site_id, null, null, $_GET['user_id'], $_GET['filter']);
+	if (!empty($_GET['user_id'])) {
+		$title = "<a href=\"jc_user.php?action=show_one&login=".$_GET['user_id']."\">".getUser($_GET['user_id'])->getFullName()."</a>'s jobs";
+	} elseif (!empty($_GET['filter'])) {
+		$title = "Ledige jobs";
+	} else {
+		$title = "Alle jobs";
+	}
+	echo '<h1>'.$title.'</h1>
 		<table align="center" class="border1">
-		<tr> <th>ID</th> <th>Område</th> <th>Navn</th> <th>Beskrivelse</th> <th>Kontakt</th> <th>Sted</th> <th>Noter</th> <th>Status</th> <th>Prioritet</th> <th></th> </tr>';
+		<tr> <th>ID</th> <th>Område</th> <th>Navn</th> <th>Beskrivelse</th> <th>Kontakt</th> <th>Sted</th> <th>Noter</th> '
+		.(!empty($_GET['show_status'])?'<th>Status</th>':'')
+		.(!empty($_GET['show_priority'])?'<th>Prioritet</th>':'')
+		.' <th></th> </tr>';
 	foreach ($jobs as $job) {
 		$job = Job::cast($job);
 		$area = Area::cast(getArea($job->id));
 
-		echo "<tr> <td>";
-		if(user_is_admin() || $job->ownerID == $login) {
-			echo "<a href='$PHP_SELF?action=show_update&job_id=$job->id'>$job->id</a>";
-		} else {
-			echo $job->id;
+		echo "<tr>
+				<td>$job->id</td>
+				<td>$area->name</td>
+				<td>".(user_is_admin() || $job->ownerID == $login ? "<a href='$PHP_SELF?action=show_one&job_id=$job->id'>$job->name</a>" : $job->name)."</td>
+				<td>$job->description</td>
+				<td><a href=\"jc_user.php?action=show_one&login=$job->ownerID\">".getUser($job->ownerID)->getFullName()."</a></td>
+				<td>$job->place</td>
+				<td>$job->notes</td>
+				".(!empty($_GET['show_status'])?"<td title='".$job->getLongStatus()."'>".$job->getShortStatus()."</td>":'')."
+				".(!empty($_GET['show_priority'])?"<td>$job->priority</td>":'')."
+				<td>";
+		if(user_is_helper()) {
+			echo "<a href='jc_signup.php?action=show_update&job_id=$job->id'>Tilmeld</a><br>";
 		}
-		echo "</td> <td>$area->name</td> <td>$job->name</td> <td>$job->description</td> <td>$job->ownerID</td> <td>$job->place</td> <td>$job->notes</td> <td>".jobStatus($job->status)."</td> <td>$job->priority</td> <td>";
 		if(user_is_admin() || $job->ownerID == $login) {
-			echo "<a href='jc_timeslot.php?action=show_update&job_id=$job->id'>Behov</a>
-				 - <a href='jc_signup.php?action=show_update&job_id=$job->id'>Tilmelding</a>
-				 - <a href='jc_signup.php?action=show_list&job_id=$job->id'>Tilmeldinger</a>
-				 - <a href='jc_timeslot.php?action=show_assign&job_id=$job->id'>Konsulenter</a>
-				 - <a href='jc_signup.php?action=show_evals&job_id=$job->id'>Eval</a>
-				 ";
+			echo "<a href='jc_signup.php?action=show_list&job_id=$job->id'>Vis tilmeldinger</a><br>
+				<a href='$PHP_SELF?action=show_update&job_id=$job->id'>Redigér job</a><br>
+				<a href='jc_timeslot.php?action=show_update&job_id=$job->id'>Redigér behov</a><br>";
+		}
+		if(user_is_admin()) {
+			echo "<a href='jc_timeslot.php?action=show_assign&job_id=$job->id'>Redigér jobkonsulenter</a><br>
+				  <a href='jc_signup.php?action=show_evals&job_id=$job->id'>Redigér evalueringer</a>";
 		}
 		echo "</td></tr>";
 
@@ -69,8 +88,8 @@ function show_create() {
 	$ownerHTML .= '</select>';
 	
 	$statusHTML =  '<select name="status">'
-					.(user_is_admin() ? '<option value="A">'.jobStatus('A').'</option>' : '').
-					'<option value="W">'.jobStatus('W').'</option>
+					.(user_is_admin() ? '<option value="A">'.Job::jobStatus('A').'</option>' : '').
+					'<option value="W">'.Job::jobStatus('W').'</option>
 					</select>';
 					
 	$priorityHTML = '<select name="priority">
@@ -155,8 +174,8 @@ function show_update() {
 	$ownerHTML .= '</select>';
 	
 	$statusHTML =  '<select name="status">'
-					.(user_is_admin() ? '<option value="A">'.jobStatus('A').'</option>' : '').
-					'<option value="W">'.jobStatus('W').'</option>
+					.(user_is_admin() ? '<option value="A">'.Job::jobStatus('A').'</option>' : '').
+					'<option value="W">'.Job::jobStatus('W').'</option>
 					</select>';
 	
 	$priorityHTML = '<select name="priority">
@@ -220,6 +239,8 @@ if ($_REQUEST['action'] == 'show_create') {
 	do_update();
 } elseif ($_REQUEST['action'] == 'show_list') {
 	show_list();
+} elseif ($_REQUEST['action'] == 'show_one') {
+	show_update();
 } else {
 	echo 'Error: Page parameter missing!';
 }

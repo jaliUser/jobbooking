@@ -115,7 +115,7 @@ function show_assign() {
 	//generate header with days
 	foreach ($days as $day) {
 		$day = Day::cast($day);
-		echo '<th>'.date("D d/m", $day->getDateTS()).'</th>';
+		echo '<th>'.strftime("%a %d/%m", $day->getDateTS()).'</th>';
 	}
 	
 	$timeslots = listTimeslots($job->id);
@@ -125,7 +125,7 @@ function show_assign() {
 	foreach ($groupedTimeslots as $distinctTimeArr) {
 		//build time-row from first TS in distinctTimeArr			
 		$firstTS = $distinctTimeArr[0];
-		echo '<tr><td>'.$firstTS->getStartHour().':'.$firstTS->getStartMin().'-'.$firstTS->getEndHour().':'.$firstTS->getEndMin().'</td>';
+		echo '<tr><td>'.$firstTS->getStartHour().':'.$firstTS->getStartMin().' - '.$firstTS->getEndHour().':'.$firstTS->getEndMin().'</td>';
 
 		for ($dayNo=0; $dayNo<count($days); $dayNo++) {
 			$timeslot = Timeslot::cast($distinctTimeArr[$dayNo]);

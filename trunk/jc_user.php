@@ -98,7 +98,7 @@ function show_create() {
 		<tr><td>Antal:</td><td><input type="text" name="count" size="2" maxlength="3" /> * <span class="help">Hvor mange hjælpere er I?</span></td></tr>
 		<tr><td>Kvalifikationer:</td><td>'.$qualificationHTML.'<br><span class="help">Hvis der kr&aelig;ves certifikater, skal disse medbringes på lejren!</span></td></tr>
 		<tr><td>Specielle kvalifikationer:</td><td><input type="text" name="qualifications" size="25" maxlength="255" /></td></tr>
-		<tr><td>Klannavn/pladsnr:</td><td><input type="text" name="title" size="25" maxlength="75" /></td></tr>
+		<tr><td>Klan/holdnavn/pladsnr:</td><td><input type="text" name="title" size="25" maxlength="75" /></td></tr>
 		<tr><td>Gruppe:</td><td>'.$groupsHTML.'</td></tr>
 		<tr><td>Rolle:</td><td>'.$rolesHTML.'</td></tr>
 		<tr><td>Foretrukne jobkategorier:</td><td>'.$jobcategoryHTML.'</td></tr>
@@ -245,7 +245,7 @@ function show_update() {
 		<tr><td>Antal:</td><td><input type="text" name="count" size="2" maxlength="3" value="'.$user->count.'" /> * <span class="help">Hvor mange hjælpere er I?</span></td></tr>
 		<tr><td>Kvalifikationer:</td><td>'.$qualificationHTML.'<br><span class="help">Hvis der kr&aelig;ves certifikater, skal disse medbringes på lejren!</span></td></tr>
 		<tr><td>Specielle kvalifikationer:</td><td><input type="text" name="qualifications" size="25" maxlength="255" value="'.$user->qualifications.'" /></td></tr>
-		<tr><td>Klannavn/pladsnr:</td><td><input type="text" name="title" size="25" maxlength="75" value="'.$user->title.'" /></td></tr>
+		<tr><td>Klan/holdnavn/pladsnr:</td><td><input type="text" name="title" size="25" maxlength="75" value="'.$user->title.'" /></td></tr>
 		<tr><td>Gruppe:</td><td>'.$groupsHTML.'</td></tr>
 		<tr><td>Rolle:</td><td>'.$rolesHTML.'</td></tr>
 		<tr><td>Foretrukne jobkategorier:</td><td>'.$jobcategoryHTML.'</td></tr>
@@ -286,6 +286,66 @@ function do_update() {
 	}
 }
 
+function show_one() {
+	reject_public_access();
+	global $PHP_SELF, $login, $site_id, $site_name;
+	html_top("$site_name - Vis bruger");
+	require_params(array($_GET['login']));
+	
+	$user = getUser($_GET['login']);
+	$role = getRole($user->login);
+	
+	$jobcategoryHTML = '';
+	$jobcats = listAllJobCategories($site_id);
+	$userJobcats = listUserJobCategories($user->login);
+	foreach ($jobcats as $jobcat) {
+		$jobcat = JobCategory::cast($jobcat);
+		$jobcategoryHTML .= '<input type="checkbox" disabled name="jobcategory[]" value="'.$jobcat->id.'"';
+		foreach ($userJobcats as $userJobcat) {
+			if ($jobcat->id == $userJobcat->id) {
+				$jobcategoryHTML .= ' checked';
+			}
+		}
+		$jobcategoryHTML .= '>'.$jobcat->name.'</input>&nbsp;&nbsp;';
+	}
+	
+	$qualificationHTML = '';
+	$quals = listAllQualifications($site_id);
+	$userQuals = listUserQualifications($user->login);
+	foreach ($quals as $qual) {
+		$qual = Qualification::cast($qual);
+		$qualificationHTML .= '<input type="checkbox" disabled name="qualification[]" value="'.$qual->id.'"';
+		foreach ($userQuals as $userQual) {
+			if ($qual->id == $userQual->id) {
+				$qualificationHTML .= ' checked';
+			}
+		}
+		$qualificationHTML .= '>'.$qual->name.'</input>&nbsp;&nbsp;';
+	}
+	
+	echo '<h1>Vis bruger</h1>
+		<table align="center" class="border1">
+		<tr><td>Brugernavn:</td><td>'.$user->login.'</td></tr>
+		<tr><td>Fornavn:</td><td>'.$user->firstname.'</td></tr>
+		<tr><td>Efternavn:</td><td>'.$user->lastname.'</td></tr>
+		<tr><td>E-mail:</td><td>'.$user->email.'</td></tr>
+		<tr><td>Telefon:</td><td>'.$user->telephone.'</td></tr>
+		<tr><td>Adresse/postnr/by:</td><td>'.$user->address.'</td></tr>
+		<tr><td>Alder under lejren:</td><td>'.$user->ageRange.'</td></tr>
+		<tr><td>Antal:</td><td>'.$user->count.'</td></tr>
+		<tr><td>Kvalifikationer:</td><td>'.$qualificationHTML.'</td></tr>
+		<tr><td>Specielle kvalifikationer:</td><td>'.$user->qualifications.'</td></tr>
+		<tr><td>Klan/holdnavn/pladsnr:</td><td>'.$user->title.'</td></tr>
+		<tr><td>Gruppe:</td><td>'.getGroup($user->groupID)->name.'</td></tr>
+		<tr><td>Underlejr:</td><td>'.getSubcampForUser($user->login)->name.'</td></tr>
+		<tr><td>Rolle:</td><td>'.$role->name.'</td></tr>
+		<tr><td>Foretrukne jobkategorier:</td><td>'.$jobcategoryHTML.'</td></tr>
+		<tr><td>Noter:</td><td>'.$user->notes.'</td></tr>
+		</table>';
+
+	menu_link();
+}
+
 if ($_REQUEST['action'] == 'show_create') {
 	show_create();
 } elseif ($_REQUEST['action'] == 'do_create') {
@@ -298,6 +358,8 @@ if ($_REQUEST['action'] == 'show_create') {
 	show_list();
 } elseif ($_REQUEST['action'] == 'do_delete') {
 	do_delete();
+} elseif ($_REQUEST['action'] == 'show_one') {
+	show_one();
 } else {
 	echo 'Error: Page parameter missing!';
 }

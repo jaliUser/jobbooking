@@ -36,11 +36,19 @@ h3 {
 .help {
 	font-size: 10px;
 }
+p.help {
+	font-size: 10px;
+	text-align: justify;
+	width: 600px;
+	margin-left:auto;
+	margin-right:auto;
+}
 table.help {
 	font-size: 10px;
 	text-align: left;
 	width: 400px;
 }
+
 table.border1 {
 	border-width: 1px;
 	border-spacing: 0px;
@@ -53,7 +61,7 @@ table.border1 td {
 	padding: 2px;
 	border-style: solid;
 	border-color: black;
-	background-color: white;
+	/*background-color: white;*/
 }
 table.border1 th {
 	border-width: 1px;
@@ -62,13 +70,29 @@ table.border1 th {
 	border-color: black;
 	background-color: silver;
 }
-th.subth {
-	background-color: red;
+
+table.border0 {
+	border-width: 0px;
+	border-spacing: 0px;
+	border-collapse: collapse;
 }
-tr.timeslotheader {
+table.border0 td {
+	border-width: 0px;
+	padding: 2px;
+}
+table.border0 th {
+	border-width: 0px;
+	padding: 2px;
 	background-color: silver;
 }
-tr.timeperiodheader {
-	font-weight:bold;
-	background-color: gray;
+tr.subth {
+	background-color: khaki;
+}
+.redalert {
+	color: red;
+	/*background-color: red;
+}
+.verticaltext {
+	writing-mode: tb-rl;
+	filter: flipV flipH;
 }

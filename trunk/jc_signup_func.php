@@ -63,11 +63,10 @@ function listJobSignups($job_id) {
 
 function listTimeslotSignups($timeslot_id) {
 	$sql = 'SELECT cal_id, cal_login, cal_status, cal_category, cal_percent, count, notes
-			FROM webcal_entry 
-			WHERE cal_id=?
-			ORDER BY cal_id';
-	$rows = dbi_get_cached_rows($sql, array($job_id));
-	
+			FROM webcal_entry_user 
+			WHERE cal_id=?';
+	$rows = dbi_get_cached_rows($sql, array($timeslot_id));
+
 	$signupArr = array(); 
 	for ($i=0; $i<count($rows); $i++) { 
 		$row = $rows[$i];		
@@ -78,11 +77,11 @@ function listTimeslotSignups($timeslot_id) {
 	return $signupArr;
 }
 
-function listUserSignups($user_id) {
+function listUserSignups($user_id, $show_negative=false) {
 	$sql = 'SELECT s.cal_id, s.cal_login, s.cal_status, s.cal_category, s.cal_percent, s.count, s.notes
-			FROM webcal_entry_user s, webcal_entry e 
+			FROM webcal_entry_user s, webcal_entry e, job j 
 			WHERE s.cal_login=?
-			AND s.cal_id=e.cal_id
+			AND s.cal_id=e.cal_id AND j.id=e.job_id AND j.id '.($show_negative==true? '<0' : '>0').'
 			ORDER BY e.cal_date, e.cal_time';
 	$rows = dbi_get_cached_rows($sql, array($user_id));
 	
