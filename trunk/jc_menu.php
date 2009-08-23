@@ -12,23 +12,27 @@ echo '
 	<h1>'.$site_name.' - Menu</h1>
 	<h3>Du er logget ind som: <i>'.$current_user->getFullName().' ('.$login.')</i> - ['.$current_role->name.']</h3>
 	<table border="0" cellpadding="2" cellspacing="3" align="left">
-	'.($current_role->id == 1 ? '' :'').'
 	<tr><th align="left">Handling</th><th></th></tr>
 	
-	'.($current_role->id != 3 ? '<tr><td><a href="jc_job.php?action=show_create">Opret jobopslag</a></td><td class="help"></td></tr>' :'').'
+	'.(!user_is_helper() ? '<tr><td><a href="jc_job.php?action=show_create">Opret jobopslag</a></td><td class="help"></td></tr>' :'').'
 	<tr><td><a href="jc_job.php?action=show_list">Vis alle jobopslag</a></td><td class="help"></td></tr>
 	<tr><td><a href="jc_job.php?action=show_list&filter=vacant">Vis ledige jobopslag</a></td><td class="help"></td></tr>
-	'.($current_role->id != 3 ? '<tr><td><a href="jc_job.php?action=show_list&user_id='.$login.'">Vis mine jobopslag</a></td><td class="help"></td></tr>' :'').'
+	'.(!user_is_helper() ? '<tr><td><a href="jc_job.php?action=show_list&user_id='.$login.'">Vis mine jobopslag</a></td><td class="help"></td></tr>' :'').'
 	
-	'.($current_role->id == 3 ? '<tr><td colspan="2">-</td></tr>
+	'.(user_is_helper() ? '<tr><td colspan="2">-</td></tr>
 	<tr><td><a href="jc_signup.php?action=show_update&job_id=-1">Redigér mine blokeringer</a></td><td class="help">Perioder hvor du/I ikke kan blive tildelt arbejde</td></tr>
 	<tr><td><a href="jc_signup.php?action=show_mine&show_block=1">Vis mine blokeringer</a></td><td class="help"></td></tr>
 	<tr><td><a href="jc_signup.php?action=show_mine">Vis mine jobtilmeldinger</a></td><td class="help"></td></tr>
 	' :'').'
 	
-	'.($current_role->id == 1 ? '<tr><td colspan="2">-</td></tr>' :'').'
-	'.($current_role->id == 1 ? '<tr><td><a href="jc_user.php?action=show_create">Opret bruger</a></td><td class="help"></td></tr>' :'').'
-	'.($current_role->id == 1 ? '<tr><td><a href="jc_user.php?action=show_list">Vis brugere</a></td><td class="help"></td></tr>' :'').'
+	'.(user_is_admin() || user_is_consultant() ? '<tr><td colspan="2">-</td></tr>
+	<tr><td><a href="jc_timeslot.php?action=show_mine&user_id='.$login.'">Vis mine tildelte tidsperioder</a></td><td class="help"></td></tr>
+	<tr><td><a href="jc_timeslot.php?action=show_unassigned">Vis ikke-tildelte tidsperioder</a></td><td class="help"></td></tr>
+	' :'').'
+	
+	'.(user_is_admin() ? '<tr><td colspan="2">-</td></tr>' :'').'
+	'.(user_is_admin() ? '<tr><td><a href="jc_user.php?action=show_create">Opret bruger</a></td><td class="help"></td></tr>' :'').'
+	'.(user_is_admin() ? '<tr><td><a href="jc_user.php?action=show_list">Vis brugere</a></td><td class="help"></td></tr>' :'').'
 	
 	<tr><td colspan="2">-</td></tr>
 	<tr><td><a href="jc_subcamp.php?action=show_list">Vis jobkonsulenter i underlejrene</a></td><td class="help"></td></tr>

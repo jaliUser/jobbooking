@@ -1,5 +1,31 @@
 <?php
 
+function show_user_table($headertext, $link, $users) {
+	global $site_id; 
+	echo '<h3>'.$headertext.':</h3>
+		<table align="center" class="border1">
+		<tr> <th>Brugernavn</th> <th>Fornavn</th> <th>Efternavn</th> <th>E-mail</th> <th>Telefon</th> <th>Alder</th> <th>Gruppe</th> <th>Underlejr</th> <th>Rolle</th> </tr>';
+	foreach ($users as $user) {
+		$user = User::cast($user);
+		$role = Role::cast(getRole($user->login));
+		$group = getGroup($user->groupID);
+		$subcamp = getSubcampForUser($user->login); 
+
+		echo "<tr> 
+			<td><a href=\"$link&user_id=$user->login\">$user->login</a></td>
+			<td><a href=\"jc_user.php?action=show_one&login=$user->login\">$user->firstname</a></td>
+			<td>$user->lastname</td>
+			<td>$user->email</td>
+			<td>$user->telephone</td>
+			<td>$user->birthday</td>
+			<td>$group->name</td>
+			<td>$subcamp->name</td>
+			<td>$role->name</td>
+			</tr>";
+	}
+	echo '</table>';	
+}
+
 function valid_time($hour, $min) {
 if ((is_numeric($hour) && $hour >= 0 && $hour <= 23) &&
 	(is_numeric($min) && $min >= 0 && $min <= 59)) {
@@ -43,7 +69,7 @@ function user_is_helper() {
 	return $current_role->id == 3;
 }
 
-function user_is_subcampcontact() {
+function user_is_consultant() {
 	global $current_role;
 	return $current_role->id == 4;
 }

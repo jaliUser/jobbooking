@@ -7,19 +7,21 @@ class Job {
 	var $ownerID;
 	var $name;
 	var $description;
-	var $place;
+	var $meetplace;
+	var $jobplace;
 	var $notes;
 	var $status;
 	var $priority;
 
-	function Job($id, $siteID, $areaID, $ownerID, $name, $description, $place, $notes, $status, $priority) {
+	function Job($id, $siteID, $areaID, $ownerID, $name, $description, $meetplace, $jobplace, $notes, $status, $priority) {
 		$this->id = $id;
 		$this->siteID = $siteID;
 		$this->areaID = $areaID;
 		$this->ownerID = $ownerID;
 		$this->name = $name;
 		$this->description = $description;
-		$this->place = $place;
+		$this->meetplace = $meetplace;
+		$this->jobplace = $jobplace;
 		$this->notes = $notes;
 		$this->status = $status;
 		$this->priority = $priority;
@@ -60,40 +62,8 @@ class Job {
 			case 'D':
 				return 'Slettet'; 
 		}
-	}
-/*	
-	function getID() {
-		return $this->id;
-	}
+	}	
 	
-	function getSiteID() {
-		return $this->siteID;
-	}
-	
-	function getAreaID() {
-		return $this->areaID;
-	}
-	
-	function getOwnerID() {
-		return $this->ownerID;
-	}
-	
-	function getName() {
-		return $this->name;
-	}
-	
-	function getDescription() {
-		return $this->description;
-	}
-	
-	function getPlace() {
-		return $this->place;
-	}
-	
-	function getNotes() {
-		return $this->notes;
-	}
-*/	
 }
 
 ?>

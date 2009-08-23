@@ -5,8 +5,10 @@ include_once 'jc_init.php';
 
 function getPlaces() {
 	$places[] = "";
-	$places[] = "Storetorv";
-	$places[] = "Parkeringspladsen";
+	$places[] = "Nørreport";
+	$places[] = "Østerport";
+	$places[] = "Sønderport";
+	$places[] = "Vesterport";
 	$places[] = "Andet";
 	return $places;
 }
@@ -26,7 +28,7 @@ function show_list() {
 	}
 	echo '<h1>'.$title.'</h1>
 		<table align="center" class="border1">
-		<tr> <th>ID</th> <th>Område</th> <th>Navn</th> <th>Beskrivelse</th> <th>Kontakt</th> <th>Sted</th> <th>Noter</th> '
+		<tr> <th>ID</th> <th>Område</th> <th>Navn</th> <th>Beskrivelse</th> <th>Kontakt</th> <th>Mødested</th> <th>Jobsted</th> <th>Noter</th> '
 		.(!empty($_GET['show_status'])?'<th>Status</th>':'')
 		.(!empty($_GET['show_priority'])?'<th>Prioritet</th>':'')
 		.' <th></th> </tr>';
@@ -40,7 +42,8 @@ function show_list() {
 				<td>".(user_is_admin() || $job->ownerID == $login ? "<a href='$PHP_SELF?action=show_one&job_id=$job->id'>$job->name</a>" : $job->name)."</td>
 				<td>$job->description</td>
 				<td><a href=\"jc_user.php?action=show_one&login=$job->ownerID\">".getUser($job->ownerID)->getFullName()."</a></td>
-				<td>$job->place</td>
+				<td>$job->meetplace</td>
+				<td>$job->jobplace</td>
 				<td>$job->notes</td>
 				".(!empty($_GET['show_status'])?"<td title='".$job->getLongStatus()."'>".$job->getShortStatus()."</td>":'')."
 				".(!empty($_GET['show_priority'])?"<td>$job->priority</td>":'')."
@@ -54,8 +57,8 @@ function show_list() {
 				<a href='jc_timeslot.php?action=show_update&job_id=$job->id'>Redigér&nbsp;behov</a><br>";
 		}
 		if(user_is_admin()) {
-			echo "<a href='jc_timeslot.php?action=show_assign&job_id=$job->id'>Redigér jobkonsulenter</a><br>
-				  <a href='jc_signup.php?action=show_evals&job_id=$job->id'>Redigér evalueringer</a>";
+			echo "<a href='jc_timeslot.php?action=show_assign&job_id=$job->id'>Tilknyt&nbsp;jobkonsulenter</a><br>
+				  <a href='jc_signup.php?action=show_evals&job_id=$job->id'>Redigér&nbsp;evalueringer</a>";
 		}
 		echo "</td></tr>";
 
@@ -75,15 +78,19 @@ function show_create() {
 	foreach ($areas as $area) {
 		$area = Area::cast($area);
 		$areasHTML .= '<option value="'.$area->id.'">'.$area->description.' ('.$area->name.')</option>';
-	}
+	}	
 	$areasHTML .= '</select>';
 
 	//generate html for users with employer role
 	$ownerHTML = '<select name="owner_id">';
-	$users = listUsers($site_id, 2);
-	foreach ($users as $user) {
-		$user = User::cast($user);
-		$ownerHTML .= '<option value="'.$user->login.'">'.$user->getFullName().'</option>';
+	if (user_is_admin()) {
+		$users = listUsers($site_id, 2);
+		foreach ($users as $user) {
+			$user = User::cast($user);
+			$ownerHTML .= '<option value="'.$user->login.'">'.$user->getFullName().'</option>';
+		}
+	} else {
+		$ownerHTML .= '<option value="'.$login.'">'.getUser($login)->getFullName().'</option>';
 	}
 	$ownerHTML .= '</select>';
 	
@@ -97,11 +104,17 @@ function show_create() {
 					.'</select>';
 	
 	$places = getPlaces();
-	$placesHTML = '<select name="place-predef">';
+	$meetplacesHTML = '<select name="meetplace-predef">';
 	foreach ($places as $place) {
-		$placesHTML .= "<option>$place</option>";
+		$meetplacesHTML .= "<option>$place</option>";
 	}
-	$placesHTML .= '</select>'; 
+	$meetplacesHTML .= '</select>';
+	
+	$jobplacesHTML = '<select name="jobplace-predef">';
+	foreach ($places as $place) {
+		$jobplacesHTML .= "<option>$place</option>";
+	}
+	$jobplacesHTML .= '</select>'; 
 
 	echo '<h1>Opret job</h1>
 		<form action="'.$PHP_SELF.'" method="POST">
@@ -109,15 +122,17 @@ function show_create() {
 		
 		<tr><td>Ansvarlig:</td><td>'.$ownerHTML.'</td></tr>
 		<tr><td>Område:</td><td>'.$areasHTML.'</td></tr>
-		<tr><td>Navn:</td><td><input type="text" name="name" size="64" maxlength="64" /></td></tr>
-		<tr><td>Beskrivelse af opgaven:</td><td><textarea name="description" cols="48" rows="5"></textarea></td></tr>
-		<tr><td>Mødested:</td><td>'.$placesHTML.' Hvis andet: <input type="text" name="place" size="25" maxlength="25" /></td></tr>
+		<tr><td>Navn:</td><td><input type="text" name="name" size="64" maxlength="64" /> *</td></tr>
+		<tr><td>Beskrivelse af opgaven:</td><td><textarea name="description" cols="48" rows="5"></textarea> *</td></tr>
+		<tr><td>Mødested:</td><td>'.$meetplacesHTML.' Hvis andet: <input type="text" name="meetplace" size="25" maxlength="25" /> *</td></tr>
+		<tr><td>Jobsted:</td><td>'.$jobplacesHTML.' Hvis andet: <input type="text" name="jobplace" size="25" maxlength="25" /> <span class="help">Udfyldes kun hvis forskelligt fra mødested.</span></td></tr>
 		<tr><td>Bemærkninger:</td><td><textarea name="notes" cols="48" rows="5">F.eks. noget om:
 - drikkevarer
 - særlig beklædning
 - transport</textarea></td></tr>
 		<tr><td>Status:</td><td>'.$statusHTML.'</td></tr>
 		<tr><td>Prioritet:</td><td>'.$priorityHTML.'</td></tr>
+		<tr><td colspan="2" class="help">* markerer et obligatorisk felt</td></tr>
 
 		<tr><td colspan="2"><input type="submit" value="Opret"/></td></tr>
 		<input type="hidden" name="action" value="do_create">
@@ -132,16 +147,50 @@ function show_create() {
 function do_create() {
 	reject_public_access();
 	global $PHP_SELF, $site_id;
-	require_params(array($_REQUEST['area_id'], $_REQUEST['owner_id'], $_REQUEST['name'], $_REQUEST['status'], $_REQUEST['priority']));
 
-	$place = "";
-	if (!empty($_POST['place-predef'])) {
-		$place = $_POST['place-predef'];
+	$meetplace = "";
+	if (!empty($_POST['meetplace-predef'])) {
+		$meetplace = $_POST['meetplace-predef'];
 	} else {
-		$place = $_POST['place'];
+		$meetplace = $_POST['meetplace'];
 	}
 	
-	$job = new Job(null, $site_id, $_REQUEST['area_id'], $_REQUEST['owner_id'], $_REQUEST['name'], $_REQUEST['description'], $place, $_REQUEST['notes'], $_REQUEST['status'], $_REQUEST['priority']);
+	$jobplace = "";
+	if (!empty($_POST['jobplace-predef'])) {
+		$jobplace = $_POST['jobplace-predef'];
+	} else {
+		$jobplace = $_POST['jobplace'];
+	}
+	
+	//require_params(array($_REQUEST['area_id'], $_REQUEST['owner_id'], $_REQUEST['name'], $_REQUEST['meetplace'], $_REQUEST['status'], $_REQUEST['priority']));
+	$error = "";
+	if (empty($_POST['area_id'])) {
+		$error .= "Intet område valgt.<br>";
+	} 
+	if (empty($_POST['owner_id'])) {
+		$error .= "Ingen ansvarlig valgt.<br>";
+	}
+	if (strlen($_POST['name']) < 4) {
+		$error .= "Jobnavn skal være mindst 4 karakterer.<br>";
+	}
+	if (strlen($_POST['description']) < 10) {
+		$error .= "Jobbeskrivelsen skal være mindst 10 karakterer.<br>";
+	}
+	if (strlen($meetplace) < 2) {
+		$error .= "Mødested skal være mindst 2 karakterer.<br>";
+	}
+	if (empty($_POST['status'])) {
+		$error .= "Ingen status valgt.<br>";
+	}
+	if (empty($_POST['priority'])) {
+		$error .= "Ingen prioritet valgt.<br>";
+	}
+	if (!empty($error)) {
+		echo print_error($error);
+		exit;
+	}
+	
+	$job = new Job(null, $site_id, $_REQUEST['area_id'], $_REQUEST['owner_id'], $_REQUEST['name'], $_REQUEST['description'], $meetplace, $jobplace, $_REQUEST['notes'], $_REQUEST['status'], $_REQUEST['priority']);
 
 	createJob($job);
 	do_redirect($PHP_SELF.'?action=show_list');
@@ -166,10 +215,14 @@ function show_update() {
 
 	//generate html for users with employer role
 	$ownerHTML = '<select name="owner_id">';
-	$users = listUsers($site_id, 2);
-	foreach ($users as $user) {
-		$user = User::cast($user);
-		$ownerHTML .= '<option value="'.$user->login.'" '.($user->login == $job->ownerID ? "selected" : "").'>'.$user->getFullName().'</option>';
+	if (user_is_admin()) {
+		$users = listUsers($site_id, 2);
+		foreach ($users as $user) {
+			$user = User::cast($user);
+			$ownerHTML .= '<option value="'.$user->login.'" '.($user->login == $job->ownerID ? "selected" : "").'>'.$user->getFullName().'</option>';
+		}
+	} else {
+		$ownerHTML .= '<option value="'.$login.'">'.getUser($login)->getFullName().'</option>';
 	}
 	$ownerHTML .= '</select>';
 	
@@ -183,11 +236,17 @@ function show_update() {
 					.'</select>';
 	
 	$places = getPlaces();
-	$placesHTML = '<select name="place-predef">';
+	$meetplacesHTML = '<select name="meetplace-predef">';
 	foreach ($places as $place) {
-		$placesHTML .= "<option".($job->place == $place ? ' selected' : '').">$place</option>";
+		$meetplacesHTML .= "<option>$place</option>";
 	}
-	$placesHTML .= '</select>'; 
+	$meetplacesHTML .= '</select>'; 
+	
+	$jobplacesHTML = '<select name="jobplace-predef">';
+	foreach ($places as $place) {
+		$jobplacesHTML .= "<option>$place</option>";
+	}
+	$jobplacesHTML .= '</select>'; 
 
 	echo '<h1>Rediger job</h1>
 		<form action="'.$PHP_SELF.'" method="POST">
@@ -195,12 +254,14 @@ function show_update() {
 		
 		<tr><td>Ansvarlig:</td><td>'.$ownerHTML.'</td></tr>
 		<tr><td>Område:</td><td>'.$areasHTML.'</td></tr>
-		<tr><td>Navn:</td><td><input type="text" name="name" size="64" maxlength="64" value="'.$job->name.'" /></td></tr>
-		<tr><td>Beskrivelse af opgaven:</td><td><textarea name="description" cols="48" rows="5">'.$job->description.'</textarea></td></tr>
-		<tr><td>Mødested:</td><td>'.$placesHTML.' Hvis andet: <input type="text" name="place" size="25" maxlength="25" value="'.$job->place.'" /></td></tr>
+		<tr><td>Navn:</td><td><input type="text" name="name" size="64" maxlength="64" value="'.$job->name.'" /> *</td></tr>
+		<tr><td>Beskrivelse af opgaven:</td><td><textarea name="description" cols="48" rows="5">'.$job->description.'</textarea> *</td></tr>
+		<tr><td>Mødested:</td><td>'.$meetplacesHTML.' Hvis andet: <input type="text" name="meetplace" size="25" maxlength="25" value="'.$job->meetplace.'" /> *</td></tr>
+		<tr><td>Jobsted:</td><td>'.$jobplacesHTML.' Hvis andet: <input type="text" name="jobplace" size="25" maxlength="25" value="'.$job->jobplace.'" /> <span class="help">Udfyldes kun hvis forskelligt fra mødested.</span></td></tr>
 		<tr><td>Bemærkninger:</td><td><textarea name="notes" cols="48" rows="5">'.$job->notes.'</textarea></td></tr>
 		<tr><td>Status:</td><td>'.$statusHTML.'</td></tr>
 		<tr><td>Prioritet:</td><td>'.$priorityHTML.'</td></tr>
+		<tr><td colspan="2" class="help">* markerer et obligatorisk felt</td></tr>
 
 		<tr><td colspan="2"><input type="submit" value="Opdater"/></td></tr>
 		<tr><td colspan="2"><a href="jc_timeslot.php?action=show_update&job_id='.$job->id.'">Rediger behov</a></td></tr>
@@ -214,20 +275,79 @@ function show_update() {
 function do_update() {
 	reject_public_access();
 	global $PHP_SELF, $site_id;
-	require_params(array($_REQUEST['job_id'], $_REQUEST['area_id'], $_REQUEST['owner_id'], $_REQUEST['name'], $_REQUEST['status'], $_REQUEST['priority']));
-	
-	$place = "";
-	if (!empty($_POST['place-predef'])) {
-		$place = $_POST['place-predef'];
+
+	$meetplace = "";
+	if (!empty($_POST['meetplace-predef'])) {
+		$meetplace = $_POST['meetplace-predef'];
 	} else {
-		$place = $_POST['place'];
+		$meetplace = $_POST['meetplace'];
 	}
 	
-	$job = new Job($_REQUEST['job_id'], $site_id, $_REQUEST['area_id'], $_REQUEST['owner_id'], $_REQUEST['name'], $_REQUEST['description'], $place, $_REQUEST['notes'], $_REQUEST['status'], $_REQUEST['priority']);
+	$jobplace = "";
+	if (!empty($_POST['jobplace-predef'])) {
+		$jobplace = $_POST['jobplace-predef'];
+	} else {
+		$jobplace = $_POST['jobplace'];
+	}
+	
+	//require_params(array($_REQUEST['job_id'], $_REQUEST['area_id'], $_REQUEST['owner_id'], $_REQUEST['name'], $_REQUEST['meetplace'], $_REQUEST['status'], $_REQUEST['priority']));
+	$error = "";
+	if (empty($_POST['job_id'])) {
+		$error .= "JobID mangler.<br>";
+	}
+	if (empty($_POST['area_id'])) {
+		$error .= "Intet område valgt.<br>";
+	} 
+	if (empty($_POST['owner_id'])) {
+		$error .= "Ingen ansvarlig valgt.<br>";
+	}
+	if (strlen($_POST['name']) < 4) {
+		$error .= "Jobnavn skal være mindst 4 karakterer.<br>";
+	}
+	if (strlen($_POST['description']) < 10) {
+		$error .= "Jobbeskrivelsen skal være mindst 10 karakterer.<br>";
+	}
+	if (strlen($meetplace) < 2) {
+		$error .= "Mødested skal være mindst 2 karakterer.<br>";
+	}
+	if (empty($_POST['status'])) {
+		$error .= "Ingen status valgt.<br>";
+	}
+	if (empty($_POST['priority'])) {
+		$error .= "Ingen prioritet valgt.<br>";
+	}
+	if (!empty($error)) {
+		echo print_error($error);
+		exit;
+	}
+	
+	$job = new Job($_REQUEST['job_id'], $site_id, $_REQUEST['area_id'], $_REQUEST['owner_id'], $_REQUEST['name'], $_REQUEST['description'], $meetplace, $jobplace, $_REQUEST['notes'], $_REQUEST['status'], $_REQUEST['priority']);
 
 	updateJob($job);
 	do_redirect($PHP_SELF.'?action=show_list');
 }
+
+function show_one() {
+	reject_public_access();
+	global $PHP_SELF, $login, $site_id, $site_name;
+	html_top($site_name . " - Vis job");
+
+	$job = getJob($_GET['job_id']);
+	$job = Job::cast($job);
+	
+	echo '<h1>Vis job <i>'.$job->name.'</i></h1>
+		<table align="center" class="border1">
+		<tr><th align="left">Ansvarlig:</th><td><a href="jc_user.php?action=show_one&login='.$job->ownerID.'">'.getUser($job->ownerID)->getFullName().'</a></td></tr>
+		<tr><th align="left">Område:</th><td>'.getArea($job->id)->description.' ('.getArea($job->id)->name.')</td></tr>
+		<tr><th align="left">Beskrivelse af opgaven:</th><td>'.$job->description.'</td></tr>
+		<tr><th align="left">Mødested:</th><td>'.$job->meetplace.'</td></tr>
+		<tr><th align="left">Jobsted:</th><td>'.$job->jobplace.'</td></tr>
+		<tr><th align="left">Bemærkninger:</th><td>'.$job->notes.'</td></tr>
+		<tr><th align="left">Status:</th><td>'.$job->getLongStatus().'</td></tr>
+		</table>';
+	menu_link();
+}
+
 
 if ($_REQUEST['action'] == 'show_create') {
 	show_create();
@@ -240,7 +360,7 @@ if ($_REQUEST['action'] == 'show_create') {
 } elseif ($_REQUEST['action'] == 'show_list') {
 	show_list();
 } elseif ($_REQUEST['action'] == 'show_one') {
-	show_update();
+	show_one();
 } else {
 	echo 'Error: Page parameter missing!';
 }
