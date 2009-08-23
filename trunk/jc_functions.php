@@ -72,7 +72,7 @@ function html_bottom() {
 }
 
 function menu_link() {
-	echo '<a href="jc_menu.php">Hovedmenu</a> | <a onclick="javascript:history.back()">Tilbage</a>';
+	echo '<br/><a href="jc_menu.php">Hovedmenu</a> | <a onclick="javascript:history.back()">Tilbage</a>';
 }
 
 function back_link() {

@@ -625,6 +625,8 @@ cookies-note: <b>OBS:</b> Dette program kræver at cookies er slået til i browser
 # Page: login.php
 #
 Invalid login: Ugyldig login
+You have been logged out.: Du er blevet logget ud.
+Not yet registered? Register here!: Endnu ikke registreret? Registrér dig her!
 
 ########################################
 # Page: nonusers.php
