@@ -66,30 +66,7 @@ function show_update() {
 	
 	// show user list for admins
 	if (user_is_admin()) {
-			$users = listUsers($site_id);
-		echo '<h3>Vælg bruger der skal tilmeldes for:</h3>
-			<table align="center" class="border1">
-			<tr> <th>Brugernavn</th> <th>Fornavn</th> <th>Efternavn</th> <th>E-mail</th> <th>Telefon</th> <th>Adresse</th> <th>Alder</th> <th>Gruppe</th> <th>Rolle</th> <th>(Underlejr)</th> </tr>';
-		foreach ($users as $user) {
-			$user = User::cast($user);
-			$role = Role::cast(getRole($user->login));
-			$group = getGroup($user->groupID);
-			$subcamp = getSubcampForUser($user->login); 
-	
-			echo "<tr> 
-				<td><a href=\"$PHP_SELF?action=show_update&user_id=$user->login&job_id=$job->id\">$user->login</a></td>
-				<td>$user->firstname</td>
-				<td>$user->lastname</td>
-				<td>$user->email</td>
-				<td>$user->telephone</td>
-				<td width='50'>$user->address</td>
-				<td>$user->birthday</td>
-				<td>$group->name</td>
-				<td>$role->name</td>
-				<td>$subcamp->name</td>
-				</tr>";
-		}
-		echo '</table>';		 
+		show_user_table("Vælg bruger der skal tilmeldes for", "$PHP_SELF?action=show_update&job_id=$job->id", listUsers($site_id));
 	}
 	
 	menu_link();
@@ -98,19 +75,31 @@ function show_update() {
 function do_update() {
 	reject_public_access();
 	global $PHP_SELF;
-	require_params($_POST['job_id'], $_POST['user_id']);
+	//require_params($_POST['job_id'], $_POST['user_id']);
+	$error = "";
+	if (empty($_POST['job_id'])) {
+		$error .= "JobID mangler.<br>";
+	}
+	if (empty($_POST['user_id'])) {
+		$error .= "BrugerID mangler.";
+	}
+	if (!empty($error)) {
+		echo print_error($error);
+		exit;
+	}
+	
 	$timeslots = listTimeslots($_POST['job_id']);
 	foreach ($timeslots as $ts) {
 		$ts = Timeslot::cast($ts);
 		if (!Signup::isValidCount($_POST['signup-'.$ts->id])) {
-			echo "Fejl: Ugyldigt antal!";
+			echo print_error("Ugyldigt antal for ".date("d/m H:i", $ts->getStartTS()).date(" - H:i", $ts->getEndTS()));
 			exit;
 		}
 		
 		$signup = new Signup($ts->id, $_POST['user_id'], 'A', null, 0, $_POST['signup-'.$ts->id], $_POST['notes-'.$ts->id]);
 		//TODO: check available count
 		if ($signup->count > 0 && !isUserFree($signup->userID, $ts)) {
-			echo "Fejl: Brugeren er optaget i tidsperioden ". $ts->date." ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()."<br>";
+			echo print_error("Brugeren er optaget af andet job eller blokering i tidsperioden ". $ts->date." ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin());
 			exit; 
 		} else {
 			createUpdateDeleteSignup($signup);

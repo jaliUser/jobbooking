@@ -1,13 +1,9 @@
 <?php
 include_once 'includes/init.php';
 include_once 'jc_init.php';
-//use reject_public_access() in individual functions
-
-//$tooEarly = 'Fejl: Starttidspunktet for '.$day->date.' ligger før det tidligst mulige.';
-//$tooLate = 'Fejl: Sluttidspunktet for '.$day->date.' ligger efter det senest mulige.';
+reject_public_access();
 
 function show_update() {
-	reject_public_access();
 	global $PHP_SELF, $login, $site_id, $site_name;
 	html_top($site_name . " - Rediger behov");
 
@@ -76,20 +72,20 @@ function show_update() {
 }
 
 function do_update() {
-	reject_public_access();
 	global $PHP_SELF, $site_id;
 	$days = listDays($site_id);
 	$firstDay = Day::cast($days[0]);
 	$lastDay = Day::cast($days[count($days)-1]);
 	$timeslots = listTimeslots($_POST['job_id']);
+	// no validation, just remove person_need if non-numeric or negative
 	foreach ($timeslots as $ts) {
 		$ts = Timeslot::cast($ts);		
 		if ($ts->date == $firstDay->getDateYMD() && $_POST['timeslot-'.$ts->id] > 0 && $ts->startTime < $firstDay->time) {
-			echo 'Fejl: Starttidspunktet for '.$ts->date.' '.$ts->getStartHour().':'.$ts->getStartMin().' ligger før det tidligst mulige.';
+			echo print_error('Starttidspunktet for '.$ts->date.' '.$ts->getStartHour().':'.$ts->getStartMin().' ligger før det tidligst mulige.');
 			exit;
 		}
 		if ($ts->date == $lastDay->getDateYMD() && $_POST['timeslot-'.$ts->id] > 0 && $ts->getEndTime() > $lastDay->time) {
-			echo 'Fejl: Sluttidspunktet for '.$ts->date.' '.$ts->getEndHour().':'.$ts->getEndMin().' ligger efter det senest mulige.';
+			echo print_error('Sluttidspunktet for '.$ts->date.' '.$ts->getEndHour().':'.$ts->getEndMin().' ligger efter det senest mulige.');
 			exit;
 		}
 		updateTimeslotNeed($ts->id, $_POST['timeslot-'.$ts->id]);
@@ -98,7 +94,6 @@ function do_update() {
 }
 
 function show_assign() {
-	reject_public_access();
 	global $PHP_SELF, $login, $site_id, $site_name;
 	html_top($site_name . " - Tilknyt jobkonsulenter");
 
@@ -155,7 +150,6 @@ function show_assign() {
 }
 
 function do_assign() {
-	reject_public_access();
 	global $PHP_SELF;
 	$timeslots = listTimeslots($_POST['job_id']);
 	foreach ($timeslots as $ts) {
@@ -165,32 +159,22 @@ function do_assign() {
 }
 
 function do_create() {
-	reject_public_access();
 	global $PHP_SELF, $site_id, $login;
-	//require_params();
-	
-	$days = listDays($site_id);
 	
 	$start_hour = $_POST['start_hour'];
 	$start_min = $_POST['start_min'];
 	$end_hour = $_POST['end_hour'];
 	$end_min = $_POST['end_min'];
 	if (!valid_time($start_hour, $start_min) || !valid_time($end_hour, $end_min)) {
-		echo "Fejl: Ugyldig tidsperiode!";
+		echo print_error("Ugyldig tidsperiode!");
 		exit;
 	}
-	
-	for ($i=0; $i<count($days); $i++) {
-		if (!Timeslot::isValidPersonNeed($_POST['person_need-'.$i])) {
-			echo "Fejl: Ugyldigt behov for dag ".($i+1)."!";
-			exit;
-		}
-	}
-	
+		
 	$start_caltime = get_caltime($start_hour, $start_min);
 	$end_caltime = get_caltime($end_hour, $end_min);
 	$duration = get_calduration($start_caltime, $end_caltime);
 	
+	$days = listDays($site_id);
 	$j = getJob($_POST['job_id']);
 	$j = Job::cast($j);
 	
@@ -199,17 +183,22 @@ function do_create() {
 		$day = $days[$i];
 		$date = $day->getDateYMD();
 		$timeslot = new Timeslot(null, $date, $start_caltime, $duration, $_POST['job_id'], $_POST['person_need-'.$i], null);
+		//if (!empty($_POST['person_need-'.$i]) && !is_numeric($_POST['person_need-'.$i])) {
+		if (!Timeslot::isValidPersonNeed($_POST['person_need-'.$i])) {
+			echo print_error('Behovet for '.$day->date.' er ikke et tal!');
+			exit;	
+		}
 		if ($i == 0 && $_POST['person_need-'.$i] > 0 && $start_caltime < $day->time) {
-			echo 'Fejl: Starttidspunktet for '.$day->date.' ligger før det tidligst mulige.';
+			echo print_error('Starttidspunktet for '.$day->date.' ligger før det tidligst mulige.');
 			exit;
 		}
 		if ($i == count($days)-1 && $_POST['person_need-'.$i] > 0 && $end_caltime > $day->time) {
-			echo 'Fejl: Sluttidspunktet for '.$day->date.' ligger efter det senest mulige.';
+			echo print_error('Sluttidspunktet for '.$day->date.' ligger efter det senest mulige.');
 			exit;
 		}
 		if (existTimeslot($timeslot)) {
-			echo 'Fejl: Der findes allerede en registrering for det job, på den dag, på det tidspunkt!<br>
-			      Redigér eksisterende registrering i stedet for at oprette en ny.';
+			echo print_error('Der findes allerede en registrering for det job, på den dag, på det tidspunkt!<br>
+			      Redigér eksisterende registrering i stedet for at oprette en ny.');
 			exit;
 		}
 	}
@@ -226,6 +215,69 @@ function do_create() {
 	do_redirect($PHP_SELF.'?action=show_update&job_id='.$_POST['job_id']);
 }
 
+function show_mine() {
+	global $PHP_SELF, $login, $site_id, $site_name;
+	html_top($site_name . " - Mine tidsperioder");
+	
+	$contact = getUser($_GET['user_id']);
+	if ($contact->login == null) {
+		echo print_error("Brugernavn <i>".$_GET['user_id']."</i> eksisterer ikke!");
+		exit();
+	}
+	$timeslots = listTimeslotsForContact($contact->login);
+	
+	echo "<h1>Tidsperioder tildelt <i>".$contact->getFullName()."</i></h1>";
+	echo '<table align="center" class="border1">
+			<th>Dato</th> <th>Tid</th> <th>Job</th> <th>Behov</th> <th>Rest</th>';
+	
+	foreach ($timeslots as $timeslot) {
+		$timeslot = Timeslot::cast($timeslot);
+		$job = getJob($timeslot->jobID);
+		echo '<tr>
+				<td>'.date("d/m", $timeslot->getStartTS()).'</td>
+				<td>'.date("H:i", $timeslot->getStartTS()).date(" - H:i", $timeslot->getEndTS()).'</td>
+				<td>'.$job->name.'</td>
+				<td>'.$timeslot->personNeed.'</td>
+				<td '.($timeslot->remainingNeed > 0 ? 'class="redalert"':'').'>'.$timeslot->remainingNeed.'</td>';
+		echo '</tr>';
+	}
+	echo '</table>';
+	
+	// show user list for admins
+	if (user_is_admin()) {
+		show_user_table("Vælg bruger at se tildelte tidsperioder for", "$PHP_SELF?action=show_mine", listUsers($site_id, 4));
+	}
+	
+	menu_link();
+}
+
+function show_unassigned() {
+	global $PHP_SELF, $login, $site_id, $site_name;
+	html_top($site_name . " - Ikke-tildelte tidsperioder");
+	
+	$timeslots = listTimeslotsUnassigned($site_id);
+	
+	echo "<h1>Ikke-tildelte tidsperioder</h1>";
+	echo '<table align="center" class="border1">
+			<th>Dato</th> <th>Tid</th> <th>Job</th> <th>Behov</th> <th>Rest</th> <th></th>';
+	
+	foreach ($timeslots as $timeslot) {
+		$timeslot = Timeslot::cast($timeslot);
+		$job = getJob($timeslot->jobID);
+		echo '<tr>
+				<td>'.date("d/m", $timeslot->getStartTS()).'</td>
+				<td>'.date("H:i", $timeslot->getStartTS()).date(" - H:i", $timeslot->getEndTS()).'</td>
+				<td><a href="jc_job.php?action=show_one&job_id='.$timeslot->jobID.'">'.$job->name.'</a></td>
+				<td>'.$timeslot->personNeed.'</td>
+				<td '.($timeslot->remainingNeed > 0 ? 'class="redalert"':'').'>'.$timeslot->remainingNeed.'</td>
+				<td><a href="jc_timeslot.php?action=show_assign&job_id='.$timeslot->jobID.'">Tildel</a></td>';
+		echo '</tr>';
+	}		
+	echo '</table>';
+		
+	menu_link();
+}
+
 if ($_REQUEST['action'] == 'show_update') {
 	show_update();
 } elseif ($_REQUEST['action'] == 'do_create') {
@@ -236,6 +288,10 @@ if ($_REQUEST['action'] == 'show_update') {
 	do_assign();
 } elseif ($_REQUEST['action'] == 'do_update') {
 	do_update();
+} elseif ($_REQUEST['action'] == 'show_mine') {
+	show_mine();
+} elseif ($_REQUEST['action'] == 'show_unassigned') {
+	show_unassigned();
 } else {
 	echo 'Error: Page parameter missing!';
 }

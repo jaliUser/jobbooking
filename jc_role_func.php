@@ -46,7 +46,7 @@ function getRole($login) {
 }
 
 function listRoles() {
-	$sql = 'SELECT id, name FROM role';
+	$sql = 'SELECT id, name FROM role ORDER BY id';
 	$rows = dbi_get_cached_rows($sql, array());
 	
 	$roles = array(); 

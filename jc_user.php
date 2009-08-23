@@ -58,6 +58,8 @@ function show_create() {
 		$roles = listRoles();
 		$role = Role::cast($roles[2]);
 		$rolesHTML .= '<option value="'.$role->id.'">'.$role->name.'</option>';
+		$role = Role::cast($roles[1]);
+		$rolesHTML .= '<option value="'.$role->id.'">'.$role->name.'</option>';
 	}
 	$rolesHTML .= '</select>';
 	  
@@ -121,6 +123,7 @@ function show_create() {
 //allow public access
 function do_create() {
 	global $PHP_SELF, $login;
+	//require_params(array($_POST['login'], $_POST['password'], $_POST['lastname'], $_POST['firstname'], $_POST['telephone'], $_POST['address'], $_POST['age_range'], $_POST['count'], $_POST['role_id'], $_POST['site_id']));
 	$error = "";
 	if (strlen($_POST['login']) < 2) {
 		$error .= "Brugernavn skal være mindst 2 karakterer.<br>";
@@ -143,8 +146,8 @@ function do_create() {
 	if (strlen($_POST['age_range']) < 1) {
 		$error .= "Alder skal være mindst 1 karakter.<br>";
 	}
-	if (strlen($_POST['count']) < 1) {
-		$error .= "Antal skal være mindst 1 karakterer.<br>";
+	if (strlen($_POST['count']) < 1 || !is_numeric($_POST['count'])) {
+		$error .= "Antal skal være et tal og mindst 1 ciffer.<br>";
 	}
 	if (empty($_POST['site_id'])) {
 		$error .= "SiteID mangler.";
@@ -153,8 +156,6 @@ function do_create() {
 		echo print_error($error);
 		exit;
 	}
-	
-	//require_params(array($_POST['login'], $_POST['password'], $_POST['lastname'], $_POST['firstname'], $_POST['telephone'], $_POST['address'], $_POST['age_range'], $_POST['count'], $_POST['role_id'], $_POST['site_id']));
 	
 	$user = new User($_POST['login'], null, $_POST['lastname'], $_POST['firstname'], null, $_POST['email'], null, $_POST['telephone'], $_POST['address'], $_POST['title'], null, null, $_POST['role_id'], $_POST['site_id'], $_POST['group_id'], $_POST['count'], $_POST['age_range'], $_POST['qualifications'], $_POST['notes']);
 	$user->setPasswd($_POST['password']);
@@ -265,7 +266,36 @@ function show_update() {
 function do_update() {
 	reject_public_access();
 	global $PHP_SELF, $login, $site_id, $site_name;
-	require_params(array($_POST['login'], $_POST['lastname'], $_POST['firstname'], $_POST['telephone'], $_POST['address'], $_POST['age_range'], $_POST['count'], $_POST['role_id']));
+	//require_params(array($_POST['login'], $_POST['lastname'], $_POST['firstname'], $_POST['telephone'], $_POST['address'], $_POST['age_range'], $_POST['count'], $_POST['role_id']));
+	$error = "";
+	if (strlen($_POST['login']) < 2) {
+		$error .= "Brugernavn skal være mindst 2 karakterer.<br>";
+	} 
+	if (!empty($_POST['password']) && strlen($_POST['password']) < 4) {
+		$error .= "Kodeordet skal være mindst 4 karakterer.<br>";
+	}
+	if (strlen($_POST['lastname']) < 2) {
+		$error .= "Efternavn skal være mindst 2 karakterer.<br>";
+	}
+	if (strlen($_POST['firstname']) < 2) {
+		$error .= "Fornavn skal være mindst 2 karakterer.<br>";
+	}
+	if (strlen($_POST['telephone']) < 8) {
+		$error .= "Telefonnr. skal være mindst 8 karakterer.<br>";
+	}
+	if (strlen($_POST['address']) < 4) {
+		$error .= "Adresse skal være mindst 4 karakterer.<br>";
+	}
+	if (strlen($_POST['age_range']) < 1) {
+		$error .= "Alder skal være mindst 1 karakter.<br>";
+	}
+	if (strlen($_POST['count']) < 1 || !is_numeric($_POST['count'])) {
+		$error .= "Antal skal være et tal og mindst 1 ciffer.<br>";
+	}
+	if (!empty($error)) {
+		echo print_error($error);
+		exit;
+	}
 	
 	$user = new User($_POST['login'], null, $_POST['lastname'], $_POST['firstname'], null, $_POST['email'], null, $_POST['telephone'], $_POST['address'], $_POST['title'], null, null, $_POST['role_id'], $site_id, $_POST['group_id'], $_POST['count'], $_POST['age_range'], $_POST['qualifications'], $_POST['notes']);
 	
@@ -300,13 +330,11 @@ function show_one() {
 	$userJobcats = listUserJobCategories($user->login);
 	foreach ($jobcats as $jobcat) {
 		$jobcat = JobCategory::cast($jobcat);
-		$jobcategoryHTML .= '<input type="checkbox" disabled name="jobcategory[]" value="'.$jobcat->id.'"';
 		foreach ($userJobcats as $userJobcat) {
 			if ($jobcat->id == $userJobcat->id) {
-				$jobcategoryHTML .= ' checked';
+				$jobcategoryHTML .= $jobcat->name.'<br/>';
 			}
 		}
-		$jobcategoryHTML .= '>'.$jobcat->name.'</input>&nbsp;&nbsp;';
 	}
 	
 	$qualificationHTML = '';
@@ -314,33 +342,31 @@ function show_one() {
 	$userQuals = listUserQualifications($user->login);
 	foreach ($quals as $qual) {
 		$qual = Qualification::cast($qual);
-		$qualificationHTML .= '<input type="checkbox" disabled name="qualification[]" value="'.$qual->id.'"';
 		foreach ($userQuals as $userQual) {
 			if ($qual->id == $userQual->id) {
-				$qualificationHTML .= ' checked';
+				$qualificationHTML .= $qual->name.'<br/>';
 			}
 		}
-		$qualificationHTML .= '>'.$qual->name.'</input>&nbsp;&nbsp;';
 	}
 	
-	echo '<h1>Vis bruger</h1>
+	echo '<h1>Vis bruger <i>'.$user->getFullName().'</i></h1>
 		<table align="center" class="border1">
-		<tr><th>Brugernavn:</th><td>'.$user->login.'</td></tr>
-		<tr><th>Fornavn:</th><td>'.$user->firstname.'</td></tr>
-		<tr><th>Efternavn:</th><td>'.$user->lastname.'</td></tr>
-		<tr><th>E-mail:</th><td>'.$user->email.'</td></tr>
-		<tr><th>Telefon:</th><td>'.$user->telephone.'</td></tr>
-		<tr><th>Adresse/postnr/by:</th><td>'.$user->address.'</td></tr>
-		<tr><th>Alder under lejren:</th><td>'.$user->ageRange.'</td></tr>
-		<tr><th>Antal:</th><td>'.$user->count.'</td></tr>
-		<tr><th>Kvalifikationer:</th><td>'.$qualificationHTML.'</td></tr>
-		<tr><th>Specielle kvalifikationer:</th><td>'.$user->qualifications.'</td></tr>
-		<tr><th>Klan/holdnavn/pladsnr:</th><td>'.$user->title.'</td></tr>
-		<tr><th>Gruppe:</th><td>'.getGroup($user->groupID)->name.'</td></tr>
-		<tr><th>Underlejr:</th><td>'.getSubcampForUser($user->login)->name.'</td></tr>
-		<tr><th>Rolle:</th><td>'.$role->name.'</td></tr>
-		<tr><th>Foretrukne jobkategorier:</th><td>'.$jobcategoryHTML.'</td></tr>
-		<tr><th>Noter:</th><td>'.$user->notes.'</td></tr>
+		<tr><th align="left">Brugernavn:</th><td>'.$user->login.'</td></tr>
+		<tr><th align="left">Fornavn:</th><td>'.$user->firstname.'</td></tr>
+		<tr><th align="left">Efternavn:</th><td>'.$user->lastname.'</td></tr>
+		<tr><th align="left">E-mail:</th><td>'.$user->email.'</td></tr>
+		<tr><th align="left">Telefon:</th><td>'.$user->telephone.'</td></tr>
+		<tr><th align="left">Adresse/postnr/by:</th><td>'.$user->address.'</td></tr>
+		<tr><th align="left">Alder under lejren:</th><td>'.$user->ageRange.'</td></tr>
+		<tr><th align="left">Antal:</th><td>'.$user->count.'</td></tr>
+		<tr><th align="left">Kvalifikationer:</th><td>'.$qualificationHTML.'</td></tr>
+		<tr><th align="left">Specielle kvalifikationer:</th><td>'.$user->qualifications.'</td></tr>
+		<tr><th align="left">Klan/holdnavn/pladsnr:</th><td>'.$user->title.'</td></tr>
+		<tr><th align="left">Gruppe:</th><td>'.getGroup($user->groupID)->name.'</td></tr>
+		<tr><th align="left">Underlejr:</th><td>'.getSubcampForUser($user->login)->name.'</td></tr>
+		<tr><th align="left">Rolle:</th><td>'.$role->name.'</td></tr>
+		<tr><th align="left">Foretrukne jobkategorier:</th><td>'.$jobcategoryHTML.'</td></tr>
+		<tr><th align="left">Noter:</th><td>'.$user->notes.'</td></tr>
 		</table>';
 
 	menu_link();
