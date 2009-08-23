@@ -45,13 +45,13 @@ function show_list() {
 				".(!empty($_GET['show_status'])?"<td title='".$job->getLongStatus()."'>".$job->getShortStatus()."</td>":'')."
 				".(!empty($_GET['show_priority'])?"<td>$job->priority</td>":'')."
 				<td>";
-		if(user_is_helper()) {
+		if(user_is_admin() || user_is_helper()) {
 			echo "<a href='jc_signup.php?action=show_update&job_id=$job->id'>Tilmeld</a><br>";
 		}
 		if(user_is_admin() || $job->ownerID == $login) {
-			echo "<a href='jc_signup.php?action=show_list&job_id=$job->id'>Vis tilmeldinger</a><br>
-				<a href='$PHP_SELF?action=show_update&job_id=$job->id'>Redigér job</a><br>
-				<a href='jc_timeslot.php?action=show_update&job_id=$job->id'>Redigér behov</a><br>";
+			echo "<a href='jc_signup.php?action=show_list&job_id=$job->id'>Vis&nbsp;tilmeldinger</a><br>
+				<a href='$PHP_SELF?action=show_update&job_id=$job->id'>Redigér&nbsp;job</a><br>
+				<a href='jc_timeslot.php?action=show_update&job_id=$job->id'>Redigér&nbsp;behov</a><br>";
 		}
 		if(user_is_admin()) {
 			echo "<a href='jc_timeslot.php?action=show_assign&job_id=$job->id'>Redigér jobkonsulenter</a><br>
@@ -92,9 +92,9 @@ function show_create() {
 					'<option value="W">'.Job::jobStatus('W').'</option>
 					</select>';
 					
-	$priorityHTML = '<select name="priority">
-					<option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option>
-					</select>';
+	$priorityHTML = '<select name="priority">'
+					.(user_is_admin() ? '<option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option>':'<option selected>3</option>')
+					.'</select>';
 	
 	$places = getPlaces();
 	$placesHTML = '<select name="place-predef">';
@@ -178,9 +178,9 @@ function show_update() {
 					'<option value="W">'.Job::jobStatus('W').'</option>
 					</select>';
 	
-	$priorityHTML = '<select name="priority">
-					<option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option>
-					</select>';
+	$priorityHTML = '<select name="priority">'
+					.(user_is_admin() ? '<option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option>':'<option selected>3</option>')
+					.'</select>';
 	
 	$places = getPlaces();
 	$placesHTML = '<select name="place-predef">';

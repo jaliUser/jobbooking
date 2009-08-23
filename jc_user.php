@@ -20,8 +20,8 @@ function show_list() {
 		$subcamp = getSubcampForUser($user->login); 
 
 		echo "<tr> 
-			<td><a href=\"$PHP_SELF?action=show_update&login=$user->login\">$user->login</a></td>
-			<td>$user->firstname</td>
+			<td>".(user_is_admin()? "<a href=\"$PHP_SELF?action=show_update&login=$user->login\">$user->login</a>": $user->login)."</td>
+			<td><a href=\"$PHP_SELF?action=show_one&login=$user->login\">$user->firstname</a></td>
 			<td>$user->lastname</td>
 			<td>$user->title</td>
 			<td>$user->email</td>
@@ -325,22 +325,22 @@ function show_one() {
 	
 	echo '<h1>Vis bruger</h1>
 		<table align="center" class="border1">
-		<tr><td>Brugernavn:</td><td>'.$user->login.'</td></tr>
-		<tr><td>Fornavn:</td><td>'.$user->firstname.'</td></tr>
-		<tr><td>Efternavn:</td><td>'.$user->lastname.'</td></tr>
-		<tr><td>E-mail:</td><td>'.$user->email.'</td></tr>
-		<tr><td>Telefon:</td><td>'.$user->telephone.'</td></tr>
-		<tr><td>Adresse/postnr/by:</td><td>'.$user->address.'</td></tr>
-		<tr><td>Alder under lejren:</td><td>'.$user->ageRange.'</td></tr>
-		<tr><td>Antal:</td><td>'.$user->count.'</td></tr>
-		<tr><td>Kvalifikationer:</td><td>'.$qualificationHTML.'</td></tr>
-		<tr><td>Specielle kvalifikationer:</td><td>'.$user->qualifications.'</td></tr>
-		<tr><td>Klan/holdnavn/pladsnr:</td><td>'.$user->title.'</td></tr>
-		<tr><td>Gruppe:</td><td>'.getGroup($user->groupID)->name.'</td></tr>
-		<tr><td>Underlejr:</td><td>'.getSubcampForUser($user->login)->name.'</td></tr>
-		<tr><td>Rolle:</td><td>'.$role->name.'</td></tr>
-		<tr><td>Foretrukne jobkategorier:</td><td>'.$jobcategoryHTML.'</td></tr>
-		<tr><td>Noter:</td><td>'.$user->notes.'</td></tr>
+		<tr><th>Brugernavn:</th><td>'.$user->login.'</td></tr>
+		<tr><th>Fornavn:</th><td>'.$user->firstname.'</td></tr>
+		<tr><th>Efternavn:</th><td>'.$user->lastname.'</td></tr>
+		<tr><th>E-mail:</th><td>'.$user->email.'</td></tr>
+		<tr><th>Telefon:</th><td>'.$user->telephone.'</td></tr>
+		<tr><th>Adresse/postnr/by:</th><td>'.$user->address.'</td></tr>
+		<tr><th>Alder under lejren:</th><td>'.$user->ageRange.'</td></tr>
+		<tr><th>Antal:</th><td>'.$user->count.'</td></tr>
+		<tr><th>Kvalifikationer:</th><td>'.$qualificationHTML.'</td></tr>
+		<tr><th>Specielle kvalifikationer:</th><td>'.$user->qualifications.'</td></tr>
+		<tr><th>Klan/holdnavn/pladsnr:</th><td>'.$user->title.'</td></tr>
+		<tr><th>Gruppe:</th><td>'.getGroup($user->groupID)->name.'</td></tr>
+		<tr><th>Underlejr:</th><td>'.getSubcampForUser($user->login)->name.'</td></tr>
+		<tr><th>Rolle:</th><td>'.$role->name.'</td></tr>
+		<tr><th>Foretrukne jobkategorier:</th><td>'.$jobcategoryHTML.'</td></tr>
+		<tr><th>Noter:</th><td>'.$user->notes.'</td></tr>
 		</table>';
 
 	menu_link();

@@ -139,7 +139,8 @@ function show_list() {
 	$groupedTimeslots = groupTimeslotsByDate($timeslots);
 	foreach ($days as $key => $day) {
 		$day = Day::cast($day);
-		$distinctDateArr = $groupedTimeslots[$key];
+		$distinctDateArr = array();
+		$distinctDateArr = ($groupedTimeslots[$key] != null ? $groupedTimeslots[$key] : array());
 		
 		echo '<tr><td><table align="center" class="border1" width="100%">
 			<tr><th width="15%">'.strftime("%a %d/%m", $day->getDateTS()).'</th>

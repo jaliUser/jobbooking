@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 -- 
 -- Vært: localhost
--- Genereringstid: 22/08 2009 kl. 16:55:55
+-- Genereringstid: 23/08 2009 kl. 15:54:31
 -- Serverversion: 5.0.27
 -- PHP-version: 5.2.0
 
@@ -68,7 +68,7 @@ CREATE TABLE `days` (
 -- 
 
 INSERT INTO `days` (`id`, `site_id`, `date`, `time`) VALUES 
-(1, 1, '2009-07-24', 150000),
+(1, 1, '2009-07-24', 120000),
 (2, 1, '2009-07-25', NULL),
 (3, 1, '2009-07-26', NULL),
 (4, 1, '2009-07-27', NULL),
@@ -76,7 +76,7 @@ INSERT INTO `days` (`id`, `site_id`, `date`, `time`) VALUES
 (6, 1, '2009-07-29', NULL),
 (7, 1, '2009-07-30', NULL),
 (8, 1, '2009-07-31', NULL),
-(9, 1, '2009-08-01', 120000);
+(9, 1, '2009-08-01', 160000);
 
 -- --------------------------------------------------------
 
@@ -718,7 +718,7 @@ CREATE TABLE `job` (
   KEY `owner_id` (`owner_id`),
   KEY `site_id` (`site_id`),
   KEY `area_id` (`area_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=17 ;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=18 ;
 
 -- 
 -- Data dump for tabellen `job`
@@ -726,13 +726,7 @@ CREATE TABLE `job` (
 
 INSERT INTO `job` (`id`, `site_id`, `area_id`, `owner_id`, `name`, `description`, `place`, `notes`, `status`, `priority`) VALUES 
 (-1, 1, NULL, NULL, 'Blokering', NULL, NULL, NULL, 'A', 3),
-(10, 1, 1, 'tho', 'job navn', '', '', '', 'W', 2),
-(11, 1, 1, 'tho', 'asdf', '', '', '', 'A', 3),
-(12, 1, 2, 'tho', 'storpionering', 'askd jflasjkd flkasjd flæ', 'Store plads', '', 'W', 3),
-(13, 1, 5, 'tho', 'fest og farver', 'udklædming', 'pladssen', 'asdflkj', 'W', 1),
-(14, 1, 1, 'hans', 'test-optaget1', 'aaf', 'asdf', 'asdf', 'A', 3),
-(15, 1, 1, 'bruger', 'asdfasfd', 'qwer', 'stedet', 'asdf', 'A', 3),
-(16, 1, 1, 'bruger', 'med prefed place', 'lj', 'Parkeringspladsen', 'asdf', 'A', 3);
+(17, 1, 2, 'testarbejdsgiver', 'Test megaaktivitet', 'Meget lang beskrivelse... Meget lang beskrivelse... Meget lang beskrivelse... Meget lang beskrivelse... Meget lang beskrivelse... Meget lang beskrivelse... Meget lang beskrivelse... Meget lang beskrivelse... Meget lang beskrivelse... Meget lang beskrivelse... Meget lang beskrivelse... Meget lang beskrivelse... Meget lang beskrivelse... Meget lang beskrivelse... Meget lang beskrivelse... Meget lang beskrivelse... Meget lang beskrivelse... Meget lang beskrivelse... Meget lang beskrivelse... Meget lang beskrivelse... Meget lang beskrivelse... Meget lang beskrivelse... Meget lang beskrivelse... Meget lang beskrivelse... Meget lang beskrivelse... Meget lang beskrivelse... Meget lang beskrivelse... Meget lang beskrivelse... Meget lang beskrivelse... Meget lang beskrivelse... Meget lang beskrivelse... ', 'Parkeringspladsen', 'F.eks. noget om:\r\n- drikkevarer\r\n- særlig beklædning\r\n- transport', 'W', 3);
 
 -- --------------------------------------------------------
 
@@ -766,11 +760,11 @@ INSERT INTO `jobcategory` (`id`, `name`, `site_id`) VALUES
 
 DROP TABLE IF EXISTS `qualification`;
 CREATE TABLE `qualification` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL auto_increment,
   `name` varchar(32) NOT NULL,
   `site_id` int(11) NOT NULL,
   PRIMARY KEY  (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=13 ;
 
 -- 
 -- Data dump for tabellen `qualification`
@@ -778,7 +772,17 @@ CREATE TABLE `qualification` (
 
 INSERT INTO `qualification` (`id`, `name`, `site_id`) VALUES 
 (1, 'Motorsav', 1),
-(2, 'Kørekort B', 1);
+(2, 'Kørekort B', 1),
+(3, 'Stort kørekort', 1),
+(4, 'Hygiejnekursus', 1),
+(5, 'Storkøkken', 1),
+(6, 'VVS', 1),
+(7, 'Elektriker', 1),
+(8, 'Tømrer', 1),
+(9, 'Sygeplejerske', 1),
+(10, 'IT', 1),
+(11, 'Kontorarbejde', 1),
+(12, 'Truck-certifikat', 1);
 
 -- --------------------------------------------------------
 
@@ -844,10 +848,10 @@ CREATE TABLE `subcamp` (
 -- 
 
 INSERT INTO `subcamp` (`id`, `site_id`, `name`, `contact_id`) VALUES 
-(1, 1, 'Luppen', 'tho'),
-(2, 1, 'Dråben', 'agh'),
+(1, 1, 'Luppen', NULL),
+(2, 1, 'Dråben', NULL),
 (3, 1, 'Universet', NULL),
-(4, 1, 'Solsikken', 'thea'),
+(4, 1, 'Solsikken', NULL),
 (5, 1, 'Globen', NULL),
 (6, 1, 'Symfonien', NULL),
 (7, 1, 'Lanternen', NULL),
@@ -870,12 +874,6 @@ CREATE TABLE `user_jobcategory` (
 -- Data dump for tabellen `user_jobcategory`
 -- 
 
-INSERT INTO `user_jobcategory` (`cal_login`, `jobcategory_id`) VALUES 
-('kat', 2),
-('kat', 4),
-('agh', 2),
-('agh', 4),
-('tho', 1);
 
 -- --------------------------------------------------------
 
@@ -894,9 +892,7 @@ CREATE TABLE `user_qualification` (
 -- 
 
 INSERT INTO `user_qualification` (`cal_login`, `qualification_id`) VALUES 
-('agh', 1),
-('agh', 2),
-('tho', 1);
+('tho', 2);
 
 -- --------------------------------------------------------
 
@@ -1223,169 +1219,24 @@ CREATE TABLE `webcal_entry` (
 -- 
 
 INSERT INTO `webcal_entry` (`cal_id`, `cal_group_id`, `cal_ext_for_id`, `cal_create_by`, `cal_date`, `cal_time`, `cal_mod_date`, `cal_mod_time`, `cal_duration`, `cal_due_date`, `cal_due_time`, `cal_priority`, `cal_type`, `cal_access`, `cal_name`, `cal_location`, `cal_url`, `cal_completed`, `cal_description`, `job_id`, `person_need`, `contact_id`) VALUES 
-(1, NULL, NULL, 'admin', 20081203, -1, 20081203, 221802, 0, 20081203, 0, 5, 'E', 'P', 'asdf', NULL, NULL, NULL, 'asdf', NULL, 0, NULL),
-(2, NULL, NULL, 'admin', 20081203, 130000, 20081203, 222035, 60, 20081203, 130000, 5, 'E', 'P', 'zxcv', NULL, NULL, NULL, 'zxcv', NULL, 0, NULL),
-(3, NULL, NULL, 'agh', 20090726, 100000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 1, 3, NULL),
-(4, NULL, NULL, 'agh', 20090725, 201500, NULL, NULL, 75, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 1, 1, NULL),
-(5, NULL, NULL, 'agh', 20090724, 100000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 1, 5, NULL),
-(6, NULL, NULL, 'agh', 20090728, 100000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 1, 8, NULL),
-(7, NULL, NULL, 'agh', 20090724, 100000, NULL, NULL, 30, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 1, 1, NULL),
-(8, NULL, NULL, 'agh', 20090727, 93000, NULL, NULL, 150, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 1, 3, NULL),
-(9, NULL, NULL, 'agh', 20090728, 93000, NULL, NULL, 150, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 1, NULL, NULL),
-(10, NULL, NULL, 'agh', 20090724, 0, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 18, 1, NULL),
-(11, NULL, NULL, 'tho', 20090724, 0, NULL, NULL, 0, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 10, 1, NULL),
-(12, NULL, NULL, 'tho', 20090725, 0, NULL, NULL, 0, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 10, 6, 'konsulent2'),
-(13, NULL, NULL, 'tho', 20090726, 0, NULL, NULL, 0, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 10, 3, 'konsulent2'),
-(14, NULL, NULL, 'tho', 20090727, 0, NULL, NULL, 0, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 10, 4, 'konsulent2'),
-(15, NULL, NULL, 'tho', 20090728, 0, NULL, NULL, 0, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 10, 5, NULL),
-(16, NULL, NULL, 'tho', 20090729, 0, NULL, NULL, 0, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 10, 6, NULL),
-(17, NULL, NULL, 'tho', 20090730, 0, NULL, NULL, 0, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 10, 7, NULL),
-(18, NULL, NULL, 'tho', 20090731, 0, NULL, NULL, 0, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 10, 8, NULL),
-(19, NULL, NULL, 'tho', 20090801, 0, NULL, NULL, 0, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 10, 9, NULL),
-(20, NULL, NULL, 'tho', 20090724, 10000, NULL, NULL, 120, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 10, 1, 'konsulent1'),
-(21, NULL, NULL, 'tho', 20090725, 10000, NULL, NULL, 120, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 10, NULL, NULL),
-(22, NULL, NULL, 'tho', 20090726, 10000, NULL, NULL, 120, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 10, 3, NULL),
-(23, NULL, NULL, 'tho', 20090727, 10000, NULL, NULL, 120, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 10, NULL, NULL),
-(24, NULL, NULL, 'tho', 20090728, 10000, NULL, NULL, 120, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 10, 2, NULL),
-(25, NULL, NULL, 'tho', 20090729, 10000, NULL, NULL, 120, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 10, NULL, NULL),
-(26, NULL, NULL, 'tho', 20090730, 10000, NULL, NULL, 120, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 10, 5, NULL),
-(27, NULL, NULL, 'tho', 20090731, 10000, NULL, NULL, 120, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 10, NULL, NULL),
-(28, NULL, NULL, 'tho', 20090801, 10000, NULL, NULL, 120, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 10, 4, NULL),
-(29, NULL, NULL, 'tho', 20090724, 10000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(30, NULL, NULL, 'tho', 20090725, 10000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(31, NULL, NULL, 'tho', 20090726, 10000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, 5, NULL),
-(32, NULL, NULL, 'tho', 20090727, 10000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(33, NULL, NULL, 'tho', 20090728, 10000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(34, NULL, NULL, 'tho', 20090729, 10000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(35, NULL, NULL, 'tho', 20090730, 10000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(36, NULL, NULL, 'tho', 20090731, 10000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(37, NULL, NULL, 'tho', 20090801, 10000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, 1, NULL),
-(38, NULL, NULL, 'tho', 20090724, 20000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 10, 10, NULL),
-(39, NULL, NULL, 'tho', 20090725, 20000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 10, 8, NULL),
-(40, NULL, NULL, 'tho', 20090726, 20000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 10, 7, NULL),
-(41, NULL, NULL, 'tho', 20090727, 20000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 10, 6, NULL),
-(42, NULL, NULL, 'tho', 20090728, 20000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 10, 5, NULL),
-(43, NULL, NULL, 'tho', 20090729, 20000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 10, 4, NULL),
-(44, NULL, NULL, 'tho', 20090730, 20000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 10, 3, NULL),
-(45, NULL, NULL, 'tho', 20090731, 20000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 10, 2, NULL),
-(46, NULL, NULL, 'tho', 20090801, 20000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 10, 1, NULL),
-(47, NULL, NULL, 'agh', 20090724, 80000, NULL, NULL, 240, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 12, 2, NULL),
-(48, NULL, NULL, 'agh', 20090725, 80000, NULL, NULL, 240, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 12, NULL, NULL),
-(49, NULL, NULL, 'agh', 20090726, 80000, NULL, NULL, 240, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 12, 2, NULL),
-(50, NULL, NULL, 'agh', 20090727, 80000, NULL, NULL, 240, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 12, NULL, NULL),
-(51, NULL, NULL, 'agh', 20090728, 80000, NULL, NULL, 240, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 12, 6, NULL),
-(52, NULL, NULL, 'agh', 20090729, 80000, NULL, NULL, 240, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 12, NULL, NULL),
-(53, NULL, NULL, 'agh', 20090730, 80000, NULL, NULL, 240, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 12, NULL, NULL),
-(54, NULL, NULL, 'agh', 20090731, 80000, NULL, NULL, 240, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 12, NULL, NULL),
-(55, NULL, NULL, 'agh', 20090801, 80000, NULL, NULL, 240, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 12, NULL, NULL),
-(56, NULL, NULL, 'agh', 20090724, 120000, NULL, NULL, 240, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 12, NULL, NULL),
-(57, NULL, NULL, 'agh', 20090725, 120000, NULL, NULL, 240, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 12, 2, NULL),
-(58, NULL, NULL, 'agh', 20090726, 120000, NULL, NULL, 240, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 12, NULL, NULL),
-(59, NULL, NULL, 'agh', 20090727, 120000, NULL, NULL, 240, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 12, NULL, NULL),
-(60, NULL, NULL, 'agh', 20090728, 120000, NULL, NULL, 240, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 12, NULL, NULL),
-(61, NULL, NULL, 'agh', 20090729, 120000, NULL, NULL, 240, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 12, 7, NULL),
-(62, NULL, NULL, 'agh', 20090730, 120000, NULL, NULL, 240, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 12, NULL, NULL),
-(63, NULL, NULL, 'agh', 20090731, 120000, NULL, NULL, 240, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 12, NULL, NULL),
-(64, NULL, NULL, 'agh', 20090801, 120000, NULL, NULL, 240, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 12, NULL, NULL),
-(65, NULL, NULL, 'tho', 20090724, 90000, NULL, NULL, 180, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 13, 2, NULL),
-(66, NULL, NULL, 'tho', 20090725, 90000, NULL, NULL, 180, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 13, NULL, NULL),
-(67, NULL, NULL, 'tho', 20090726, 90000, NULL, NULL, 180, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 13, 6, NULL),
-(68, NULL, NULL, 'tho', 20090727, 90000, NULL, NULL, 180, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 13, NULL, NULL),
-(69, NULL, NULL, 'tho', 20090728, 90000, NULL, NULL, 180, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 13, NULL, NULL),
-(70, NULL, NULL, 'tho', 20090729, 90000, NULL, NULL, 180, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 13, NULL, NULL),
-(71, NULL, NULL, 'tho', 20090730, 90000, NULL, NULL, 180, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 13, NULL, NULL),
-(72, NULL, NULL, 'tho', 20090731, 90000, NULL, NULL, 180, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 13, NULL, NULL),
-(73, NULL, NULL, 'tho', 20090801, 90000, NULL, NULL, 180, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 13, NULL, NULL),
-(74, NULL, NULL, 'agh', 20090724, 0, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(75, NULL, NULL, 'agh', 20090725, 0, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(76, NULL, NULL, 'agh', 20090726, 0, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(77, NULL, NULL, 'agh', 20090727, 0, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(78, NULL, NULL, 'agh', 20090728, 0, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(79, NULL, NULL, 'agh', 20090729, 0, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(80, NULL, NULL, 'agh', 20090730, 0, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(81, NULL, NULL, 'agh', 20090731, 0, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(82, NULL, NULL, 'agh', 20090801, 0, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(83, NULL, NULL, 'agh', 20090724, 110000, NULL, NULL, -660, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(84, NULL, NULL, 'agh', 20090725, 110000, NULL, NULL, -660, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(85, NULL, NULL, 'agh', 20090726, 110000, NULL, NULL, -660, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(86, NULL, NULL, 'agh', 20090727, 110000, NULL, NULL, -660, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(87, NULL, NULL, 'agh', 20090728, 110000, NULL, NULL, -660, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(88, NULL, NULL, 'agh', 20090729, 110000, NULL, NULL, -660, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(89, NULL, NULL, 'agh', 20090730, 110000, NULL, NULL, -660, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(90, NULL, NULL, 'agh', 20090731, 110000, NULL, NULL, -660, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(91, NULL, NULL, 'agh', 20090801, 110000, NULL, NULL, -660, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(92, NULL, NULL, 'agh', 20090724, 150000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, 1, NULL),
-(93, NULL, NULL, 'agh', 20090725, 150000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(94, NULL, NULL, 'agh', 20090726, 150000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(95, NULL, NULL, 'agh', 20090727, 150000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(96, NULL, NULL, 'agh', 20090728, 150000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(97, NULL, NULL, 'agh', 20090729, 150000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(98, NULL, NULL, 'agh', 20090730, 150000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(99, NULL, NULL, 'agh', 20090731, 150000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(100, NULL, NULL, 'agh', 20090801, 150000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(101, NULL, NULL, 'agh', 20090724, 110000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(102, NULL, NULL, 'agh', 20090725, 110000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(103, NULL, NULL, 'agh', 20090726, 110000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(104, NULL, NULL, 'agh', 20090727, 110000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(105, NULL, NULL, 'agh', 20090728, 110000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(106, NULL, NULL, 'agh', 20090729, 110000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(107, NULL, NULL, 'agh', 20090730, 110000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(108, NULL, NULL, 'agh', 20090731, 110000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, NULL, NULL),
-(109, NULL, NULL, 'agh', 20090801, 110000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 11, 1, NULL),
-(110, NULL, NULL, 'agh', 20090724, 0, NULL, NULL, 360, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(111, NULL, NULL, 'agh', 20090725, 0, NULL, NULL, 360, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(112, NULL, NULL, 'agh', 20090726, 0, NULL, NULL, 360, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(113, NULL, NULL, 'agh', 20090727, 0, NULL, NULL, 360, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(114, NULL, NULL, 'agh', 20090728, 0, NULL, NULL, 360, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(115, NULL, NULL, 'agh', 20090729, 0, NULL, NULL, 360, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(116, NULL, NULL, 'agh', 20090730, 0, NULL, NULL, 360, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(117, NULL, NULL, 'agh', 20090731, 0, NULL, NULL, 360, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(118, NULL, NULL, 'agh', 20090801, 0, NULL, NULL, 360, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(119, NULL, NULL, 'agh', 20090724, 60000, NULL, NULL, 360, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(120, NULL, NULL, 'agh', 20090725, 60000, NULL, NULL, 360, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(121, NULL, NULL, 'agh', 20090726, 60000, NULL, NULL, 360, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(122, NULL, NULL, 'agh', 20090727, 60000, NULL, NULL, 360, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(123, NULL, NULL, 'agh', 20090728, 60000, NULL, NULL, 360, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(124, NULL, NULL, 'agh', 20090729, 60000, NULL, NULL, 360, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(125, NULL, NULL, 'agh', 20090730, 60000, NULL, NULL, 360, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(126, NULL, NULL, 'agh', 20090731, 60000, NULL, NULL, 360, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(127, NULL, NULL, 'agh', 20090801, 60000, NULL, NULL, 360, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(128, NULL, NULL, 'agh', 20090724, 120000, NULL, NULL, 360, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(129, NULL, NULL, 'agh', 20090725, 120000, NULL, NULL, 360, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(130, NULL, NULL, 'agh', 20090726, 120000, NULL, NULL, 360, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(131, NULL, NULL, 'agh', 20090727, 120000, NULL, NULL, 360, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(132, NULL, NULL, 'agh', 20090728, 120000, NULL, NULL, 360, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(133, NULL, NULL, 'agh', 20090729, 120000, NULL, NULL, 360, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(134, NULL, NULL, 'agh', 20090730, 120000, NULL, NULL, 360, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(135, NULL, NULL, 'agh', 20090731, 120000, NULL, NULL, 360, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(136, NULL, NULL, 'agh', 20090801, 120000, NULL, NULL, 360, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(137, NULL, NULL, 'agh', 20090724, 180000, NULL, NULL, -1080, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(138, NULL, NULL, 'agh', 20090725, 180000, NULL, NULL, -1080, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(139, NULL, NULL, 'agh', 20090726, 180000, NULL, NULL, -1080, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(140, NULL, NULL, 'agh', 20090727, 180000, NULL, NULL, -1080, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(141, NULL, NULL, 'agh', 20090728, 180000, NULL, NULL, -1080, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(142, NULL, NULL, 'agh', 20090729, 180000, NULL, NULL, -1080, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(143, NULL, NULL, 'agh', 20090730, 180000, NULL, NULL, -1080, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(144, NULL, NULL, 'agh', 20090731, 180000, NULL, NULL, -1080, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(145, NULL, NULL, 'agh', 20090801, 180000, NULL, NULL, -1080, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, -1, NULL, NULL),
-(146, NULL, NULL, 'agh', 20090724, 80000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 14, NULL, NULL),
-(147, NULL, NULL, 'agh', 20090725, 80000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 14, 1, NULL),
-(148, NULL, NULL, 'agh', 20090726, 80000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 14, NULL, NULL),
-(149, NULL, NULL, 'agh', 20090727, 80000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 14, NULL, NULL),
-(150, NULL, NULL, 'agh', 20090728, 80000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 14, NULL, NULL),
-(151, NULL, NULL, 'agh', 20090729, 80000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 14, NULL, NULL),
-(152, NULL, NULL, 'agh', 20090730, 80000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 14, NULL, NULL),
-(153, NULL, NULL, 'agh', 20090731, 80000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 14, NULL, NULL),
-(154, NULL, NULL, 'agh', 20090801, 80000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 14, NULL, NULL),
-(155, NULL, NULL, 'agh', 20090724, 80000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 16, NULL, NULL),
-(156, NULL, NULL, 'agh', 20090725, 80000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 16, 1, NULL),
-(157, NULL, NULL, 'agh', 20090726, 80000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 16, NULL, NULL),
-(158, NULL, NULL, 'agh', 20090727, 80000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 16, NULL, NULL),
-(159, NULL, NULL, 'agh', 20090728, 80000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 16, NULL, NULL),
-(160, NULL, NULL, 'agh', 20090729, 80000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 16, NULL, NULL),
-(161, NULL, NULL, 'agh', 20090730, 80000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 16, NULL, NULL),
-(162, NULL, NULL, 'agh', 20090731, 80000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 16, NULL, NULL),
-(163, NULL, NULL, 'agh', 20090801, 80000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 16, NULL, NULL);
+(1, NULL, NULL, 'testarbejdsgiver', 20090724, 80000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 17, NULL, NULL),
+(2, NULL, NULL, 'testarbejdsgiver', 20090725, 80000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 17, 1, NULL),
+(3, NULL, NULL, 'testarbejdsgiver', 20090726, 80000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 17, 2, NULL),
+(4, NULL, NULL, 'testarbejdsgiver', 20090727, 80000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 17, 3, NULL),
+(5, NULL, NULL, 'testarbejdsgiver', 20090728, 80000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 17, 4, NULL),
+(6, NULL, NULL, 'testarbejdsgiver', 20090729, 80000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 17, 5, NULL),
+(7, NULL, NULL, 'testarbejdsgiver', 20090730, 80000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 17, 6, NULL),
+(8, NULL, NULL, 'testarbejdsgiver', 20090731, 80000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 17, 7, NULL),
+(9, NULL, NULL, 'testarbejdsgiver', 20090801, 80000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 17, NULL, NULL),
+(10, NULL, NULL, 'testarbejdsgiver', 20090724, 90000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 17, NULL, NULL),
+(11, NULL, NULL, 'testarbejdsgiver', 20090725, 90000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 17, NULL, NULL),
+(12, NULL, NULL, 'testarbejdsgiver', 20090726, 90000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 17, NULL, NULL),
+(13, NULL, NULL, 'testarbejdsgiver', 20090727, 90000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 17, NULL, NULL),
+(14, NULL, NULL, 'testarbejdsgiver', 20090728, 90000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 17, NULL, NULL),
+(15, NULL, NULL, 'testarbejdsgiver', 20090729, 90000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 17, NULL, NULL),
+(16, NULL, NULL, 'testarbejdsgiver', 20090730, 90000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 17, NULL, NULL),
+(17, NULL, NULL, 'testarbejdsgiver', 20090731, 90000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 17, NULL, NULL),
+(18, NULL, NULL, 'testarbejdsgiver', 20090801, 90000, NULL, NULL, 60, NULL, NULL, 5, 'E', 'P', 'autogen', NULL, NULL, NULL, NULL, 17, 8, NULL);
 
 -- --------------------------------------------------------
 
@@ -1538,23 +1389,6 @@ CREATE TABLE `webcal_entry_user` (
 -- Data dump for tabellen `webcal_entry_user`
 -- 
 
-INSERT INTO `webcal_entry_user` (`cal_id`, `cal_login`, `cal_status`, `cal_category`, `cal_percent`, `count`, `notes`) VALUES 
-(3, 'agh', 'A', NULL, 0, 1, NULL),
-(12, 'agh', 'A', NULL, 0, 1, NULL),
-(12, 'tho', 'A', NULL, 0, 1, NULL),
-(13, 'tho', 'A', NULL, 0, 2, NULL),
-(14, 'agh', 'A', NULL, 0, 1, NULL),
-(19, 'tho', 'A', NULL, 0, 10, NULL),
-(20, 'tho', 'A', NULL, 0, 1, NULL),
-(24, 'tho', 'A', NULL, 0, 2, NULL),
-(29, 'agh', 'A', NULL, 0, 1, NULL),
-(31, 'agh', 'A', NULL, 0, 2, NULL),
-(38, 'agh', 'A', NULL, 0, 1, NULL),
-(39, 'tho', 'A', NULL, 0, 1, NULL),
-(61, 'tho', 'A', NULL, 0, 2, NULL),
-(119, 'agh', 'A', NULL, 0, 1, NULL),
-(120, 'thea', 'A', NULL, 0, 1, NULL),
-(156, 'agh', 'A', NULL, 0, 1, NULL);
 
 -- --------------------------------------------------------
 
@@ -1812,15 +1646,11 @@ CREATE TABLE `webcal_user` (
 
 INSERT INTO `webcal_user` (`cal_login`, `cal_passwd`, `cal_lastname`, `cal_firstname`, `cal_is_admin`, `cal_email`, `cal_enabled`, `cal_telephone`, `cal_address`, `cal_title`, `cal_birthday`, `cal_last_login`, `role_id`, `site_id`, `group_id`, `count`, `age_range`, `qualifications`, `notes`) VALUES 
 ('admin', '21232f297a57a5a743894a0e4a801fc3', 'ADMINISTRATOR', 'DEFAULT', 'Y', NULL, 'Y', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-('agh', '21232f297a57a5a743894a0e4a801fc3', 'Givskov', 'Anders', 'N', 'agh@spejdernet.dk', 'Y', '1234', 'andeby', '', NULL, NULL, 1, 1, 0, 2, '1', '', ''),
-('bruger', '70375478134bc7187a0d5a0ffd59c283', 'efter', 'for', 'N', 'mail', 'Y', 'mob', 'adr', 'klan', NULL, NULL, 2, 1, 9004, 999, 'ald', 'kval', 'note'),
-('hans', '21232f297a57a5a743894a0e4a801fc3', 'hansen', 'hans', 'N', '', 'Y', '1234', 'andeby', 'plads1', NULL, NULL, 2, 1, 0, 1, '12-13', 'IT', 'note1'),
-('kat', 'b146a357c57fddd450f6b5c446108672', 'kat', 'kat', 'N', 'kat', 'Y', 'kat', 'kat', '', NULL, NULL, 1, 1, 0, 12, 'kat', '', ''),
-('kjh', '1301007cbce05b54f301f949163159b9', 'kjh', 'kjh', 'N', 'kjh', 'Y', 'kjh', 'kjh', '', NULL, NULL, 3, 1, 0, 1, 'kh', '', ''),
-('konsulent1', '098f6bcd4621d373cade4e832627b4f6', 'Andersen', 'JobKonsul 1', 'N', '', 'Y', '12345678', '1234', '', NULL, NULL, 4, 1, 0, 1, '1', '', ''),
-('konsulent2', '098f6bcd4621d373cade4e832627b4f6', 'Børgesen', 'JobKonsul 2', 'N', '', 'Y', '9876544332', '4321', '', NULL, NULL, 4, 1, 0, 1, '1', '', ''),
-('thea', '929492861a8c2f3e64f2882a7f167207', 'Givskov', 'Thea', 'N', 'theagivskov@kfumspejderne.dk', 'Y', '60868432', 'Galstersgade 2, 1, 9400 Nørresundby', '', NULL, NULL, 3, 1, 0, 1, '21', '', ''),
-('tho', '21232f297a57a5a743894a0e4a801fc3', 'Olesen', 'Thorbjørn', 'N', 'tho@thodata.dk', 'Y', '27284500', 'Galstersgade 2, 1, 9400 Nørresundby', 'Klan Rosa', NULL, NULL, 2, 1, 0, 3, '21', '', '');
+('agh', '37ee804a8d31f41305a138d16f41bebc', 'Givskov', 'Anders', 'N', 'agh@spejdernet.dk', 'Y', '1234', 'andeby', '', NULL, NULL, 1, 1, 0, 1, '1', '', ''),
+('per', '2eec2245df990aa35a2a05db29fbfb06', 'Kousgaard Thomsen', 'Per', 'N', 'pkthomsen@pc.dk', 'Y', '55441671 - 29441671', 'Møllevej 9, 8832 Skals', '', NULL, NULL, 1, 1, 0, 1, '1', '', ''),
+('steen', '6fa81a1534625d17a213377a53517558', 'Villekold Rasmussen', 'Steen', 'N', 'Steenvr@ofir.dk', 'Y', '24431057', 'Vester Skivevej 2, 7800 Skive', '', NULL, NULL, 1, 1, 0, 1, '1', '', ''),
+('testarbejdsgiver', 'e9c21c68899c781e31a927acd9a1d42b', 'Arbejdsgiver', 'Test', 'N', '', 'Y', '12345678', '1234', '', NULL, NULL, 2, 1, 0, 1, '1', '', ''),
+('tho', '21232f297a57a5a743894a0e4a801fc3', 'Højgaard Olesen', 'Thorbjørn', 'N', 'tho@thodata.dk', 'Y', '27284500', 'Galstersgade 2, 1, 9400 Nørresundby', 'Klan Rosa', NULL, NULL, 1, 1, 0, 1, '28', '', '');
 
 -- --------------------------------------------------------
 
@@ -1864,9 +1694,8 @@ CREATE TABLE `webcal_user_pref` (
 INSERT INTO `webcal_user_pref` (`cal_login`, `cal_setting`, `cal_value`) VALUES 
 ('admin', 'LANGUAGE', 'English-US'),
 ('agh', 'LANGUAGE', 'Danish'),
-('blahblahblah', 'LANGUAGE', 'English-US'),
-('testbruger', 'LANGUAGE', 'Danish'),
-('thea', 'LANGUAGE', 'Danish'),
+('steen', 'LANGUAGE', 'Danish'),
+('testarbejdsgiver', 'LANGUAGE', 'Danish'),
 ('tho', 'LANGUAGE', 'Danish');
 
 -- --------------------------------------------------------

@@ -262,9 +262,11 @@ if ( ! empty ( $return_path ) ) {
 <?php }
 
 if ( ! empty ( $PUBLIC_ACCESS ) && $PUBLIC_ACCESS == 'Y' ) { ?>
+<!-- disabled for Jobbooking
  <br /><br />
  <a class="nav" href="index.php">
    <?php etranslate ( 'Access public calendar' )?></a><br />
+ -->
 <?php }
 
   $nulist = get_nonuser_cals ();
