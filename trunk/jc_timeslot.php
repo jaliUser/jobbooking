@@ -10,7 +10,8 @@ function show_update() {
 	$job = getJob($_GET['job_id']);
 	$job = Job::cast($job);
 	
-	echo "<h1>Redigér behov for <i> $job->name</i></h1>";
+	echo "<h1>Redigér behov for <i> $job->name</i></h1>
+		  <p class='help'>Tidsperioder bør ikke vare mere end 4 timer!</p>";
 	//generate rows for existing timeslots
 	echo '<table align="center" class="border1">
 		<form action="'.$PHP_SELF.'" method="POST">
@@ -37,7 +38,8 @@ function show_update() {
 		//build time-row from first TS in distinctTimeArr			
 		$firstTS = $distinctTimeArr[0];
 		echo '<tr><td><input type="text" name="start_hour" size="1" maxlength="2" value="'.$firstTS->getStartHour().'" disabled/>:<input type="text" name="start_min" size="1" maxlength="2" value="'.$firstTS->getStartMin().'" disabled/>
-			        - <input type="text" name="end_hour" size="1" maxlength="2" value="'.$firstTS->getEndHour().'" disabled    />:<input type="text" name="end_min" size="1" maxlength="2" value="'.$firstTS->getEndMin().'" disabled/></td>';
+			        - <input type="text" name="end_hour" size="1" maxlength="2" value="'.$firstTS->getEndHour().'" disabled    />:<input type="text" name="end_min" size="1" maxlength="2" value="'.$firstTS->getEndMin().'" disabled/>
+				'.($firstTS->duration > 4*60 ? '<span class="redalert">OBS: > 4 t.</span>':'').'</td>';
 
 		for ($dayNo=0; $dayNo<count($days); $dayNo++) {
 			$timeslot = Timeslot::cast($distinctTimeArr[$dayNo]);
@@ -79,7 +81,11 @@ function do_update() {
 	$timeslots = listTimeslots($_POST['job_id']);
 	// no validation, just remove person_need if non-numeric or negative
 	foreach ($timeslots as $ts) {
-		$ts = Timeslot::cast($ts);		
+		$ts = Timeslot::cast($ts);
+		if (!Timeslot::isValidPersonNeed($_POST['timeslot-'.$ts->id])) {
+			echo print_error('Behovet for '.$day->date.' er ikke et gyldigt tal!');
+			exit;	
+		}
 		if ($ts->date == $firstDay->getDateYMD() && $_POST['timeslot-'.$ts->id] > 0 && $ts->startTime < $firstDay->time) {
 			echo print_error('Starttidspunktet for '.$ts->date.' '.$ts->getStartHour().':'.$ts->getStartMin().' ligger før det tidligst mulige.');
 			exit;
@@ -174,6 +180,10 @@ function do_create() {
 	$end_caltime = get_caltime($end_hour, $end_min);
 	$duration = get_calduration($start_caltime, $end_caltime);
 	
+	if ($duration > 4*60) {
+		
+	}
+	
 	$days = listDays($site_id);
 	$j = getJob($_POST['job_id']);
 	$j = Job::cast($j);
@@ -183,9 +193,8 @@ function do_create() {
 		$day = $days[$i];
 		$date = $day->getDateYMD();
 		$timeslot = new Timeslot(null, $date, $start_caltime, $duration, $_POST['job_id'], $_POST['person_need-'.$i], null);
-		//if (!empty($_POST['person_need-'.$i]) && !is_numeric($_POST['person_need-'.$i])) {
 		if (!Timeslot::isValidPersonNeed($_POST['person_need-'.$i])) {
-			echo print_error('Behovet for '.$day->date.' er ikke et tal!');
+			echo print_error('Behovet for '.$day->date.' er ikke et gyldigt tal!');
 			exit;	
 		}
 		if ($i == 0 && $_POST['person_need-'.$i] > 0 && $start_caltime < $day->time) {

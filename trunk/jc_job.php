@@ -18,37 +18,34 @@ function show_list() {
 	html_top($site_name . " - Jobliste");
 	$role = getRole($login);
 	
-	$jobs = listJobs($site_id, null, null, $_GET['user_id'], $_GET['filter']);
-	if (!empty($_GET['user_id'])) {
+	$area = getAreaFromContact($login);
+	
+	$jobs = listJobs($site_id, $_GET['status'], $_GET['user_id'], $_GET['filter']);
+	if (!empty($_GET['user_id']) && !empty($_GET['status'])) {
+		$title = "Jobs under <i>$area->description</i> der afventer godkendelse";
+	} else if (!empty($_GET['user_id'])) {
 		$title = "<a href=\"jc_user.php?action=show_one&login=".$_GET['user_id']."\">".getUser($_GET['user_id'])->getFullName()."</a>'s jobs";
 	} elseif (!empty($_GET['filter'])) {
 		$title = "Ledige jobs";
+	} elseif (!empty($_GET['status'])) {
+		$title = "Afventende jobs";
 	} else {
 		$title = "Alle jobs";
 	}
 	echo '<h1>'.$title.'</h1>
-		<table align="center" class="border1">
-		<tr> <th>ID</th> <th>Område</th> <th>Navn</th> <th>Beskrivelse</th> <th>Kontakt</th> <th>Mødested</th> <th>Jobsted</th> <th>Noter</th> '
-		.(!empty($_GET['show_status'])?'<th>Status</th>':'')
-		.(!empty($_GET['show_priority'])?'<th>Prioritet</th>':'')
-		.' <th></th> </tr>';
+		<table align="center" class="border1" width="1000px">
+		<tr> <th><i>Handlinger</i></th> <th>ID</th> <th>Område</th> <th>Navn</th> <th>Beskrivelse</th> <th>Kontakt</th> <th>Mødested</th> <th>Jobsted</th> <th>Noter</th> 
+		<th title="Behov">B</th> 
+		<th title="Rest">R</th>'
+		.(user_is_admin() || $job->ownerID == $login ?'<th title="Status">S</th>':'')
+		.(user_is_admin() ?'<th title="Prioritet">P</th>':'')
+		.'</tr>';
 	foreach ($jobs as $job) {
 		$job = Job::cast($job);
 		$area = Area::cast(getArea($job->id));
 
-		echo "<tr>
-				<td>$job->id</td>
-				<td>$area->name</td>
-				<td>".(user_is_admin() || $job->ownerID == $login ? "<a href='$PHP_SELF?action=show_one&job_id=$job->id'>$job->name</a>" : $job->name)."</td>
-				<td>$job->description</td>
-				<td><a href=\"jc_user.php?action=show_one&login=$job->ownerID\">".getUser($job->ownerID)->getFullName()."</a></td>
-				<td>$job->meetplace</td>
-				<td>$job->jobplace</td>
-				<td>$job->notes</td>
-				".(!empty($_GET['show_status'])?"<td title='".$job->getLongStatus()."'>".$job->getShortStatus()."</td>":'')."
-				".(!empty($_GET['show_priority'])?"<td>$job->priority</td>":'')."
-				<td>";
-		if(user_is_admin() || user_is_helper()) {
+		echo "<tr><td>";
+		if(user_is_admin() || user_is_consultant() || user_is_helper()) {
 			echo "<a href='jc_signup.php?action=show_update&job_id=$job->id'>Tilmeld</a><br>";
 		}
 		if(user_is_admin() || $job->ownerID == $login) {
@@ -60,8 +57,23 @@ function show_list() {
 			echo "<a href='jc_timeslot.php?action=show_assign&job_id=$job->id'>Tilknyt&nbsp;jobkonsulenter</a><br>
 				  <a href='jc_signup.php?action=show_evals&job_id=$job->id'>Redigér&nbsp;evalueringer</a>";
 		}
-		echo "</td></tr>";
-
+		if(user_is_arearesponsible() && !empty($_GET['user_id']) && !empty($_GET['status'])) {
+			echo "<a href='$PHP_SELF?action=do_approve&job_id=$job->id'>Godkend</a>";
+		}
+		echo "</td>
+				<td>$job->id</td>
+				<td>$area->name</td>
+				<td><a href='$PHP_SELF?action=show_one&job_id=$job->id'>$job->name</a></td>
+				<td>$job->description</td>
+				<td><a href=\"jc_user.php?action=show_one&login=$job->ownerID\">".getUser($job->ownerID)->getFullName()."</a></td>
+				<td>$job->meetplace</td>
+				<td>$job->jobplace</td>
+				<td>$job->notes</td>
+				<td>$job->totalNeed</td>
+				<td>$job->remainingNeed</td>
+				".(user_is_admin() || $job->ownerID == $login ?"<td title='".$job->getLongStatus()."'>".$job->getShortStatus()."</td>":'')."
+				".(user_is_admin() ?"<td>$job->priority</td>":'')."
+				</tr>";
 	}
 	echo '</table>';
 	menu_link();
@@ -327,6 +339,19 @@ function do_update() {
 	do_redirect($PHP_SELF.'?action=show_list');
 }
 
+function do_approve() {
+	reject_public_access();
+	global $PHP_SELF, $login;
+
+	if (empty($_GET['job_id'])) {
+		echo print_error("JobID mangler");
+		exit;
+	}
+
+	updateJobStatus($_GET['job_id'], "A");
+	do_redirect($PHP_SELF.'?action=show_list&status=W&user_id='.$login);
+}
+
 function show_one() {
 	reject_public_access();
 	global $PHP_SELF, $login, $site_id, $site_name;
@@ -357,6 +382,8 @@ if ($_REQUEST['action'] == 'show_create') {
 	show_update();
 } elseif ($_REQUEST['action'] == 'do_update') {
 	do_update();
+} elseif ($_REQUEST['action'] == 'do_approve') {
+	do_approve();
 } elseif ($_REQUEST['action'] == 'show_list') {
 	show_list();
 } elseif ($_REQUEST['action'] == 'show_one') {

@@ -51,7 +51,7 @@ function show_update() {
 			$signup = $signups[$timeslot->id];
 			echo '<td align="center">
 				<input type="text" name="required-'.$timeslot->id.'" value="'.$timeslot->remainingNeed.'" size="1" maxlength="3" disabled/>
-				<input type="text" name="signup-'.$timeslot->id.'" value="'.$signup->count.'" size="1" maxlength="3"/>
+				<input type="text" name="signup-'.$timeslot->id.'" value="'.$signup->count.'" size="1" maxlength="3" '.($timeslot->remainingNeed > 0 || $signup->count > 0 ? '':'disabled').'/>
 				<input type="hidden" name="notes-'.$timeslot->id.'" value="'.$signup->notes.'"/>
 				</td>';
 		}
@@ -65,7 +65,7 @@ function show_update() {
 	echo '</table>';
 	
 	// show user list for admins
-	if (user_is_admin()) {
+	if (user_is_admin() || user_is_consultant()) {
 		show_user_table("Vælg bruger der skal tilmeldes for", "$PHP_SELF?action=show_update&job_id=$job->id", listUsers($site_id));
 	}
 	
