@@ -9,9 +9,19 @@ function show_list() {
 	global $PHP_SELF, $login, $site_id, $site_name;
 	html_top("$site_name - Jobkonsulenter i underlejrene");
 
+	$userSubcamp = getSubcampForUser($login); 
+	
 	$subcamps = listSubcamps($site_id);
-	echo '<h1>Jobkonsulenter i underlejrene</h1>
-		<table align="center" class="border1">
+	echo '<h1>Jobkonsulenter i underlejrene</h1><p align="center">';
+
+	if (!empty($userSubcamp->name)) {
+		echo 'Din brugerprofil er tilknyttet underlejren kaldet <i>'.$userSubcamp->name.'</i>';		
+	}
+	else {
+		echo 'Din brugerprofil er ikke tilknyttet nogen gruppe og du er derfor ikke tilknyttet nogen underlejr.</i>';
+	}
+
+	echo '</p><table align="center" class="border1">
 		<tr> <th>Underlejr</th> <th></th> <th>Jobkonsulent</th> <th>Telefon</th> <th>E-mail</th></tr>';
 	foreach ($subcamps as $subcamp) {
 		$subcamp = Subcamp::cast($subcamp);

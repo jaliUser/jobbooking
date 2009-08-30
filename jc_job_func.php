@@ -26,55 +26,67 @@ function deleteJob(Job $j) {
 	dbi_clear_cache();
 }
 
-function disableJob(Job $j) {
-	$sql = 'UPDATE job SET status="D" WHERE id=?';
-	dbi_execute($sql, array($j->id));
+function updateJobStatus($job_id, $status) {
+	$sql = 'UPDATE job SET status=? WHERE id=?';
+	dbi_execute($sql, array($status, $job_id));	
 
 	dbi_clear_cache();
 }
 
-function listJobs($site_id, $status=null, $show_negative=false, $owner_id=null, $filter=null) {
-	if(!empty($status)) {
-		$sql = 'SELECT id, site_id, area_id, owner_id, name, description, meetplace, jobplace, notes, status, priority 
-				FROM job WHERE site_id=? AND status=?';
+function listJobs($site_id, $status=null, $owner_id=null, $filter=null) {
+	if(!empty($status) && !empty($owner_id)) {
+		//arearesponsible's nonapproved
+		$sql = "SELECT j.id, j.site_id, j.area_id, j.owner_id, j.name, j.description, j.meetplace, j.jobplace, j.notes, j.status, j.priority, sum(we.person_need), sum(weu.count) 
+				FROM job j 
+				LEFT JOIN webcal_entry we ON we.job_id=j.id
+				LEFT JOIN webcal_entry_user weu ON we.cal_id=weu.cal_id
+				LEFT JOIN area a on j.area_id=a.id
+				WHERE j.site_id=? AND j.status=? AND a.contact_id=?
+				GROUP BY j.id";
+//		$sql = 'SELECT j.id, j.site_id, j.area_id, j.owner_id, j.name, j.description, j.meetplace, j.jobplace, j.notes, j.status, j.priority 
+//				FROM job j, area a 
+//				WHERE j.site_id=? AND j.status=? AND j.area_id=a.id AND a.contact_id=?';
+		$rows = dbi_get_cached_rows($sql, array($site_id, $status, $owner_id));
+	}
+	elseif(!empty($status)) {
+		//not approved
+		$sql = "SELECT j.id, j.site_id, j.area_id, j.owner_id, j.name, j.description, j.meetplace, j.jobplace, j.notes, j.status, j.priority, sum(we.person_need), sum(weu.count) 
+				FROM job j 
+				LEFT JOIN webcal_entry we ON we.job_id=j.id
+				LEFT JOIN webcal_entry_user weu ON we.cal_id=weu.cal_id
+				WHERE j.site_id=? AND j.id>0 AND j.status=?
+				GROUP BY j.id";
 		$rows = dbi_get_cached_rows($sql, array($site_id, $status));
 	}
 	elseif (!empty($owner_id)) {
-		$sql = 'SELECT id, site_id, area_id, owner_id, name, description, meetplace, jobplace, notes, status, priority 
-				FROM job WHERE site_id=? AND id>0 AND owner_id=?';
-		
+		//user X's jobs
+		$sql = "SELECT j.id, j.site_id, j.area_id, j.owner_id, j.name, j.description, j.meetplace, j.jobplace, j.notes, j.status, j.priority, sum(we.person_need), sum(weu.count) 
+				FROM job j 
+				LEFT JOIN webcal_entry we ON we.job_id=j.id
+				LEFT JOIN webcal_entry_user weu ON we.cal_id=weu.cal_id
+				WHERE j.site_id=? AND j.id>0 AND  AND owner_id=?
+				GROUP BY j.id";
 		$rows = dbi_get_cached_rows($sql, array($site_id, $owner_id));
 	}
 	elseif (!empty($filter)) {
-		$sql = 'SELECT id, site_id, area_id, owner_id, name, description, meetplace, jobplace, notes, status, priority  
-				FROM job 
-				WHERE site_id=? AND id>0';
-		$all_jobs = dbi_get_cached_rows($sql, array($site_id));
-		
-		for ($ji=0; $ji<count($all_jobs); $ji++) {
-			$sql = 'SELECT we.cal_id, we.person_need, SUM(weu.count)
-					FROM webcal_entry we
-					LEFT JOIN webcal_entry_user weu
-					ON we.cal_id=weu.cal_id 
-					WHERE job_id=? 
-					GROUP BY we.cal_id';
-			$timeslot_rows = dbi_get_cached_rows($sql, array($all_jobs[$ji][0]));
-			
-			$all_job_timeslots_full = true;
-			for ($ti=0; $ti<count($timeslot_rows); $ti++) {
-				if ($timeslot_rows[$ti][1] > $timeslot_rows[$ti][2]) {
-					$all_job_timeslots_full = false;
-				}
-			}
-			
-			if ($all_job_timeslots_full == false) {
-				$rows[] = $all_jobs[$ji];
-			}
-		}
+		//filter vacant
+		$sql = "SELECT j.id, j.site_id, j.area_id, j.owner_id, j.name, j.description, j.meetplace, j.jobplace, j.notes, j.status, j.priority, SUM(we.person_need) AS need, SUM(weu.count) AS signup
+				FROM job j 
+				LEFT JOIN webcal_entry we ON we.job_id=j.id
+				LEFT JOIN webcal_entry_user weu ON we.cal_id=weu.cal_id
+				WHERE j.site_id=? AND j.id>0 AND j.status='A'
+				GROUP BY j.id 
+				HAVING need > signup OR (need > 0 AND signup IS NULL)";
+		$rows = dbi_get_cached_rows($sql, array($site_id));
 	}
 	else {
-		$sql = 'SELECT id, site_id, area_id, owner_id, name, description, meetplace, jobplace, notes, status, priority 
-				FROM job WHERE site_id=? AND id '.($show_negative==true? '<0' : '>0');
+		//all approved
+		$sql = "SELECT j.id, j.site_id, j.area_id, j.owner_id, j.name, j.description, j.meetplace, j.jobplace, j.notes, j.status, j.priority, sum(we.person_need), sum(weu.count) 
+				FROM job j 
+				LEFT JOIN webcal_entry we ON we.job_id=j.id
+				LEFT JOIN webcal_entry_user weu ON we.cal_id=weu.cal_id
+				WHERE j.site_id=? AND j.id>0 AND j.status='A'
+				GROUP BY j.id";
 		$rows = dbi_get_cached_rows($sql, array($site_id));
 	}
 	
@@ -82,6 +94,8 @@ function listJobs($site_id, $status=null, $show_negative=false, $owner_id=null, 
 	for ($i=0; $i<count($rows); $i++) { 
 		$row = $rows[$i];
 		$j = new Job($row[0], $row[1], $row[2], $row[3], $row[4], $row[5], $row[6], $row[7], $row[8], $row[9], $row[10]);
+		$j->totalNeed = $row[11];
+		$j->remainingNeed = $row[11]-$row[12];
 		$jobs[] = $j;
 	}
 	

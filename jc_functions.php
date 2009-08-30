@@ -51,7 +51,13 @@ function get_caldate_date() {
 }
 
 function get_calduration($start_time, $end_time) {
-	return (get_cal_unixtime('20000101', $end_time) - get_cal_unixtime('20000101', $start_time))/60;
+	$tmpdate = 20000101;
+	if ($end_time < $start_time) {
+		//overnight
+		return (get_cal_unixtime($tmpdate+1, $end_time) - get_cal_unixtime($tmpdate, $start_time))/60;
+	} else {
+		return (get_cal_unixtime($tmpdate, $end_time) - get_cal_unixtime($tmpdate, $start_time))/60;
+	}
 }
 
 function user_is_admin() {
@@ -72,6 +78,11 @@ function user_is_helper() {
 function user_is_consultant() {
 	global $current_role;
 	return $current_role->id == 4;
+}
+
+function user_is_arearesponsible() {
+	global $current_role;
+	return $current_role->id == 5;
 }
 
 function get_cal_unixtime($cal_date, $cal_time) {

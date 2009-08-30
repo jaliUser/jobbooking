@@ -31,4 +31,19 @@ function getArea($job_id) {
 	return $area;
 }
 
+function getAreaFromContact($user_id) {
+	$sql = 'SELECT area.id, area.site_id, area.name, area.description, area.contact_id 
+			FROM area 
+			WHERE area.contact_id=?';
+	$rows = dbi_get_cached_rows($sql, array($user_id));
+	
+	$area = null;
+	if(count($rows == 1)) {
+		$row = $rows[0];
+		$area = new Area($row[0], $row[1], $row[2], $row[3], $row[4]);
+	}
+	
+	return $area;
+}
+
 ?>
