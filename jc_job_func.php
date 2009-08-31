@@ -64,7 +64,7 @@ function listJobs($site_id, $status=null, $owner_id=null, $filter=null) {
 				FROM job j 
 				LEFT JOIN webcal_entry we ON we.job_id=j.id
 				LEFT JOIN webcal_entry_user weu ON we.cal_id=weu.cal_id
-				WHERE j.site_id=? AND j.id>0 AND  AND owner_id=?
+				WHERE j.site_id=? AND j.id>0 AND j.owner_id=?
 				GROUP BY j.id";
 		$rows = dbi_get_cached_rows($sql, array($site_id, $owner_id));
 	}

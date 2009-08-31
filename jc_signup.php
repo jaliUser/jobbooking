@@ -332,6 +332,11 @@ function show_mine() {
 	}
 	echo '</table>';
 	
+	// show user list for admins
+	if (user_is_admin()) {
+		show_user_table("Vælg bruger der skal vises jobtilmeldinger for", "$PHP_SELF?action=show_mine".(!empty($_GET['show_block']) ? '&show_block=1':''), listUsers($site_id));
+	}
+	
 	menu_link();
 }
 
