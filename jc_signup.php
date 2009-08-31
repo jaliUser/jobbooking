@@ -3,6 +3,73 @@ include_once 'includes/init.php';
 include_once 'jc_init.php';
 //use reject_public_access() in individual functions
 
+function show_blockings() {
+	reject_public_access();
+	global $PHP_SELF, $login, $site_id, $site_name;
+	html_top($site_name . " - Blokeringer");
+	
+	$job = getJob(-1);
+	
+	if (!empty($_GET['user_id'])) {
+		$user = getUser($_GET['user_id']);
+	} else {
+		$user = getUser($login);
+	}
+
+	echo "<h1>Blokeringer for <i><a href=\"jc_user.php?action=show_one&login=$user->login\">".$user->getFullName()."</a></i> (".$user->count." pers.)</h1>".
+		'<p class="help">Nedenfor er angive nogle tidsperioder, hvor du/dit hold har mulighed for at oprette en blokeret (fredning) så du/I ikke kan tildeles arbejde i disse perioder. Angiv hvor mange personer I ønsker blokeret for. Du kan maksimalt oprette 4 blokeringer.</p>';
+
+	echo '<table align="center" class="border1">
+		<form action="'.$PHP_SELF.'" method="POST">
+		<tr><th>Tid</th>';
+	$days = listDays($site_id);
+	
+	//generate header with days
+	foreach ($days as $day) {
+		$day = Day::cast($day);
+		echo '<th>'.strftime("%a %d/%m", $day->getDateTS()).'</th>';
+	}
+	echo '</tr><tr><td>';
+	
+	foreach ($days as $day) {
+		echo '<td align="center">'.vertical("Antal").'</td>';
+	}
+	echo '</tr>';
+	
+	$signups = listJobUserSignups($job->id, $user->login);
+	$timeslots = listTimeslots($job->id);
+	$groupedTimeslots = groupTimeslotsByTime($timeslots);
+	
+	foreach ($groupedTimeslots as $distinctTimeArr) {
+		//build time-row from first TS in distinctTimeArr			
+		$firstTS = $distinctTimeArr[0];
+		echo '<tr><td>'.$firstTS->getStartHour().':'.$firstTS->getStartMin().' - '.$firstTS->getEndHour().':'.$firstTS->getEndMin().'</td>';
+
+		for ($dayNo=0; $dayNo<count($days); $dayNo++) {
+			$timeslot = Timeslot::cast($distinctTimeArr[$dayNo]);
+			$signup = $signups[$timeslot->id];
+			echo '<td align="center">
+				<input type="text" name="signup-'.$timeslot->id.'" value="'.$signup->count.'" size="1" maxlength="3"/>
+				</td>';
+		}
+		echo '</tr>';
+	}
+	echo '<tr><td colspan="'.(count($days)+1).'"><input type="submit" value="Opdatér"/></td></tr>
+		<input type="hidden" name="action" value="do_update">
+		<input type="hidden" name="redir_action" value="show_blockings">
+		<input type="hidden" name="job_id" value="'.$job->id.'">
+		<input type="hidden" name="user_id" value="'.$user->login.'">
+		</form>';
+	echo '</table>';
+	
+	// show user list for admins
+	if (user_is_admin() || user_is_consultant()) {
+		show_user_table("Vælg bruger der skal blokeres for", "$PHP_SELF?action=show_blockings", listUsers($site_id));
+	}
+	
+	menu_link();
+}
+
 function show_update() {
 	reject_public_access();
 	global $PHP_SELF, $login, $site_id, $site_name;
@@ -95,8 +162,19 @@ function do_update() {
 			echo print_error("Ugyldigt antal for ".date("d/m H:i", $ts->getStartTS()).date(" - H:i", $ts->getEndTS()));
 			exit;
 		}
-		
+
 		$signup = new Signup($ts->id, $_POST['user_id'], 'A', null, 0, $_POST['signup-'.$ts->id], $_POST['notes-'.$ts->id]);
+		
+		//check user has not more than X blockings
+		$userBlockSignups = listJobUserSignups(-1, $_POST['user_id']);
+		if (!empty($_POST['redir_action']) && 
+			count($userBlockSignups) >= 4 && 
+			signupsContainsTimeslot($userBlockSignups, $signup->timeslotID) == false &&
+			$signup->count > 0) {
+				echo print_error("Brugeren har allerede maks. antal blokeringer (4)");
+				exit;
+		}
+		
 		//TODO: check available count
 		if ($signup->count > 0 && !isUserFree($signup->userID, $ts)) {
 			echo print_error("Brugeren er optaget af andet job eller blokering i tidsperioden ". $ts->date." ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin());
@@ -106,7 +184,11 @@ function do_update() {
 		}
 	}
 	
-	do_redirect($PHP_SELF.'?action=show_update&job_id='.$_POST['job_id'].'&user_id='.$_POST['user_id']);
+	if (!empty($_POST['redir_action'])) {
+		do_redirect($PHP_SELF.'?action=show_blockings&user_id='.$_POST['user_id']);
+	} else {
+		do_redirect($PHP_SELF.'?action=show_update&job_id='.$_POST['job_id'].'&user_id='.$_POST['user_id']);
+	}
 }
 
 function show_list() {
@@ -257,6 +339,8 @@ if ($_REQUEST['action'] == 'show_update') {
 	show_update();
 } elseif ($_REQUEST['action'] == 'do_update') {
 	do_update();
+} elseif ($_REQUEST['action'] == 'show_blockings') {
+	show_blockings();
 } elseif ($_REQUEST['action'] == 'show_list') {
 	show_list();
 } elseif ($_REQUEST['action'] == 'show_evals') {

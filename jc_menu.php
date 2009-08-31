@@ -22,7 +22,7 @@ echo '
 	'.(user_is_admin() || user_is_employer() ? '<tr><td><a href="jc_job.php?action=show_list&user_id='.$login.'">Vis mine jobopslag</a></td><td class="help"></td></tr>' :'').'
 	
 	'.(user_is_admin() || user_is_helper() ? '<tr><td colspan="2">-</td></tr>
-	<tr><td><a href="jc_signup.php?action=show_update&job_id=-1">Redigér mine blokeringer</a></td><td class="help">Perioder hvor du/I ikke kan blive tildelt arbejde</td></tr>
+	<tr><td><a href="jc_signup.php?action=show_blockings">Redigér mine blokeringer</a></td><td class="help">Perioder hvor du/I ikke kan blive tildelt arbejde</td></tr>
 	<tr><td><a href="jc_signup.php?action=show_mine&show_block=1">Vis mine blokeringer</a></td><td class="help"></td></tr>
 	<tr><td><a href="jc_signup.php?action=show_mine">Vis mine jobtilmeldinger</a></td><td class="help"></td></tr>
 	' :'').'
