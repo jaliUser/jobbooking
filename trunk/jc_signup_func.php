@@ -27,6 +27,16 @@ function deleteSignup(Signup $s) {
 	dbi_clear_cache();
 }
 
+function signupsContainsTimeslot($signups, $timeslotID) {
+	foreach ($signups as $signup) {
+		$signup = Signup::cast($signup);
+		if ($signup->timeslotID == $timeslotID) {
+			return true;
+		}
+	}
+	return false;
+}
+
 function listJobUserSignups($job_id, $user_id) {
 	$sql = 'SELECT weu.cal_id, weu.cal_login, weu.cal_status, weu.cal_category, weu.cal_percent, weu.count, weu.notes  
 			FROM webcal_entry we, webcal_entry_user weu
