@@ -48,12 +48,13 @@ function listUserQualifications($login) {
 }
 
 function updateUserQualifications($login, $qualificationIdArr) {
+	global $login;
 	$sql = 'DELETE FROM user_qualification WHERE cal_login=?';
 	dbi_execute($sql, array($login));
 	
 	if (!empty($qualificationIdArr)) {
 		foreach ($qualificationIdArr as $qualID) {
-			$sql = 'INSERT INTO user_qualification(cal_login, qualification_id) VALUES (?,?)';
+			$sql = "INSERT INTO user_qualification(cal_login, qualification_id, upd_user) VALUES (?,?,'$login')";
 			dbi_execute($sql, array($login, $qualID, $site_id));				
 		}
 	}

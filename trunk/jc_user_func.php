@@ -6,6 +6,7 @@ include_once 'includes/classes/User.php';
  * Returns false if username/login already exist
  */
 function createUser(User $u) {
+	global $login;
 	# check that cal_login is unique, otherwise abort
 	$sql = 'SELECT COUNT(cal_login) FROM webcal_user WHERE cal_login=?';
 	$res = dbi_execute ($sql, array($u->login));
@@ -20,7 +21,7 @@ function createUser(User $u) {
     }
 	
 	//auto-increment id
-	$sql = 'INSERT INTO webcal_user (cal_login, cal_passwd, cal_lastname, cal_firstname, cal_email, cal_telephone, cal_address, cal_title, cal_birthday, role_id, site_id, group_id, count, age_range, qualifications, notes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)';
+	$sql = "INSERT INTO webcal_user (cal_login, cal_passwd, cal_lastname, cal_firstname, cal_email, cal_telephone, cal_address, cal_title, cal_birthday, role_id, site_id, group_id, count, age_range, qualifications, notes, def_date, def_user, upd_user) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,now(),'$login','$login')";
 	dbi_execute($sql, array($u->login, $u->passwd, $u->lastname, $u->firstname, $u->email, $u->telephone, $u->address, $u->title, $u->birthday, $u->roleID, $u->siteID, $u->groupID, $u->count, $u->ageRange, $u->qualifications, $u->notes)); 		
 
 	dbi_clear_cache();
@@ -28,14 +29,16 @@ function createUser(User $u) {
 }
 
 function updateUser(User $u) {
-	$sql = 'UPDATE webcal_user SET cal_lastname=?, cal_firstname=?, cal_email=?, cal_telephone=?, cal_address=?, cal_title=?, cal_birthday=?, role_id=?, group_id=?, count=?, age_range=?, qualifications=?, notes=? WHERE cal_login=?';
+	global $login;
+	$sql = "UPDATE webcal_user SET cal_lastname=?, cal_firstname=?, cal_email=?, cal_telephone=?, cal_address=?, cal_title=?, cal_birthday=?, role_id=?, group_id=?, count=?, age_range=?, qualifications=?, notes=?, upd_user='$login' WHERE cal_login=?";
 	dbi_execute($sql, array($u->lastname, $u->firstname, $u->email, $u->telephone, $u->address, $u->title, $u->birthday, $u->roleID, $u->groupID, $u->count, $u->ageRange, $u->qualifications, $u->notes, $u->login));
 
 	dbi_clear_cache();
 }
 
 function updateUserPasswd(User $u) {
-	$sql = 'UPDATE webcal_user SET cal_passwd=? WHERE cal_login=?';
+	global $login;
+	$sql = "UPDATE webcal_user SET cal_passwd=?, upd_user='$login' WHERE cal_login=?";
 	dbi_execute($sql, array($u->passwd, $u->login));
 
 	dbi_clear_cache();
