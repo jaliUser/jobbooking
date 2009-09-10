@@ -3,18 +3,20 @@ include_once 'includes/dbi4php.php';
 include_once 'includes/classes/Signup.php';
 
 function createSignup(Signup $s) {
+	global $login;
 	//cal_id + cal_login is primary key
-	$sql = 'INSERT INTO webcal_entry_user (cal_id, cal_login, cal_status, cal_category, cal_percent, count, notes) 
-			VALUES (?,?,?,?,?,?,?)';
+	$sql = "INSERT INTO webcal_entry_user (cal_id, cal_login, cal_status, cal_category, cal_percent, count, notes, def_date, def_user, upd_user) 
+			VALUES (?,?,?,?,?,?,?,now(),'$login','$login')";
 	dbi_execute($sql, array($s->timeslotID, $s->userID, $s->status, $s->category, $s->percent, $s->count, $s->notes));
 
 	dbi_clear_cache();
 }
 
 function updateSignup(Signup $s) {
+	global $login;
 	//cal_id + cal_login is primary key
-	$sql = 'UPDATE webcal_entry_user SET cal_status=?, cal_category=?, cal_percent=?, count=?, notes=? 
-			WHERE cal_id=? AND cal_login=?';
+	$sql = "UPDATE webcal_entry_user SET cal_status=?, cal_category=?, cal_percent=?, count=?, notes=?, upd_user='$login' 
+			WHERE cal_id=? AND cal_login=?";
 	dbi_execute($sql, array($s->status, $s->category, $s->percent, $s->count, $s->notes, $s->timeslotID, $s->userID));
 
 	dbi_clear_cache();

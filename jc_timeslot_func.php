@@ -15,7 +15,8 @@ function createTimeslot(Timeslot $t) {
     }
         
 	//auto-increment id
-	$sql = 'INSERT INTO webcal_entry (cal_id, cal_date, cal_time, cal_duration, job_id, person_need, cal_create_by, cal_name, contact_id) VALUES (?,?,?,?,?,?,?,?,?)';
+	$sql = "INSERT INTO webcal_entry (cal_id, cal_date, cal_time, cal_duration, job_id, person_need, cal_create_by, cal_name, contact_id, def_date, def_user, upd_user) 
+			VALUES (?,?,?,?,?,?,?,?,?,now(),'$login','$login')";
 	dbi_execute($sql, array($id, $t->date, $t->startTime, $t->duration, $t->jobID, $t->personNeed, $login, "autogen", $t->contactID));
 
 	dbi_clear_cache();
@@ -23,18 +24,20 @@ function createTimeslot(Timeslot $t) {
 }
 
 function updateTimeslot(Timeslot $t) {
-	$sql = 'UPDATE webcal_entry SET cal_date, cal_time, cal_duration, job_id, person_need, contact_id WHERE cal_id=?';
+	global $login;
+	$sql = "UPDATE webcal_entry SET cal_date, cal_time, cal_duration, job_id, person_need, contact_id, upd_user='$login' WHERE cal_id=?";
 	dbi_execute($sql, array($t->date, $t->startTime, $t->duration, $t->jobID, $t->personNeed, $t->contactID, $t->id));	
 
 	dbi_clear_cache();
 }
 
 function updateTimeslotNeed($timeslot_id, $person_need) {
+	global $login;
 	if (is_numeric($person_need) && intval($person_need) > 0) {
-		$sql = 'UPDATE webcal_entry SET person_need=? WHERE cal_id=?';
+		$sql = "UPDATE webcal_entry SET person_need=?, upd_user='$login' WHERE cal_id=?";
 		dbi_execute($sql, array($person_need, $timeslot_id));
 	} else {
-		$sql = 'UPDATE webcal_entry SET person_need=NULL WHERE cal_id=?';
+		$sql = "UPDATE webcal_entry SET person_need=NULL, upd_user='$login' WHERE cal_id=?";
 		dbi_execute($sql, array($timeslot_id));
 	}
 
@@ -42,11 +45,12 @@ function updateTimeslotNeed($timeslot_id, $person_need) {
 }
 
 function updateContact($timeslot_id, $contact_id) {
+	global $login;
 	if (!empty($contact_id)) {
-		$sql = 'UPDATE webcal_entry SET contact_id=? WHERE cal_id=?';
+		$sql = "UPDATE webcal_entry SET contact_id=?, upd_user='$login' WHERE cal_id=?";
 		dbi_execute($sql, array($contact_id, $timeslot_id));
 	} else {
-		$sql = 'UPDATE webcal_entry SET contact_id=NULL WHERE cal_id=?';
+		$sql = "UPDATE webcal_entry SET contact_id=NULL, upd_user='$login' WHERE cal_id=?";
 		dbi_execute($sql, array($timeslot_id));
 	}
 

@@ -4,8 +4,9 @@ include_once 'includes/classes/Job.php';
 include_once 'jc_timeslot_func.php';
 
 function createJob(Job $j) {
+	global $login;
 	//auto-increment id
-	$sql = 'INSERT INTO job (site_id, area_id, owner_id, name, description, meetplace, jobplace, notes, status, priority) VALUES (?,?,?,?,?,?,?,?,?,?)';
+	$sql = "INSERT INTO job (site_id, area_id, owner_id, name, description, meetplace, jobplace, notes, status, priority, def_date, def_user, upd_user) VALUES (?,?,?,?,?,?,?,?,?,?,now(),'$login','$login')";
 	dbi_execute($sql, array($j->siteID, $j->areaID, $j->ownerID, $j->name, $j->description, $j->meetplace, $j->jobplace, $j->notes, $j->status, $j->priority));
 
 	dbi_clear_cache();
@@ -13,7 +14,8 @@ function createJob(Job $j) {
 }
 
 function updateJob(Job $j) {
-	$sql = 'UPDATE job SET area_id=?, owner_id=?, name=?, description=?, meetplace=?, jobplace=?, notes=?, status=?, priority=? WHERE id=?';
+	global $login;
+	$sql = "UPDATE job SET area_id=?, owner_id=?, name=?, description=?, meetplace=?, jobplace=?, notes=?, status=?, priority=?, upd_user='$login' WHERE id=?";
 	dbi_execute($sql, array($j->areaID, $j->ownerID, $j->name, $j->description, $j->meetplace, $j->jobplace, $j->notes, $j->status, $j->priority, $j->id));	
 
 	dbi_clear_cache();
@@ -27,7 +29,8 @@ function deleteJob(Job $j) {
 }
 
 function updateJobStatus($job_id, $status) {
-	$sql = 'UPDATE job SET status=? WHERE id=?';
+	global $login;
+	$sql = "UPDATE job SET status=?, upd_user='$login' WHERE id=?";
 	dbi_execute($sql, array($status, $job_id));	
 
 	dbi_clear_cache();
@@ -43,9 +46,6 @@ function listJobs($site_id, $status=null, $owner_id=null, $filter=null) {
 				LEFT JOIN area a on j.area_id=a.id
 				WHERE j.site_id=? AND j.status=? AND a.contact_id=?
 				GROUP BY j.id";
-//		$sql = 'SELECT j.id, j.site_id, j.area_id, j.owner_id, j.name, j.description, j.meetplace, j.jobplace, j.notes, j.status, j.priority 
-//				FROM job j, area a 
-//				WHERE j.site_id=? AND j.status=? AND j.area_id=a.id AND a.contact_id=?';
 		$rows = dbi_get_cached_rows($sql, array($site_id, $status, $owner_id));
 	}
 	elseif(!empty($status)) {
