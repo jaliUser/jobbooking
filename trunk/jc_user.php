@@ -12,7 +12,7 @@ function show_list() {
 	$users = listUsers($site_id);
 	echo '<h1>Brugerliste</h1>
 		<table align="center" class="border1">
-		<tr> <th>Brugernavn</th> <th>Fornavn</th> <th>Efternavn</th> <th>Klan/Pladsnr</th> <th>E-mail</th> <th>Telefon</th> <th>Adresse</th> <th>Alder</th> <th>Gruppe</th> <th>Rolle</th> <th>Antal</th> <th>Underlejr</th> <th>Noter</th> </tr>';
+		<tr> <th>Brugernavn</th> <th>Spejdernet</th> <th>Fornavn</th> <th>Efternavn</th> <th>Klan/Pladsnr</th> <th>E-mail</th> <th>Telefon</th> <th>Adresse</th> <th>Alder</th> <th>Gruppe</th> <th>Rolle</th> <th>Antal</th> <th>Underlejr</th> <th>Noter</th> </tr>';
 	foreach ($users as $user) {
 		$user = User::cast($user);
 		$role = Role::cast(getRole($user->login));
@@ -21,6 +21,7 @@ function show_list() {
 
 		echo "<tr> 
 			<td>".(user_is_admin()? "<a href=\"$PHP_SELF?action=show_update&login=$user->login\">$user->login</a>": $user->login)."</td>
+			<td>$user->extLogin</td>
 			<td><a href=\"$PHP_SELF?action=show_one&login=$user->login\">$user->firstname</a></td>
 			<td>$user->lastname</td>
 			<td>$user->title</td>
@@ -93,6 +94,7 @@ function show_create() {
 		<tr><td>Kodeord:</td><td><input type="password" name="password" size="25" maxlength="32" /> *</td></tr>
 		<tr><td>Fornavn:</td><td><input type="text" name="firstname" size="25" maxlength="25" /> *</td></tr>
 		<tr><td>Efternavn:</td><td><input type="text" name="lastname" size="25" maxlength="25" /> *</td></tr>
+		<tr><td>Spejdernet-brugernavn:</td><td><input type="text" name="ext_login" size="25" maxlength="25" /> *</td></tr>
 		<tr><td>E-mail:</td><td><input type="text" name="email" size="25" maxlength="75" /></td></tr>
 		<tr><td>Telefon (helst mobil):</td><td><input type="text" name="telephone" size="25" maxlength="50" /> * <span class="help">Bruges til SMS-service for påmindelse og evt. ændringer af jobs.</span></td></tr>
 		<tr><td>Adresse/postnr/by:</td><td><input type="text" name="address" size="25" maxlength="75" /> *</td></tr>
@@ -125,6 +127,9 @@ function do_create() {
 	global $PHP_SELF, $login;
 	//require_params(array($_POST['login'], $_POST['password'], $_POST['lastname'], $_POST['firstname'], $_POST['telephone'], $_POST['address'], $_POST['age_range'], $_POST['count'], $_POST['role_id'], $_POST['site_id']));
 	$error = "";
+	if (!User::isValidUsername($_POST['login'])) {
+		$error .= "Ugyldige karakterer i brugernavn.<br>";
+	} 
 	if (strlen($_POST['login']) < 2) {
 		$error .= "Brugernavn skal være mindst 2 karakterer.<br>";
 	} 
@@ -157,7 +162,7 @@ function do_create() {
 		exit;
 	}
 	
-	$user = new User($_POST['login'], null, $_POST['lastname'], $_POST['firstname'], null, $_POST['email'], null, $_POST['telephone'], $_POST['address'], $_POST['title'], null, null, $_POST['role_id'], $_POST['site_id'], $_POST['group_id'], $_POST['count'], $_POST['age_range'], $_POST['qualifications'], $_POST['notes']);
+	$user = new User($_POST['login'], null, $_POST['lastname'], $_POST['firstname'], null, $_POST['email'], null, $_POST['telephone'], $_POST['address'], $_POST['title'], null, null, $_POST['role_id'], $_POST['site_id'], $_POST['group_id'], $_POST['count'], $_POST['age_range'], $_POST['qualifications'], $_POST['notes'], $_POST['ext_login']);
 	$user->setPasswd($_POST['password']);
 	
 	$ok = createUser($user);
@@ -239,6 +244,7 @@ function show_update() {
 		<tr><td>Kodeord:</td><td class="help"><input type="password" name="password" size="25" maxlength="32" value="" /> Efterlad tomt, hvis uændret</td></tr>
 		<tr><td>Fornavn:</td><td><input type="text" name="firstname" size="25" maxlength="25" value="'.$user->firstname.'" /> *</td></tr>
 		<tr><td>Efternavn:</td><td><input type="text" name="lastname" size="25" maxlength="25" value="'.$user->lastname.'" /> *</td></tr>
+		<tr><td>Spejdernet-brugernavn:</td><td><input type="text" name="ext_login" size="25" maxlength="25" value="'.$user->extLogin.'" /> *</td></tr>
 		<tr><td>E-mail:</td><td><input type="text" name="email" size="25" maxlength="75" value="'.$user->email.'" /></td></tr>
 		<tr><td>Telefon (helst mobil):</td><td><input type="text" name="telephone" size="25" maxlength="50" value="'.$user->telephone.'" /> * <span class="help">Bruges til SMS-service for påmindelse og evt. ændringer af jobs.</span></td></tr>
 		<tr><td>Adresse/postnr/by:</td><td><input type="text" name="address" size="25" maxlength="75" value="'.$user->address.'" /> *</td></tr>
@@ -268,9 +274,6 @@ function do_update() {
 	global $PHP_SELF, $login, $site_id, $site_name;
 	//require_params(array($_POST['login'], $_POST['lastname'], $_POST['firstname'], $_POST['telephone'], $_POST['address'], $_POST['age_range'], $_POST['count'], $_POST['role_id']));
 	$error = "";
-	if (strlen($_POST['login']) < 2) {
-		$error .= "Brugernavn skal være mindst 2 karakterer.<br>";
-	} 
 	if (!empty($_POST['password']) && strlen($_POST['password']) < 4) {
 		$error .= "Kodeordet skal være mindst 4 karakterer.<br>";
 	}
@@ -297,7 +300,7 @@ function do_update() {
 		exit;
 	}
 	
-	$user = new User($_POST['login'], null, $_POST['lastname'], $_POST['firstname'], null, $_POST['email'], null, $_POST['telephone'], $_POST['address'], $_POST['title'], null, null, $_POST['role_id'], $site_id, $_POST['group_id'], $_POST['count'], $_POST['age_range'], $_POST['qualifications'], $_POST['notes']);
+	$user = new User($_POST['login'], null, $_POST['lastname'], $_POST['firstname'], null, $_POST['email'], null, $_POST['telephone'], $_POST['address'], $_POST['title'], null, null, $_POST['role_id'], $site_id, $_POST['group_id'], $_POST['count'], $_POST['age_range'], $_POST['qualifications'], $_POST['notes'], $_POST['ext_login']);
 	
 	updateUser($user);
 	updateUserJobCategories($_POST['login'], $_POST['jobcategory']);
@@ -354,6 +357,7 @@ function show_one() {
 		<tr><th align="left">Brugernavn:</th><td>'.$user->login.'</td></tr>
 		<tr><th align="left">Fornavn:</th><td>'.$user->firstname.'</td></tr>
 		<tr><th align="left">Efternavn:</th><td>'.$user->lastname.'</td></tr>
+		<tr><th align="left">Spejdernet-brugernavn:</th><td>'.$user->extLogin.'</td></tr>
 		<tr><th align="left">E-mail:</th><td>'.$user->email.'</td></tr>
 		<tr><th align="left">Telefon:</th><td>'.$user->telephone.'</td></tr>
 		<tr><th align="left">Adresse/postnr/by:</th><td>'.$user->address.'</td></tr>

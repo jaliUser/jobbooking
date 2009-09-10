@@ -20,8 +20,9 @@ class User {
 	var $ageRange;
 	var $qualifications;
 	var $notes;
+	var $extLogin;
 	
-	function User($login, $passwd, $lastname, $firstname, $isAdmin, $email, $enabled, $telephone, $address, $title, $birthday, $lastLogin, $roleID, $siteID, $groupID, $count, $ageRange, $qualifications, $notes) {
+	function User($login, $passwd, $lastname, $firstname, $isAdmin, $email, $enabled, $telephone, $address, $title, $birthday, $lastLogin, $roleID, $siteID, $groupID, $count, $ageRange, $qualifications, $notes, $extLogin) {
 		$this->login = $login;
 		$this->passwd = $passwd;
 		$this->lastname = $lastname;
@@ -41,6 +42,7 @@ class User {
 		$this->ageRange = $ageRange;
 		$this->qualifications = $qualifications;
 		$this->notes = $notes;
+		$this->extLogin = $extLogin;
 	}
 
 	static function cast(User $user) {
@@ -53,6 +55,14 @@ class User {
 	
 	function getFullName() {
 		return $this->firstname . " " . $this->lastname;
+	}
+	
+	static function isValidUsername($login) {
+		if (!preg_match("!^[a-z0-9_]{0,25}$!i", $login)) {
+			return false;
+		} else {
+			return true;
+		}
 	}
 }
 
