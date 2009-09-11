@@ -26,6 +26,13 @@ function show_user_table($headertext, $link, $users) {
 	echo '</table>';	
 }
 
+function get_mail_headers() {
+	global $siteConfig;
+	$headers = 'From: '.$siteConfig->config[SiteConfig::$EMAIL_FROM].' <'.$siteConfig->config[SiteConfig::$EMAIL].'>'. "\r\n" .
+    			'X-Mailer: PHP/' . phpversion();
+	return $headers;
+}
+
 function valid_time($hour, $min) {
 if ((is_numeric($hour) && $hour >= 0 && $hour <= 23) &&
 	(is_numeric($min) && $min >= 0 && $min <= 59)) {

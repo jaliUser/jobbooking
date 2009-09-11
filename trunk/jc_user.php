@@ -154,6 +154,9 @@ function do_create() {
 	if (strlen($_POST['count']) < 1 || !is_numeric($_POST['count'])) {
 		$error .= "Antal skal være et tal og mindst 1 ciffer.<br>";
 	}
+	if (!empty($_POST['email']) && !valid_email($_POST['email'])) {
+		$error .= "Ugyldig email.<br>";
+	}
 	if (empty($_POST['site_id'])) {
 		$error .= "SiteID mangler.";
 	}
@@ -294,6 +297,9 @@ function do_update() {
 	}
 	if (strlen($_POST['count']) < 1 || !is_numeric($_POST['count'])) {
 		$error .= "Antal skal være et tal og mindst 1 ciffer.<br>";
+	}
+	if (!empty($_POST['email']) && !valid_email($_POST['email'])) {
+		$error .= "Ugyldig email.<br>";
 	}
 	if (!empty($error)) {
 		echo print_error($error);

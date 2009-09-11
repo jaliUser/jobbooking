@@ -15,7 +15,7 @@ echo '
 	<tr><th align="left">Handling</th><th></th></tr>
 	
 	'.(user_is_admin() || user_is_employer() || user_is_consultant() ? '<tr><td><a href="jc_job.php?action=show_create">Opret jobopslag</a></td><td class="help"></td></tr>' :'').'
-	<tr><td><a href="jc_job.php?action=show_list">Vis alle jobopslag</a></td><td class="help"></td></tr>
+	<tr><td><a href="jc_job.php?action=show_list">Vis alle godkendte jobopslag</a></td><td class="help"></td></tr>
 	<tr><td><a href="jc_job.php?action=show_list&filter=vacant">Vis ledige jobopslag</a></td><td class="help"></td></tr>
 	'.(user_is_arearesponsible() ? '<tr><td><a href="jc_job.php?action=show_list&status=W&user_id='.$login.'">Vis jobopslag der afventer min godkendelse</a></td><td class="help"></td></tr>':'').'
 	'.(user_is_admin() ? '<tr><td><a href="jc_job.php?action=show_list&status=W">Vis afventende jobopslag</a></td><td class="help"></td></tr>':'').'

@@ -16,6 +16,7 @@ include_once 'jc_subcamp_func.php';
 include_once 'jc_timeslot_func.php';
 include_once 'jc_user_func.php';
 include_once 'jc_signup_func.php';
+include_once 'jc_siteconfig_func.php';
 
 include_once 'includes/classes/Area.php';
 include_once 'includes/classes/Day.php';
@@ -25,6 +26,7 @@ include_once 'includes/classes/Job.php';
 include_once 'includes/classes/JobCategory.php';
 include_once 'includes/classes/Qualification.php';
 include_once 'includes/classes/Role.php';
+include_once 'includes/classes/SiteConfig.php';
 include_once 'includes/classes/Subcamp.php';
 include_once 'includes/classes/Timeslot.php';
 include_once 'includes/classes/User.php';
@@ -47,6 +49,8 @@ $current_user = User::cast(getUser($login));
 if($login != "__public__") {	
 	$current_role = Role::cast(getRole($login));
 }
+
+$siteConfig = getSiteConfig($site_id);
 
 $phpdbiVerbose = true;
 setlocale(LC_ALL, "dan");
