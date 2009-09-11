@@ -30,7 +30,7 @@ function show_list() {
 	} elseif (!empty($_GET['status'])) {
 		$title = "Afventende jobs";
 	} else {
-		$title = "Alle jobs";
+		$title = "Alle godkendte jobs";
 	}
 	echo '<h1>'.$title.'</h1>
 		<table align="center" class="border1" width="1000px">
@@ -164,7 +164,7 @@ function show_create() {
 
 function do_create() {
 	reject_public_access();
-	global $PHP_SELF, $site_id;
+	global $PHP_SELF, $site_id, $siteConfig;
 
 	$meetplace = "";
 	if (!empty($_POST['meetplace-predef'])) {
@@ -211,6 +211,27 @@ function do_create() {
 	$job = new Job(null, $site_id, $_REQUEST['area_id'], $_REQUEST['owner_id'], $_REQUEST['name'], $_REQUEST['description'], $meetplace, $jobplace, $_REQUEST['notes'], $_REQUEST['status'], $_REQUEST['priority']);
 
 	createJob($job);
+	
+	if ($job->status == "W") {
+		$area = getAreaFromId($job->areaID);
+		$contact = getUser($area->contactID);
+		if (!empty($contact->email) && valid_email($contact->email)) {
+			$to = $contact->email;
+		} else {
+			$to = $siteConfig->config[SiteConfig::$EMAIL];
+		}
+		$subject = "Nyt job afventer din godkendelse";
+		$message =	"Hej $contact->firstname \r\n".
+					"\r\n". 
+					"Et nyt job i Jobdatabasen for ".$siteConfig->siteName." afventer din godkendelse.\r\n".
+					"Logind på http://see2010jobcenter.wh.spejdernet.dk og godkend jobbet, så hjælpere kan tilmelde sig det.\r\n".
+					"\r\n".
+					"Med venlig hilsen\r\n".
+					$siteConfig->siteName."\r\n".
+					"";		
+		mail($to, $subject, $message, get_mail_headers());
+	}
+	
 	do_redirect($PHP_SELF.'?action=show_list');
 }
 
