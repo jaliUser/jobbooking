@@ -94,7 +94,7 @@ function show_create() {
 		<tr><td>Kodeord:</td><td><input type="password" name="password" size="25" maxlength="32" /> *</td></tr>
 		<tr><td>Fornavn:</td><td><input type="text" name="firstname" size="25" maxlength="25" /> *</td></tr>
 		<tr><td>Efternavn:</td><td><input type="text" name="lastname" size="25" maxlength="25" /> *</td></tr>
-		<tr><td>Spejdernet-brugernavn:</td><td><input type="text" name="ext_login" size="25" maxlength="25" /> *</td></tr>
+		<tr><td>Spejdernet-brugernavn:</td><td><input type="text" name="ext_login" size="25" maxlength="25" /></td></tr>
 		<tr><td>E-mail:</td><td><input type="text" name="email" size="25" maxlength="75" /></td></tr>
 		<tr><td>Telefon (helst mobil):</td><td><input type="text" name="telephone" size="25" maxlength="50" /> * <span class="help">Bruges til SMS-service for påmindelse og evt. ændringer af jobs.</span></td></tr>
 		<tr><td>Adresse/postnr/by:</td><td><input type="text" name="address" size="25" maxlength="75" /> *</td></tr>
@@ -247,7 +247,7 @@ function show_update() {
 		<tr><td>Kodeord:</td><td class="help"><input type="password" name="password" size="25" maxlength="32" value="" /> Efterlad tomt, hvis uændret</td></tr>
 		<tr><td>Fornavn:</td><td><input type="text" name="firstname" size="25" maxlength="25" value="'.$user->firstname.'" /> *</td></tr>
 		<tr><td>Efternavn:</td><td><input type="text" name="lastname" size="25" maxlength="25" value="'.$user->lastname.'" /> *</td></tr>
-		<tr><td>Spejdernet-brugernavn:</td><td><input type="text" name="ext_login" size="25" maxlength="25" value="'.$user->extLogin.'" /> *</td></tr>
+		<tr><td>Spejdernet-brugernavn:</td><td><input type="text" name="ext_login" size="25" maxlength="25" value="'.$user->extLogin.'" /></td></tr>
 		<tr><td>E-mail:</td><td><input type="text" name="email" size="25" maxlength="75" value="'.$user->email.'" /></td></tr>
 		<tr><td>Telefon (helst mobil):</td><td><input type="text" name="telephone" size="25" maxlength="50" value="'.$user->telephone.'" /> * <span class="help">Bruges til SMS-service for påmindelse og evt. ændringer af jobs.</span></td></tr>
 		<tr><td>Adresse/postnr/by:</td><td><input type="text" name="address" size="25" maxlength="75" value="'.$user->address.'" /> *</td></tr>
