@@ -237,7 +237,7 @@ function show_mine() {
 	
 	echo "<h1>Tidsperioder tildelt <i>".$contact->getFullName()."</i></h1>";
 	echo '<table align="center" class="border1">
-			<th>Dato</th> <th>Tid</th> <th>Job</th> <th>Behov</th> <th>Rest</th>';
+			<th>Dato</th> <th>Tid</th> <th>Job</th> <th>Behov</th> <th>Rest</th> <th></th>';
 	
 	foreach ($timeslots as $timeslot) {
 		$timeslot = Timeslot::cast($timeslot);
@@ -245,9 +245,10 @@ function show_mine() {
 		echo '<tr>
 				<td>'.date("d/m", $timeslot->getStartTS()).'</td>
 				<td>'.date("H:i", $timeslot->getStartTS()).date(" - H:i", $timeslot->getEndTS()).'</td>
-				<td>'.$job->name.'</td>
+				<td><a href="jc_job.php?action=show_one&job_id='.$job->id.'">'.$job->name.'</a></td>
 				<td>'.$timeslot->personNeed.'</td>
-				<td '.($timeslot->remainingNeed > 0 ? 'class="redalert"':'').'>'.$timeslot->remainingNeed.'</td>';
+				<td '.($timeslot->remainingNeed > 0 ? 'class="redalert"':'').'>'.$timeslot->remainingNeed.'</td>
+				<td><a href="jc_signup.php?action=show_update&job_id='.$job->id.'">Tilmeld</a></td>';
 		echo '</tr>';
 	}
 	echo '</table>';
