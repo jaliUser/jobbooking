@@ -232,7 +232,7 @@ function do_create() {
 		mail($to, $subject, $message, get_mail_headers());
 	}
 	
-	do_redirect($PHP_SELF.'?action=show_list');
+	do_redirect($PHP_SELF.'?action=show_list&user_id='.$_REQUEST['owner_id']);
 }
 
 function show_update() {
