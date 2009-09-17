@@ -22,6 +22,15 @@ function updateJob(Job $j) {
 }
 
 function deleteJob(Job $j) {
+	//NOTE: update status to D (deleted) instead)
+	
+	$sql = 'DELETE FROM webcal_entry_user WHERE cal_id 
+			IN (SELECT cal_id FROM webcal_entry WHERE job_id=?)';
+	dbi_execute($sql, array($j->id));
+	
+	$sql = 'DELETE FROM webcal_entry WHERE job_id=?';
+	dbi_execute($sql, array($j->id));
+	
 	$sql = 'DELETE FROM job WHERE id=?';
 	dbi_execute($sql, array($j->id));
 
