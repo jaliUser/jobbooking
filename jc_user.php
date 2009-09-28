@@ -48,19 +48,19 @@ function show_create() {
 	html_top("$siteConfig->siteName - Opret bruger");
 	
 	//if not admin, only show 1 role  
-	$rolesHTML = '<select name="role_id">';
+	$rolesHTML = '<select name="role_id" onChange="role_id_changed(this);">';
 	if(user_is_admin()) {
 		$roles = listRoles();
 		foreach ($roles as $role) {
 			$role = Role::cast($role);
-			$rolesHTML .= '<option value="'.$role->id.'">'.$role->name.'</option>';
+			$rolesHTML .= '<option value="'.$role->id.'" '.($_GET['role_id'] == $role->id ? 'selected':'').'>'.$role->name.'</option>';
 		}
 	} else {
 		$roles = listRoles();
 		$role = Role::cast($roles[2]);
-		$rolesHTML .= '<option value="'.$role->id.'">'.$role->name.'</option>';
+		$rolesHTML .= '<option value="'.$role->id.'" '.($_GET['role_id'] == $role->id ? 'selected':'').'>'.$role->name.'</option>';
 		$role = Role::cast($roles[1]);
-		$rolesHTML .= '<option value="'.$role->id.'">'.$role->name.'</option>';
+		$rolesHTML .= '<option value="'.$role->id.'" '.($_GET['role_id'] == $role->id ? 'selected':'').'>'.$role->name.'</option>';
 	}
 	$rolesHTML .= '</select>';
 	  
@@ -90,7 +90,7 @@ function show_create() {
 	echo '<h1>Opret bruger til <i>'.$siteConfig->siteName.'</i></h1>
 		<form action="'.$PHP_SELF.'" method="POST">
 		<table align="center" border="0" cellspacing="3" cellpadding="3">
-		
+		<tr><td>Rolle:</td><td>'.$rolesHTML.'</td></tr>
 		<tr><td>Brugernavn:</td><td><input type="text" name="login" size="25" maxlength="25" /> * <span class="help">Kun tegnene A-Z og _ er tilladte (IKKE mellemrum, &AElig;, &Oslash; og &Aring;)</span></td></tr>
 		<tr><td>Kodeord:</td><td><input type="password" name="password" size="25" maxlength="32" /> *</td></tr>
 		<tr><td>Fornavn:</td><td><input type="text" name="firstname" size="25" maxlength="25" /> *</td></tr>
@@ -98,15 +98,18 @@ function show_create() {
 		<tr><td>Spejdernet-brugernavn:</td><td><input type="text" name="ext_login" size="25" maxlength="25" /></td></tr>
 		<tr><td>E-mail:</td><td><input type="text" name="email" size="25" maxlength="75" /></td></tr>
 		<tr><td>Telefon (helst mobil):</td><td><input type="text" name="telephone" size="25" maxlength="50" /> * <span class="help">Bruges til SMS-service for påmindelse og evt. ændringer af jobs.</span></td></tr>
-		<tr><td>Adresse/postnr/by:</td><td><input type="text" name="address" size="25" maxlength="75" /> *</td></tr>
-		<tr><td>Alder under lejren:</td><td><input type="text" name="age_range" size="10" maxlength="10" /> *</td></tr>
+		<tr><td>Adresse/postnr/by:</td><td><input type="text" name="address" size="25" maxlength="75" /> *</td></tr>';
+
+	if (empty($_GET['role_id']) || $_GET['role_id'] == 3) {
+	echo '<tr><td>Alder under lejren:</td><td><input type="text" name="age_range" size="10" maxlength="10" /> *</td></tr>
 		<tr><td>Antal:</td><td><input type="text" name="count" size="2" maxlength="3" /> * <span class="help">Hvor mange hjælpere er I?</span></td></tr>
 		<tr><td>Kvalifikationer:</td><td>'.$qualificationHTML.'<br><span class="help">Hvis der kr&aelig;ves certifikater, skal disse medbringes på lejren!</span></td></tr>
 		<tr><td>Specielle kvalifikationer:</td><td><input type="text" name="qualifications" size="25" maxlength="255" /></td></tr>
 		<tr><td>Klan/holdnavn/pladsnr:</td><td><input type="text" name="title" size="25" maxlength="75" /></td></tr>
-		<tr><td>Gruppe:</td><td>'.$groupsHTML.'</td></tr>
-		<tr><td>Rolle:</td><td>'.$rolesHTML.'</td></tr>
-		<tr><td>Foretrukne jobkategorier:</td><td>'.$jobcategoryHTML.'</td></tr>
+		<tr><td>Foretrukne jobkategorier:</td><td>'.$jobcategoryHTML.'</td></tr>';
+	}
+
+	echo '<tr><td>Gruppe:</td><td>'.$groupsHTML.'</td></tr>
 		<tr><td>Noter:</td><td><textarea name="notes" cols="50" rows="3"></textarea></td></tr>
 		<tr><td colspan="2" class="help">* markerer et obligatorisk felt</td></tr>
 
@@ -149,10 +152,10 @@ function do_create() {
 	if (strlen($_POST['address']) < 4) {
 		$error .= "Adresse skal være mindst 4 karakterer.<br>";
 	}
-	if (strlen($_POST['age_range']) < 1) {
+	if ($_POST['role_id'] == 3 && strlen($_POST['age_range']) < 1) {
 		$error .= "Alder skal være mindst 1 karakter.<br>";
 	}
-	if (strlen($_POST['count']) < 1 || !is_numeric($_POST['count'])) {
+	if ($_POST['role_id'] == 3 && (strlen($_POST['count']) < 1 || !is_numeric($_POST['count']))) {
 		$error .= "Antal skal være et tal og mindst 1 ciffer.<br>";
 	}
 	if (!empty($_POST['email']) && !valid_email($_POST['email'])) {
@@ -175,14 +178,14 @@ function do_create() {
 		updateUserQualifications($_POST['login'], $_POST['qualification']);
 		
 		if($login == "__public__") {
-			do_redirect('login.php');
+			do_redirect('login.php?site_id='.$_POST['site_id']);
 		} else {
 			do_redirect($PHP_SELF.'?action=show_list');
 		}
 	}
 	else {
-		html_top($title);
-		echo '<b>Fejl:</b> Brugernavnet er ugyldigt eller findes allerede!<br/>Kun tegnene A-Z og _ er tilladte, ikke &AElig;, &Oslash; og &Aring;.';
+		print_error_header('Brugernavnet er ugyldigt eller findes allerede!<br/>
+							Kun tegnene A-Z og _ er tilladte, ikke &AElig;, &Oslash; og &Aring;.');
 	}
 }
 
@@ -243,6 +246,7 @@ function show_update() {
 		<form action="'.$PHP_SELF.'" method="POST">
 		<table align="center" border="0" cellspacing="3" cellpadding="3">
 		
+		<tr><td>Rolle:</td><td>'.$rolesHTML.'</td></tr>
 		<tr><td>Brugernavn:</td><td><input type="text" name="login" size="25" maxlength="25" value="'.$user->login.'" disabled /></td></tr>
 			<input type="hidden" name="login" value="'.$user->login.'" />
 		<tr><td>Kodeord:</td><td class="help"><input type="password" name="password" size="25" maxlength="32" value="" /> Efterlad tomt, hvis uændret</td></tr>
@@ -251,16 +255,19 @@ function show_update() {
 		<tr><td>Spejdernet-brugernavn:</td><td><input type="text" name="ext_login" size="25" maxlength="25" value="'.$user->extLogin.'" /></td></tr>
 		<tr><td>E-mail:</td><td><input type="text" name="email" size="25" maxlength="75" value="'.$user->email.'" /></td></tr>
 		<tr><td>Telefon (helst mobil):</td><td><input type="text" name="telephone" size="25" maxlength="50" value="'.$user->telephone.'" /> * <span class="help">Bruges til SMS-service for påmindelse og evt. ændringer af jobs.</span></td></tr>
-		<tr><td>Adresse/postnr/by:</td><td><input type="text" name="address" size="25" maxlength="75" value="'.$user->address.'" /> *</td></tr>
-		<tr><td>Alder under lejren:</td><td><input type="text" name="age_range" size="10" maxlength="10" value="'.$user->ageRange.'" /> *</td></tr>
+		<tr><td>Adresse/postnr/by:</td><td><input type="text" name="address" size="25" maxlength="75" value="'.$user->address.'" /> *</td></tr>';
+
+	if ($user->roleID == 3) {
+	echo '<tr><td>Alder under lejren:</td><td><input type="text" name="age_range" size="10" maxlength="10" value="'.$user->ageRange.'" /> *</td></tr>
 		<tr><td>Antal:</td><td><input type="text" name="count" size="2" maxlength="3" value="'.$user->count.'" /> * <span class="help">Hvor mange hjælpere er I?</span></td></tr>
 		<tr><td>Kvalifikationer:</td><td>'.$qualificationHTML.'<br><span class="help">Hvis der kr&aelig;ves certifikater, skal disse medbringes på lejren!</span></td></tr>
 		<tr><td>Specielle kvalifikationer:</td><td><input type="text" name="qualifications" size="25" maxlength="255" value="'.$user->qualifications.'" /></td></tr>
 		<tr><td>Klan/holdnavn/pladsnr:</td><td><input type="text" name="title" size="25" maxlength="75" value="'.$user->title.'" /></td></tr>
 		<tr><td>Gruppe:</td><td>'.$groupsHTML.'</td></tr>
-		<tr><td>Rolle:</td><td>'.$rolesHTML.'</td></tr>
-		<tr><td>Foretrukne jobkategorier:</td><td>'.$jobcategoryHTML.'</td></tr>
-		<tr><td>Noter:</td><td><textarea name="notes" cols="50" rows="3">'.$user->notes.'</textarea></td></tr>
+		<tr><td>Foretrukne jobkategorier:</td><td>'.$jobcategoryHTML.'</td></tr>';
+	}	
+	
+	echo '<tr><td>Noter:</td><td><textarea name="notes" cols="50" rows="3">'.$user->notes.'</textarea></td></tr>
 		<tr><td colspan="2" class="help">* markerer et obligatorisk felt</td></tr>
 
 		<tr><td colspan="2"><input type="submit" value="Opdater"/></td></tr>
@@ -293,10 +300,10 @@ function do_update() {
 	if (strlen($_POST['address']) < 4) {
 		$error .= "Adresse skal være mindst 4 karakterer.<br>";
 	}
-	if (strlen($_POST['age_range']) < 1) {
+	if ($_POST['role_id'] == 3 && strlen($_POST['age_range']) < 1) {
 		$error .= "Alder skal være mindst 1 karakter.<br>";
 	}
-	if (strlen($_POST['count']) < 1 || !is_numeric($_POST['count'])) {
+	if ($_POST['role_id'] == 3 && (strlen($_POST['count']) < 1 || !is_numeric($_POST['count']))) {
 		$error .= "Antal skal være et tal og mindst 1 ciffer.<br>";
 	}
 	if (!empty($_POST['email']) && !valid_email($_POST['email'])) {
