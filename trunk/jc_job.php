@@ -15,9 +15,10 @@ function getPlaces() {
 
 function show_list() {
 	global $PHP_SELF, $login, $site_id, $site_name;
+	$site_id = (!empty($_GET['site_id']) ? $_GET['site_id'] : $site_id);
 	html_top($site_name . " - Jobliste");
-	$role = getRole($login);
 	
+	$role = getRole($login);
 	$area = getAreaFromContact($login);
 	
 	$jobs = listJobs($site_id, $_GET['status'], $_GET['user_id'], $_GET['filter']);
@@ -37,7 +38,7 @@ function show_list() {
 		<tr> <th><i>Handlinger</i></th> <th>ID</th> <th>Område</th> <th>Navn</th> <th>Beskrivelse</th> <th>Kontakt</th> <th>Mødested</th> <th>Jobsted</th> <th>Noter</th> 
 		<th title="Behov">B</th> 
 		<th title="Rest">R</th>'
-		.(user_is_admin() || $job->ownerID == $login ?'<th title="Status">S</th>':'')
+		.(user_is_admin() || $_GET['user_id'] == $login ?'<th title="Status">S</th>':'')
 		.(user_is_admin() ?'<th title="Prioritet">P</th>':'')
 		.'</tr>';
 	foreach ($jobs as $job) {
@@ -101,7 +102,7 @@ function show_create() {
 
 	//generate html for users with employer role
 	$ownerHTML = '<select name="owner_id">';
-	if (user_is_admin()) {
+	if (user_is_admin() || user_is_consultant()) {
 		$users = listUsers($site_id, 2);
 		foreach ($users as $user) {
 			$user = User::cast($user);
@@ -223,12 +224,19 @@ function do_create() {
 		$subject = "Nyt job afventer din godkendelse";
 		$message =	"Hej $contact->firstname \r\n".
 					"\r\n". 
-					"Et nyt job i Jobdatabasen for ".$siteConfig->siteName." afventer din godkendelse.\r\n".
+					"Et nyt jobopslag i Jobdatabasen for ".$siteConfig->siteName." afventer din godkendelse.\r\n".	
+					"\r\n".
+					"JobID: ".$job->id."\r\n".
+					"Jobnavn: ".$job->name."\r\n".
+					"Jobansvarlig: ".getUser($job->ownerID)->getFullName()."\r\n".
+					"\r\n".
+					"Det er din opgave som områdeansvarlig, at vurdere de enkelte jobs og sortere 'skidt fra kanel', så ikke jobdatabasen fyldes med jobopslag lavet for sjov. Hvis der er blevet oprettet et jobopslag, som du ikke kan stå inde for, bør du kontakte den jobansvarlige.\r\n".
+					"\r\n".
 					"Logind på http://see2010jobcenter.wh.spejdernet.dk og godkend jobbet, så hjælpere kan tilmelde sig det.\r\n".
 					"\r\n".
 					"Med venlig hilsen\r\n".
 					$siteConfig->siteName."\r\n".
-					"";		
+					"";
 		mail($to, $subject, $message, get_mail_headers());
 	}
 	
@@ -266,8 +274,8 @@ function show_update() {
 	$ownerHTML .= '</select>';
 	
 	$statusHTML =  '<select name="status">'
-					.(user_is_admin() ? '<option value="A">'.Job::jobStatus('A').'</option>' : '').
-					'<option value="W">'.Job::jobStatus('W').'</option>
+					.(user_is_admin() ? '<option value="A" '.($job->status=='A' ? 'selected':'').'>'.Job::jobStatus('A').'</option>' : '').
+					'<option value="W" '.($job->status=='W' ? 'selected':'').'>'.Job::jobStatus('W').'</option>
 					</select>';
 	
 	$priorityHTML = '<select name="priority">'

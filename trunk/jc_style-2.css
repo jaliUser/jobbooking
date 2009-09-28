@@ -1,6 +1,7 @@
 body {
 	font-size: 12px; 
 	color: #000000;
+	background-color: pink;
 	margin: 5px; 
 	font-family: Verdana, sans-serif, Arial, Helvetica;
 	/*background-image:url('images/1024x768.jpg');*/
@@ -99,8 +100,13 @@ tr.subth {
 }
 [disabled] {
   background: lightgray;
+  color: black;
   border: 1px, solid, black;
-  //border-width:1px;
+  border-width: 1px;
   /*color:blue;
   cursor:default;*/
+}
+.disabled {
+  background: lightgray;
+  color: black;
 }

@@ -4,7 +4,7 @@ function show_user_table($headertext, $link, $users) {
 	global $site_id; 
 	echo '<h3>'.$headertext.':</h3>
 		<table align="center" class="border1">
-		<tr> <th>Brugernavn</th> <th>Fornavn</th> <th>Efternavn</th> <th>E-mail</th> <th>Telefon</th> <th>Alder</th> <th>Gruppe</th> <th>Underlejr</th> <th>Rolle</th> </tr>';
+		<tr> <th>Brugernavn</th> <th>Navn</th> <th>E-mail</th> <th>Telefon</th> <th>Alder</th> <th>Gruppe</th> <th>Underlejr</th> </tr>';
 	foreach ($users as $user) {
 		$user = User::cast($user);
 		$role = Role::cast(getRole($user->login));
@@ -13,14 +13,12 @@ function show_user_table($headertext, $link, $users) {
 
 		echo "<tr> 
 			<td><a href=\"$link&user_id=$user->login\">$user->login</a></td>
-			<td><a href=\"jc_user.php?action=show_one&login=$user->login\">$user->firstname</a></td>
-			<td>$user->lastname</td>
+			<td><a href=\"jc_user.php?action=show_one&login=$user->login\">".$user->getFullName()."</a></td>
 			<td>$user->email</td>
 			<td>$user->telephone</td>
 			<td>$user->birthday</td>
 			<td>$group->name</td>
 			<td>$subcamp->name</td>
-			<td>$role->name</td>
 			</tr>";
 	}
 	echo '</table>';	
@@ -103,12 +101,20 @@ function get_cal_unixtime($cal_date, $cal_time) {
 }
 
 function html_top($title) {
+	global $PHP_SELF, $site_id;
+	if (empty($site_id)) {
+		echo print_error("SiteID mangler.");
+		exit;
+	}
 	echo '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">'.
 		'<html><head><meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>'.
-		'<link href="jc_style.css" rel="stylesheet" type="text/css"/>'.
+		'<link href="jc_style-'.$site_id.'.css" rel="stylesheet" type="text/css"/>'.
 		'<script type="text/javascript" src="jc_script.js"></script>'.
 		'<title>'.$title.'</title>'.
 		'</head><body>';
+	if ($PHP_SELF != "/jc_menu.php") {
+		echo '<a href="jc_menu.php">Hovedmenu</a> | <a onclick="javascript:history.back()">Tilbage</a>';
+	}
 }
 
 function html_bottom() {

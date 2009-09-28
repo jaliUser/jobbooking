@@ -201,8 +201,28 @@ if ( ! empty ( $CUSTOM_HEADER ) && $CUSTOM_HEADER == 'Y' ) {
   echo load_template ( $login, 'H' );
 }
 ?>
-
-<h2><?php echo $appStr?></h2>
+<?php 
+include_once 'jc_siteconfig_func.php';
+include_once 'includes/classes/SiteConfig.php';
+if (empty($_GET['site_id'])) {
+	echo "<h2 align='center'>Vælg database</h2>";
+	$siteConfigs = listSiteConfigs();
+	if (count($siteConfigs) == 0) {
+		print_error("No siteID in database!");
+		exit;
+	} else if (count($siteConfigs) == 1) {
+		$_GET['site_id'] = $siteConfigs[0]->siteID;
+	} else {
+		foreach ($siteConfigs as $siteConfig) {
+			$siteConfig = SiteConfig::cast($siteConfig);
+			echo "<p align='center'><a href=\"$PHP_SELF?site_id=$siteConfig->siteID\">$siteConfig->siteName</a></p>";
+		}
+		exit;
+	}
+}
+$siteConfig = getSiteConfig($_GET['site_id']);
+?>
+<h2><?php echo $siteConfig->siteName ?></h2>
 
 <?php
 if ( ! empty ( $error ) ) {

@@ -57,9 +57,9 @@ function updateContact($timeslot_id, $contact_id) {
 	dbi_clear_cache();
 }
 
-function deleteTimeslot(Timeslot $t) {
+function deleteTimeslot($timeslot_id) {
 	$sql = 'DELETE FROM webcal_entry WHERE cal_id=?';
-	dbi_execute($sql, array($t->id));
+	dbi_execute($sql, array($timeslot_id));
 
 	dbi_clear_cache();
 }
@@ -135,6 +135,43 @@ function listTimeslotsUnassigned($site_id) {
 		if ($row[5] != 0) {
 			 $t->remainingNeed = $row[5] - $row[7];
 		}
+		$tsArr[] = $t;
+	}
+	
+	return $tsArr;
+}
+
+function listTimeslotWishes($user_id) {
+	$sql = 'SELECT we.cal_id, we.cal_date, we.cal_time, we.cal_duration, we.job_id, we.person_need, we.contact_id
+			FROM webcal_entry we
+			WHERE we.job_id=-2 AND we.contact_id=? 
+			ORDER BY we.cal_date, we.cal_time';
+	$rows = dbi_get_cached_rows($sql, array($user_id));
+	
+	$tsArr = array();
+	for ($i=0; $i<count($rows); $i++) { 
+		$row = $rows[$i];		
+		$t = new Timeslot($row[0], $row[1], $row[2], $row[3], $row[4], $row[5], $row[6]);
+		$tsArr[] = $t;
+	}
+	
+	return $tsArr;
+}
+
+function listTimeslotWishesInPeriod($site_id, $start_date, $start_caltime, $end_date, $end_caltime) {
+	$sql = 'SELECT we.cal_id, we.cal_date, we.cal_time, we.cal_duration, we.job_id, we.person_need, we.contact_id
+			FROM webcal_entry we
+			LEFT JOIN job j ON j.id=we.job_id
+			WHERE we.job_id=-2 AND j.site_id=? AND 
+				we.cal_date>=? AND cal_date<=? AND 
+				cal_time<=? AND (cal_time+(cal_duration %60)*100+FLOOR(cal_duration/60)*10000) >=?
+			ORDER BY we.cal_date, we.cal_time';
+	$rows = dbi_get_cached_rows($sql, array($site_id, $start_date, $end_date, $start_caltime, $end_caltime)); 
+	
+	$tsArr = array();
+	for ($i=0; $i<count($rows); $i++) { 
+		$row = $rows[$i];		
+		$t = new Timeslot($row[0], $row[1], $row[2], $row[3], $row[4], $row[5], $row[6]);
 		$tsArr[] = $t;
 	}
 	
