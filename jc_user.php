@@ -42,10 +42,10 @@ function show_list() {
 
 //allow public access
 function show_create() {
-	global $PHP_SELF, $login, $site_id, $site_name;
-	html_top("$site_name - Opret bruger");
-
-	$site_id = (empty($site_id) ? $_GET['site_id'] : $site_id);
+	global $PHP_SELF, $login, $site_id;
+	$site_id = (!empty($_GET['site_id']) ? $_GET['site_id'] : $site_id);
+	$siteConfig = getSiteConfig($site_id);
+	html_top("$siteConfig->siteName - Opret bruger");
 	
 	//if not admin, only show 1 role  
 	$rolesHTML = '<select name="role_id">';
@@ -76,17 +76,18 @@ function show_create() {
 	$jobcats = listAllJobCategories($site_id);
 	foreach ($jobcats as $jobcat) {
 		$jobcat = JobCategory::cast($jobcat);
-		$jobcategoryHTML .= '<input type="checkbox" name="jobcategory[]" value="'.$jobcat->id.'">'.$jobcat->name.'</input>&nbsp;&nbsp;';
+		$jobcategoryHTML .= '<input type="checkbox" name="jobcategory[]" value="'.$jobcat->id.'">'.$jobcat->name.'</input><br/>';
 	}
 	
 	$qualificationHTML = '';
 	$quals = listAllQualifications($site_id);
 	foreach ($quals as $qual) {
 		$qual = Qualification::cast($qual);
-		$qualificationHTML .= '<input type="checkbox" name="qualification[]" value="'.$qual->id.'">'.$qual->name.'</input>&nbsp;&nbsp;';
+		$qualificationHTML .= '<input type="checkbox" name="qualification[]" value="'.$qual->id.'">'.$qual->name.'</input><br/>
+		';
 	}
 	
-	echo '<h1>Opret bruger</h1>
+	echo '<h1>Opret bruger til <i>'.$siteConfig->siteName.'</i></h1>
 		<form action="'.$PHP_SELF.'" method="POST">
 		<table align="center" border="0" cellspacing="3" cellpadding="3">
 		
@@ -221,7 +222,7 @@ function show_update() {
 				$jobcategoryHTML .= ' checked';
 			}
 		}
-		$jobcategoryHTML .= '>'.$jobcat->name.'</input>&nbsp;&nbsp;';
+		$jobcategoryHTML .= '>'.$jobcat->name.'</input><br/>';
 	}
 	
 	$qualificationHTML = '';
@@ -235,7 +236,7 @@ function show_update() {
 				$qualificationHTML .= ' checked';
 			}
 		}
-		$qualificationHTML .= '>'.$qual->name.'</input>&nbsp;&nbsp;';
+		$qualificationHTML .= '>'.$qual->name.'</input><br/>';
 	}
 	
 	echo '<h1>Rediger bruger</h1>
