@@ -1,3 +1,7 @@
+function role_id_changed(x) {
+	window.location.href = document.location.href + "&role_id=" + x.value;
+}
+
 function check_form_customer(form) {
 	var minPhoneLength = 8;
 	if (form.name.value == "") {

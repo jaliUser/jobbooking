@@ -201,28 +201,42 @@ if ( ! empty ( $CUSTOM_HEADER ) && $CUSTOM_HEADER == 'Y' ) {
   echo load_template ( $login, 'H' );
 }
 ?>
+
 <?php 
 include_once 'jc_siteconfig_func.php';
 include_once 'includes/classes/SiteConfig.php';
-if (empty($_GET['site_id'])) {
-	echo "<h2 align='center'>Vælg database</h2>";
-	$siteConfigs = listSiteConfigs();
-	if (count($siteConfigs) == 0) {
-		print_error("No siteID in database!");
-		exit;
-	} else if (count($siteConfigs) == 1) {
-		$_GET['site_id'] = $siteConfigs[0]->siteID;
-	} else {
-		foreach ($siteConfigs as $siteConfig) {
-			$siteConfig = SiteConfig::cast($siteConfig);
-			echo "<p align='center'><a href=\"$PHP_SELF?site_id=$siteConfig->siteID\">$siteConfig->siteName</a></p>";
-		}
-		exit;
-	}
+
+if (!empty($_GET['site_id'])) {
+	$site_id = $_GET['site_id'];
+} else {	
+	$site_id = 1;
 }
-$siteConfig = getSiteConfig($_GET['site_id']);
+$siteConfig = getSiteConfig($site_id);
 ?>
+
 <h2><?php echo $siteConfig->siteName ?></h2>
+
+<?php 
+//include_once 'jc_siteconfig_func.php';
+//include_once 'includes/classes/SiteConfig.php';
+//
+//if (empty($_GET['site_id'])) {
+//	echo "<b>Vælg database</b>";
+//	$siteConfigs = listSiteConfigs();
+//	if (count($siteConfigs) == 0) {
+//		print_error("No siteID in database!");
+//		exit;
+//	} else if (count($siteConfigs) == 1) {
+//		$_GET['site_id'] = $siteConfigs[0]->siteID;
+//	} 
+//	else {
+//		foreach ($siteConfigs as $siteConfig) {
+//			$siteConfig = SiteConfig::cast($siteConfig);
+//			echo "<p><a href=\"$PHP_SELF?site_id=$siteConfig->siteID\">$siteConfig->siteName</a></p>";
+//		}
+//	}
+//}
+?>
 
 <?php
 if ( ! empty ( $error ) ) {
@@ -237,7 +251,7 @@ if ( $logout ) {
   echo "<br /><br />\n";
   echo '<a href="login.php' .
     ( ! empty ( $return_path ) ?
-      '?return_path=' . htmlentities ( $return_path ) : '' ) .
+      '?site_id='.$_GET['site_id'].'return_path=' . htmlentities ( $return_path ) : '?site_id='.$_GET['site_id'] ) .
     '" class="nav">' . translate ( 'Login' ) .
     "</a><br /><br /><br />\n";
 }
