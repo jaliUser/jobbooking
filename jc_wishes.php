@@ -30,7 +30,7 @@ function show_update() {
 				<td>'.date("d/m", $timeslot->getStartTS()).'</td>
 				<td>'.date("H:i", $timeslot->getStartTS()).date(" - H:i", $timeslot->getEndTS()).'</td>
 				<td><input type="text" name="timeslot-'.$timeslot->id.'" value="'.$timeslot->personNeed.'" size="1" maxlength="2"/></td>
-				<td><a href="'.$PHP_SELF.'?action=do_delete&cal_id='.$timeslot->id.'">Slet</a></td>
+				<td><a href="'.$PHP_SELF.'?action=do_delete&cal_id='.$timeslot->id.'&user_id='.$user->login.'">Slet</a></td>
 			</tr>';
 	}		
 	echo '  <tr><td colspan="4"><input type="submit" value="Opdatér"/></td></tr>
@@ -90,7 +90,7 @@ function do_create() {
 	
 	createTimeslot($timeslot);
 	
-	do_redirect($PHP_SELF.'?action=show_update');
+	do_redirect($PHP_SELF.'?action=show_update&user_id='.$_POST['user_id']);
 }
 
 function do_delete() {
@@ -98,7 +98,7 @@ function do_delete() {
 		
 	deleteTimeslot($_GET['cal_id']);
 	
-	do_redirect($PHP_SELF.'?action=show_update');
+	do_redirect($PHP_SELF.'?action=show_update&user_id='.$_GET['user_id']);
 }
 
 function show_list() {
@@ -192,7 +192,7 @@ function do_update() {
 		}
 		updateTimeslotNeed($ts->id, $_POST['timeslot-'.$ts->id]);
 	}
-	do_redirect($PHP_SELF.'?action=show_update');
+	do_redirect($PHP_SELF.'?action=show_update&user_id='.$_POST['user_id']);
 }
 
 if ($_REQUEST['action'] == 'show_update') {

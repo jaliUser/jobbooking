@@ -26,8 +26,6 @@ function clearButtons(buttonGroup){
 	}
 }
 
-var minDigitsInIPhoneNumber = 10;
-
 function isNumeric(s){   
 	var i;
     for (i = 0; i < s.length; i++)
