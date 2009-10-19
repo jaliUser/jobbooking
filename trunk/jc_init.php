@@ -53,6 +53,11 @@ if($login != "__public__") {
 $siteConfig = getSiteConfig($site_id);
 
 $phpdbiVerbose = true;
-setlocale(LC_ALL, "dan");
+
+if (strpos("Win", $_SERVER['SERVER_SOFTWARE']) !== false) {
+	setlocale(LC_ALL, "dan");
+} else {
+	setlocale(LC_ALL, "da_DK");
+}
 
 ?>

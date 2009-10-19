@@ -131,6 +131,31 @@ function show_update() {
 		</form>';
 	echo '</table>';
 	
+	// show resulting signups
+	$signups = listUserSignups($user->login);
+	if (count($signups) > 0) {
+		$days = listDays($site_id);
+	
+		echo "<h3>Jobtilmeldinger for <i><a href=\"jc_user.php?action=show_one&login=$user->login\">".$user->getFullName()."</a></i></h3>";
+		echo '<table align="center" class="border1">
+				<tr><th>Dato</th><th>Tid</th><th>Personer</th><th>Job</th><th></th><th><i>Handling</i></th></tr>';
+		
+		foreach ($signups as $signup) {
+			$signup = Signup::cast($signup);
+			$timeslot = getTimeslot($signup->timeslotID);
+			$job = getJob($timeslot->jobID);
+			
+			echo '<tr><td>'.strftime("%a %d/%m", $timeslot->getStartTS()).'</td>
+					  <td>'.strftime("%H:%M", $timeslot->getStartTS()).strftime("-%H:%M", $timeslot->getEndTS()).'</td>
+					  <td>'.$signup->count.'</td>
+					  <td><a href="jc_job.php?action=show_one&job_id='.$job->id.'">'.$job->name.'</a></td>
+					  <td></td>
+					  <td>'.($job->id != $_GET['job_id'] ? '<a href="jc_signup.php?action=show_update&job_id='.$job->id.'&user_id='.$user->login.'">Redigér</a>' : '(Ovenstående)').'</td>
+					  </tr>';
+		}
+		echo '</table>';
+	}
+	
 	// show user list for admins
 	if (user_is_admin() || user_is_consultant()) {
 		show_user_table("Vælg bruger der skal tilmeldes for", "$PHP_SELF?action=show_update&job_id=$job->id", listUsers($site_id, 3));
@@ -316,7 +341,7 @@ function show_mine() {
 	
 	echo "<h1>".(empty($_GET['show_block'])? "Jobtilmeldinger" : "Blokeringer")." for <i><a href=\"jc_user.php?action=show_one&login=$user->login\">".$user->getFullName()."</a></i></h1>";
 	echo '<table align="center" class="border1">
-			<tr><th>Dato</th><th>Tid</th><th>Personer</th>'.(empty($_GET['show_block'])? "<th>Job</th>" : "").'</tr>';
+			<tr><th>Dato</th><th>Tid</th><th>Personer</th>'.(empty($_GET['show_block'])? "<th>Job</th><th></th><th><i>Handling</i></th>" : "").'</tr>';
 	
 	foreach ($signups as $signup) {
 		$signup = Signup::cast($signup);
@@ -325,10 +350,13 @@ function show_mine() {
 		
 		echo '<tr><td>'.strftime("%a %d/%m", $timeslot->getStartTS()).'</td>
 				  <td>'.strftime("%H:%M", $timeslot->getStartTS()).strftime("-%H:%M", $timeslot->getEndTS()).'</td>
-				  <td>'.$signup->count.'</td>
-				  '.(empty($_GET['show_block'])? '<td><a href="jc_job.php?action=show_one&job_id='.$job->id.'">'.$job->name.'</a></td>' : "").'
-				  </tr>';
-	
+				  <td>'.$signup->count.'</td>';
+		if (empty($_GET['show_block'])) {
+			echo '<td><a href="jc_job.php?action=show_one&job_id='.$job->id.'">'.$job->name.'</a></td>
+				<td></td>
+				<td><a href="jc_signup.php?action=show_update&job_id='.$job->id.'&user_id='.$user->login.'">Redigér</a></td>';
+		}
+		echo '</tr>';	
 	}
 	echo '</table>';
 	

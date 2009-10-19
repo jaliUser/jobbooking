@@ -65,7 +65,7 @@ function show_list() {
 				<td>$job->id</td>
 				<td>$area->name</td>
 				<td><a href='$PHP_SELF?action=show_one&job_id=$job->id'>$job->name</a></td>
-				<td>$job->description</td>
+				<td>".nl2br($job->description)."</td>
 				<td><a href=\"jc_user.php?action=show_one&login=$job->ownerID\">".getUser($job->ownerID)->getFullName()."</a></td>
 				<td>$job->meetplace</td>
 				<td>$job->jobplace</td>
@@ -399,7 +399,7 @@ function show_one() {
 		<table align="center" class="border1">
 		<tr><th align="left">Ansvarlig:</th><td><a href="jc_user.php?action=show_one&login='.$job->ownerID.'">'.getUser($job->ownerID)->getFullName().'</a></td></tr>
 		<tr><th align="left">Område:</th><td>'.getArea($job->id)->description.' ('.getArea($job->id)->name.')</td></tr>
-		<tr><th align="left">Beskrivelse af opgaven:</th><td>'.$job->description.'</td></tr>
+		<tr><th align="left">Beskrivelse af opgaven:</th><td>'.nl2br($job->description).'</td></tr>
 		<tr><th align="left">Mødested:</th><td>'.$job->meetplace.'</td></tr>
 		<tr><th align="left">Jobsted:</th><td>'.$job->jobplace.'</td></tr>
 		<tr><th align="left">Bemærkninger:</th><td>'.$job->notes.'</td></tr>

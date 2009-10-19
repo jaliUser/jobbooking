@@ -2,7 +2,7 @@
 
 function show_user_table($headertext, $link, $users) {
 	global $site_id; 
-	echo '<h3>'.$headertext.':</h3>
+	echo '<hr/><h3>'.$headertext.':</h3>
 		<table align="center" class="border1">
 		<tr> <th>Brugernavn</th> <th>Navn</th> <th>E-mail</th> <th>Telefon</th> <th>Alder</th> <th>Gruppe</th> <th>Underlejr</th> </tr>';
 	foreach ($users as $user) {
@@ -106,12 +106,14 @@ function html_top($title) {
 		echo print_error("SiteID mangler.");
 		exit;
 	}
-	echo '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">'.
-		'<html><head><meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>'.
-		'<link href="jc_style-'.$site_id.'.css" rel="stylesheet" type="text/css"/>'.
-		'<script type="text/javascript" src="jc_script.js"></script>'.
-		'<title>'.$title.'</title>'.
-		'</head><body>';
+	echo '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+		<html><head><meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>
+		<link href="jc_style-'.$site_id.'.css" rel="stylesheet" type="text/css"/>
+		<script type="text/javascript" src="jc_script.js"></script>
+		<title>'.$title.'</title>
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Expires" content="-1">
+		</head><body>';
 	if ($PHP_SELF != "/jc_menu.php") {
 		echo '<a href="jc_menu.php">Hovedmenu</a> | <a onclick="javascript:history.back()">Tilbage</a>';
 	}
