@@ -48,7 +48,7 @@ function updateJobStatus($job_id, $status) {
 function listJobs($site_id, $status=null, $owner_id=null, $filter=null) {
 	if(!empty($status) && !empty($owner_id)) {
 		//arearesponsible's nonapproved
-		$sql = "SELECT j.id, j.site_id, j.area_id, j.owner_id, j.name, j.description, j.meetplace, j.jobplace, j.notes, j.status, j.priority, sum(we.person_need) 
+		$sql = "SELECT j.id, j.site_id, j.area_id, j.owner_id, j.name, j.description, j.meetplace, j.jobplace, j.notes, j.status, j.priority, SUM(we.person_need), SUM(we.cal_duration)
 				FROM job j 
 				LEFT JOIN webcal_entry we ON we.job_id=j.id
 				LEFT JOIN area a on j.area_id=a.id
@@ -58,7 +58,7 @@ function listJobs($site_id, $status=null, $owner_id=null, $filter=null) {
 	}
 	elseif(!empty($status)) {
 		//not approved
-		$sql = "SELECT j.id, j.site_id, j.area_id, j.owner_id, j.name, j.description, j.meetplace, j.jobplace, j.notes, j.status, j.priority, sum(we.person_need) 
+		$sql = "SELECT j.id, j.site_id, j.area_id, j.owner_id, j.name, j.description, j.meetplace, j.jobplace, j.notes, j.status, j.priority, SUM(we.person_need), SUM(we.cal_duration)
 				FROM job j 
 				LEFT JOIN webcal_entry we ON we.job_id=j.id
 				WHERE j.site_id=? AND j.id>0 AND j.status=?
@@ -67,7 +67,7 @@ function listJobs($site_id, $status=null, $owner_id=null, $filter=null) {
 	}
 	elseif (!empty($owner_id)) {
 		//user X's jobs
-		$sql = "SELECT j.id, j.site_id, j.area_id, j.owner_id, j.name, j.description, j.meetplace, j.jobplace, j.notes, j.status, j.priority, sum(we.person_need) 
+		$sql = "SELECT j.id, j.site_id, j.area_id, j.owner_id, j.name, j.description, j.meetplace, j.jobplace, j.notes, j.status, j.priority, SUM(we.person_need), SUM(we.cal_duration)
 				FROM job j 
 				LEFT JOIN webcal_entry we ON we.job_id=j.id
 				WHERE j.site_id=? AND j.id>0 AND j.owner_id=?
@@ -76,7 +76,7 @@ function listJobs($site_id, $status=null, $owner_id=null, $filter=null) {
 	}
 	elseif (!empty($filter)) {
 		//filter vacant
-		$sql = "SELECT j.id, j.site_id, j.area_id, j.owner_id, j.name, j.description, j.meetplace, j.jobplace, j.notes, j.status, j.priority, SUM(we.person_need) AS need
+		$sql = "SELECT j.id, j.site_id, j.area_id, j.owner_id, j.name, j.description, j.meetplace, j.jobplace, j.notes, j.status, j.priority, SUM(we.person_need) AS need, SUM(we.cal_duration)
 				FROM job j 
 				LEFT JOIN webcal_entry we ON we.job_id=j.id
 				WHERE j.site_id=? AND j.id>0 AND j.status='A'
@@ -86,7 +86,7 @@ function listJobs($site_id, $status=null, $owner_id=null, $filter=null) {
 	}
 	else {
 		//all approved
-		$sql = "SELECT j.id, j.site_id, j.area_id, j.owner_id, j.name, j.description, j.meetplace, j.jobplace, j.notes, j.status, j.priority, sum(we.person_need) 
+		$sql = "SELECT j.id, j.site_id, j.area_id, j.owner_id, j.name, j.description, j.meetplace, j.jobplace, j.notes, j.status, j.priority, SUM(we.person_need), SUM(we.cal_duration * we.person_need)  
 				FROM job j 
 				LEFT JOIN webcal_entry we ON we.job_id=j.id
 				WHERE j.site_id=? AND j.id>0 AND j.status='A'
@@ -94,17 +94,18 @@ function listJobs($site_id, $status=null, $owner_id=null, $filter=null) {
 		$rows = dbi_get_cached_rows($sql, array($site_id));
 	}
 	
-	$sql_signups = "SELECT j.id, SUM(weu.count)
+	$sql_signups = "SELECT j.id, SUM(weu.count), SUM(we.cal_duration * weu.count)
 					FROM job j 
 					LEFT JOIN webcal_entry we ON we.job_id=j.id
 					LEFT JOIN webcal_entry_user weu ON we.cal_id=weu.cal_id
-					WHERE j.site_id=? AND j.id>0 AND j.status='A'
+					WHERE j.site_id=? AND j.id>0 AND j.status='A' AND weu.count IS NOT NULL
 					GROUP BY j.id";
 	$rows_signups = dbi_get_cached_rows($sql_signups, array($site_id));
 	
 	$signups = array();
 	for ($i=0; $i<count($rows_signups); $i++) { 
-		$signups[$rows_signups[$i][0]] = $rows_signups[$i][1];
+		$jobid = $rows_signups[$i][0];
+		$signups[$jobid] = $rows_signups[$i];
 	}
 	
 	$jobs = array(); 
@@ -112,7 +113,9 @@ function listJobs($site_id, $status=null, $owner_id=null, $filter=null) {
 		$row = $rows[$i];
 		$j = new Job($row[0], $row[1], $row[2], $row[3], $row[4], $row[5], $row[6], $row[7], $row[8], $row[9], $row[10]);
 		$j->totalNeed = $row[11];
-		$j->remainingNeed = $row[11] - $signups[$row[0]];
+		$j->remainingNeed = $row[11] - $signups[$row[0]][1];
+		$j->totalHours = $row[12] / 60;
+		$j->remainingHours = ($row[12] - $signups[$row[0]][2]) / 60;
 		$jobs[] = $j;
 	}
 	

@@ -39,7 +39,7 @@ function show_list() {
 		<th title="Behov">B</th> 
 		<th title="Rest">R</th>'
 		.(user_is_admin() || $_GET['user_id'] == $login ?'<th title="Status">S</th>':'')
-		.(user_is_admin() ?'<th title="Prioritet">P</th>':'')
+		.(user_is_admin() ?'<th title="Prioritet">P</th><th title="TimeBehov">TB</th> <th title="TimeRest">TR</th>':'')
 		.'</tr>';
 	foreach ($jobs as $job) {
 		$job = Job::cast($job);
@@ -73,7 +73,7 @@ function show_list() {
 				<td>$job->totalNeed</td>
 				<td>$job->remainingNeed</td>
 				".(user_is_admin() || $job->ownerID == $login ?"<td title='".$job->getLongStatus()."'>".$job->getShortStatus()."</td>":'')."
-				".(user_is_admin() ?"<td>$job->priority</td>":'')."
+				".(user_is_admin() ?"<td>$job->priority</td><td>$job->totalHours</td><td>$job->remainingHours</td>":'')."
 				</tr>";
 	}
 	echo '</table>';
