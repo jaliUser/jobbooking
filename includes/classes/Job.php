@@ -14,6 +14,8 @@ class Job {
 	var $priority;
 	var $totalNeed; //not in DB
 	var $remainingNeed; //not in DB
+	var $totalHours; //not in DB
+	var $remainingHours; //not in DB
 
 	function Job($id, $siteID, $areaID, $ownerID, $name, $description, $meetplace, $jobplace, $notes, $status, $priority) {
 		$this->id = $id;
