@@ -35,7 +35,7 @@ function show_list() {
 	}
 	echo '<h1>'.$title.'</h1>
 		<table align="center" class="border1" width="1000px">
-		<tr> <th><i>Handlinger</i></th> <th>ID</th> <th>Område</th> <th>Navn</th> <th>Beskrivelse</th> <th>Kontakt</th> <th>Mødested</th> <th>Jobsted</th> <th>Noter</th> 
+		<tr> <th><i>Handlinger</i></th> <th>ID</th> <th>Overskrift</th> <th>Beskrivelse</th> <th>Kontakt</th> <th>Mødested</th> <th>Jobsted</th> <th>Noter</th> <th>Område</th>  
 		<th title="Behov">B</th> 
 		<th title="Rest">R</th>'
 		.(user_is_admin() || $_GET['user_id'] == $login ?'<th title="Status">S</th>':'')
@@ -63,15 +63,15 @@ function show_list() {
 		}
 		echo "</td>
 				<td>$job->id</td>
-				<td>$area->name</td>
 				<td><a href='$PHP_SELF?action=show_one&job_id=$job->id'>$job->name</a></td>
 				<td>".nl2br($job->description)."</td>
 				<td><a href=\"jc_user.php?action=show_one&login=$job->ownerID\">".getUser($job->ownerID)->getFullName()."</a></td>
 				<td>$job->meetplace</td>
 				<td>$job->jobplace</td>
 				<td>$job->notes</td>
-				<td>$job->totalNeed</td>
-				<td>$job->remainingNeed</td>
+				<td title='$area->description'>$area->name</td>
+				<td title='Behov'>$job->totalNeed</td>
+				<td title='Rest'>$job->remainingNeed</td>
 				".(user_is_admin() || $_GET['user_id'] == $login ? "<td title='".$job->getLongStatus()."'>".$job->getShortStatus()."</td>":'')."
 				".(user_is_admin() ?"<td>$job->priority</td><td>$job->totalHours</td><td>$job->remainingHours</td>":'')."
 				</tr>";
@@ -113,14 +113,14 @@ function show_create() {
 	}
 	$ownerHTML .= '</select>';
 	
-	$statusHTML =  '<select name="status">'
-					.(user_is_admin() ? '<option value="A">'.Job::jobStatus('A').'</option>' : '').
-					'<option value="W">'.Job::jobStatus('W').'</option>
+	$statusHTML =  '<select name="status">
+					<option value="A">'.Job::jobStatus('A').'</option>
+					<option value="W">'.Job::jobStatus('W').'</option>
 					</select>';
 					
-	$priorityHTML = '<select name="priority">'
-					.(user_is_admin() ? '<option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option>':'<option selected>3</option>')
-					.'</select>';
+	$priorityHTML = '<select name="priority">
+					<option>1</option> <option>2</option> <option selected>3</option> <option>4</option> <option>5</option>
+					</select>';
 	
 	$places = getPlaces();
 	$meetplacesHTML = '<select name="meetplace-predef">';
@@ -139,9 +139,9 @@ function show_create() {
 		<form action="'.$PHP_SELF.'" method="POST">
 		<table align="center" border="0" cellspacing="3" cellpadding="3">
 		
-		<tr><td>Ansvarlig:</td><td>'.$ownerHTML.'</td></tr>
+		<tr><td>Kontaktperson:</td><td>'.$ownerHTML.'</td></tr>
 		<tr><td>Område:</td><td>'.$areasHTML.'</td></tr>
-		<tr><td>Navn:</td><td><input type="text" name="name" size="64" maxlength="64" /> *</td></tr>
+		<tr><td>Overskrift:</td><td><input type="text" name="name" size="64" maxlength="64" /> *</td></tr>
 		<tr><td>Beskrivelse af opgaven:</td><td><textarea name="description" cols="48" rows="5"></textarea> *</td></tr>
 		<tr><td>Mødested:</td><td>'.$meetplacesHTML.' Hvis andet: <input type="text" name="meetplace" size="25" maxlength="25" /> *</td></tr>
 		<tr><td>Jobsted:</td><td>'.$jobplacesHTML.' Hvis andet: <input type="text" name="jobplace" size="25" maxlength="25" /> <span class="help">Udfyldes kun hvis forskelligt fra mødested.</span></td></tr>
@@ -149,8 +149,8 @@ function show_create() {
 - drikkevarer
 - særlig beklædning
 - transport</textarea></td></tr>
-		<tr><td>Status:</td><td>'.$statusHTML.'</td></tr>
-		<tr><td>Prioritet:</td><td>'.$priorityHTML.'</td></tr>
+		<tr><td>Status:</td><td>'.(user_is_admin() ? $statusHTML : 'Afventer <input type="hidden" name="status" value="W">').'</td></tr>
+		'.(user_is_admin() ? '<tr><td>Prioritet:</td><td>'.$priorityHTML.'</td></tr>' : '<input type="hidden" name="priority" value="3">').'
 		<tr><td colspan="2" class="help">* markerer et obligatorisk felt</td></tr>
 
 		<tr><td colspan="2"><input type="submit" value="Opret"/></td></tr>
@@ -273,14 +273,18 @@ function show_update() {
 	}
 	$ownerHTML .= '</select>';
 	
-	$statusHTML =  '<select name="status">'
-					.(user_is_admin() ? '<option value="A" '.($job->status=='A' ? 'selected':'').'>'.Job::jobStatus('A').'</option>' : '').
-					'<option value="W" '.($job->status=='W' ? 'selected':'').'>'.Job::jobStatus('W').'</option>
+	$statusHTML =  '<select name="status">
+					<option value="A" '.($job->status=='A' ? 'selected':'').'>'.Job::jobStatus('A').'</option>
+					<option value="W" '.($job->status=='W' ? 'selected':'').'>'.Job::jobStatus('W').'</option>
 					</select>';
 	
-	$priorityHTML = '<select name="priority">'
-					.(user_is_admin() ? '<option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option>':'<option selected>3</option>')
-					.'</select>';
+	$priorityHTML = '<select name="priority">
+					<option '.($job->priority=='1' ? 'selected' : '').'>1</option>
+					<option '.($job->priority=='2' ? 'selected' : '').'>2</option>
+					<option '.($job->priority=='3' ? 'selected' : '').'>3</option>
+					<option '.($job->priority=='4' ? 'selected' : '').'>4</option>
+					<option '.($job->priority=='5' ? 'selected' : '').'>5</option>
+					</select>';
 	
 	$places = getPlaces();
 	$meetplacesHTML = '<select name="meetplace-predef">';
@@ -299,20 +303,21 @@ function show_update() {
 		<form action="'.$PHP_SELF.'" method="POST">
 		<table align="center" border="0" cellspacing="3" cellpadding="3">
 		
-		<tr><td>Ansvarlig:</td><td>'.$ownerHTML.'</td></tr>
+		<tr><td>Kontaktperson:</td><td>'.$ownerHTML.'</td></tr>
 		<tr><td>Område:</td><td>'.$areasHTML.'</td></tr>
-		<tr><td>Navn:</td><td><input type="text" name="name" size="64" maxlength="64" value="'.$job->name.'" /> *</td></tr>
+		<tr><td>Overskrift:</td><td><input type="text" name="name" size="64" maxlength="64" value="'.$job->name.'" /> *</td></tr>
 		<tr><td>Beskrivelse af opgaven:</td><td><textarea name="description" cols="48" rows="5">'.$job->description.'</textarea> *</td></tr>
 		<tr><td>Mødested:</td><td>'.$meetplacesHTML.' Hvis andet: <input type="text" name="meetplace" size="25" maxlength="25" value="'.$job->meetplace.'" /> *</td></tr>
 		<tr><td>Jobsted:</td><td>'.$jobplacesHTML.' Hvis andet: <input type="text" name="jobplace" size="25" maxlength="25" value="'.$job->jobplace.'" /> <span class="help">Udfyldes kun hvis forskelligt fra mødested.</span></td></tr>
 		<tr><td>Bemærkninger:</td><td><textarea name="notes" cols="48" rows="5">'.$job->notes.'</textarea></td></tr>
-		<tr><td>Status:</td><td>'.$statusHTML.'</td></tr>
-		<tr><td>Prioritet:</td><td>'.$priorityHTML.'</td></tr>
+		<tr><td>Status:</td><td>'.(user_is_admin() ? $statusHTML : Job::jobStatus($job->status).'<input type="hidden" name="status" value="'.$job->status.'">' ).'</td></tr>
+		'.(user_is_admin() ? '<tr><td>Prioritet:</td><td>'.$priorityHTML.'</td></tr>' : '<input type="hidden" name="priority" value="'.$job->priority.'">').'
 		<tr><td colspan="2" class="help">* markerer et obligatorisk felt</td></tr>
 
 		<tr><td colspan="2"><input type="submit" value="Opdater"/></td></tr>
 		<tr><td colspan="2"><a href="jc_timeslot.php?action=show_update&job_id='.$job->id.'">Rediger behov</a></td></tr>
 		<input type="hidden" name="action" value="do_update">
+		'.($job->ownerID == $login ? '<input type="hidden" name="user_id" value="'.$login.'">' : '').'
 		<input type="hidden" name="job_id" value="'.$job->id.'">
 		</table>
 		</form>';
@@ -371,7 +376,7 @@ function do_update() {
 	$job = new Job($_REQUEST['job_id'], $site_id, $_REQUEST['area_id'], $_REQUEST['owner_id'], $_REQUEST['name'], $_REQUEST['description'], $meetplace, $jobplace, $_REQUEST['notes'], $_REQUEST['status'], $_REQUEST['priority']);
 
 	updateJob($job);
-	do_redirect($PHP_SELF.'?action=show_list');
+	do_redirect($PHP_SELF.'?action=show_list'.(!empty($_POST['user_id']) ? '&user_id='.$_POST['user_id'] : ''));
 }
 
 function do_approve() {
