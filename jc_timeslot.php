@@ -171,7 +171,8 @@ function do_create() {
 	$start_min = $_POST['start_min'];
 	$end_hour = $_POST['end_hour'];
 	$end_min = $_POST['end_min'];
-	if (!valid_time($start_hour, $start_min) || !valid_time($end_hour, $end_min)) {
+	if (!valid_time($start_hour, $start_min) || !valid_time($end_hour, $end_min) || 
+		($start_hour == 00 && $start_min == 00 && $start_min == 00 && $start_min== 00 )) {
 		echo print_error("Ugyldig tidsperiode!");
 		exit;
 	}
@@ -181,7 +182,7 @@ function do_create() {
 	$duration = get_calduration($start_caltime, $end_caltime);
 	
 	if ($duration > 4*60) {
-		
+		//show warning
 	}
 	
 	$days = listDays($site_id);
@@ -189,6 +190,7 @@ function do_create() {
 	$j = Job::cast($j);
 	
 	// loop days and check for errors
+	$anyneed = false;
 	for ($i=0; $i<count($days); $i++) {
 		$day = $days[$i];
 		$date = $day->getDateYMD();
@@ -210,6 +212,14 @@ function do_create() {
 			      Redigér eksisterende registrering i stedet for at oprette en ny.');
 			exit;
 		}
+		if (is_numeric($_POST['person_need-'.$i])) {
+			$anyneed = true;
+		}
+	}
+	
+	if ($anyneed == false) {
+		echo print_error('Der er ikke angivet noget behov!');
+		exit;
 	}
 	
 	// loop days and create timeslots

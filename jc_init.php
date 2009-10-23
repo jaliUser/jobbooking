@@ -54,10 +54,10 @@ $siteConfig = getSiteConfig($site_id);
 
 $phpdbiVerbose = true;
 
-if (strpos("Win", $_SERVER['SERVER_SOFTWARE']) !== false) {
-	setlocale(LC_ALL, "dan");
-} else {
+if (strpos($_SERVER['SERVER_SOFTWARE'], "Win") === false) {
 	setlocale(LC_ALL, "da_DK");
+} else {
+	setlocale(LC_ALL, "dan");
 }
 
 ?>
