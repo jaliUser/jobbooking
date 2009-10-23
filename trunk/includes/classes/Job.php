@@ -16,6 +16,10 @@ class Job {
 	var $remainingNeed; //not in DB
 	var $totalHours; //not in DB
 	var $remainingHours; //not in DB
+	var $defDate;
+	var $defUser;
+	var $updDate;
+	var $updUser;
 
 	function Job($id, $siteID, $areaID, $ownerID, $name, $description, $meetplace, $jobplace, $notes, $status, $priority) {
 		$this->id = $id;

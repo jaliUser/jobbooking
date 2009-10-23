@@ -106,13 +106,14 @@ function html_top($title) {
 		echo print_error("SiteID mangler.");
 		exit;
 	}
-	echo '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-		<html><head><meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>
+	echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+		<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="da" lang="da">
+		<head><meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>
 		<link href="jc_style-'.$site_id.'.css" rel="stylesheet" type="text/css"/>
 		<script type="text/javascript" src="jc_script.js"></script>
 		<title>'.$title.'</title>
-		<meta http-equiv="Pragma" content="no-cache">
-		<meta http-equiv="Expires" content="-1">
+		<meta http-equiv="Pragma" content="no-cache"/>
+		<meta http-equiv="Expires" content="-1"/>
 		</head><body>';
 	if ($PHP_SELF != "/jc_menu.php") {
 		echo '<a href="jc_menu.php">Hovedmenu</a> | <a onclick="javascript:history.back()">Tilbage</a>';
