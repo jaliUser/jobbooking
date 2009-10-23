@@ -72,7 +72,7 @@ function show_list() {
 				<td>$job->notes</td>
 				<td>$job->totalNeed</td>
 				<td>$job->remainingNeed</td>
-				".(user_is_admin() || $job->ownerID == $login ?"<td title='".$job->getLongStatus()."'>".$job->getShortStatus()."</td>":'')."
+				".(user_is_admin() || $_GET['user_id'] == $login ? "<td title='".$job->getLongStatus()."'>".$job->getShortStatus()."</td>":'')."
 				".(user_is_admin() ?"<td>$job->priority</td><td>$job->totalHours</td><td>$job->remainingHours</td>":'')."
 				</tr>";
 	}
@@ -403,8 +403,14 @@ function show_one() {
 		<tr><th align="left">Mødested:</th><td>'.$job->meetplace.'</td></tr>
 		<tr><th align="left">Jobsted:</th><td>'.$job->jobplace.'</td></tr>
 		<tr><th align="left">Bemærkninger:</th><td>'.$job->notes.'</td></tr>
-		<tr><th align="left">Status:</th><td>'.$job->getLongStatus().'</td></tr>
-		</table>';
+		<tr><th align="left">Status:</th><td>'.$job->getLongStatus().'</td></tr>';
+	if (user_is_admin()) {
+		echo "
+		<tr><th align='left'>Oprettet:</th><td>$job->defDate (<a href='jc_user.php?action=show_one&login=$job->defUser'>$job->defUser</a>)</td></tr>
+		<tr><th align='left'>Opdateret:</th><td>$job->updDate (<a href='jc_user.php?action=show_one&login=$job->updUser'>$job->updUser</a>)</td></tr>
+		";
+	}
+	echo '</table>';
 	menu_link();
 }
 
