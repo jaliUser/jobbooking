@@ -30,11 +30,23 @@ function show_update() {
 		}
 		echo '</th>';
 	}
-	
+		
 	$timeslots = listTimeslots($job->id);
 	$groupedTimeslots = groupTimeslotsByTime($timeslots);
-	
-	foreach ($groupedTimeslots as $distinctTimeArr) {
+
+	// fix missing day
+	if (count($timeslots) > 0 && count($groupedTimeslots[0]) != count($days)) {
+		foreach ($groupedTimeslots as $distinctTimeArr) {
+			$newTimeslot = Timeslot::cast($distinctTimeArr[0]);
+			$newTimeslot->date = 20100801;
+			$newTimeslot->personNeed = null;
+			createTimeslot($newTimeslot);
+		}
+		$timeslots = listTimeslots($job->id);
+		$groupedTimeslots = groupTimeslotsByTime($timeslots);
+	}
+		
+	foreach ($groupedTimeslots as $distinctTimeArr) {		
 		//build time-row from first TS in distinctTimeArr			
 		$firstTS = $distinctTimeArr[0];
 		echo '<tr><td><input type="text" name="start_hour" size="1" maxlength="2" value="'.$firstTS->getStartHour().'" disabled/>:<input type="text" name="start_min" size="1" maxlength="2" value="'.$firstTS->getStartMin().'" disabled/>
@@ -43,7 +55,6 @@ function show_update() {
 
 		for ($dayNo=0; $dayNo<count($days); $dayNo++) {
 			$timeslot = Timeslot::cast($distinctTimeArr[$dayNo]);
-			$signup = $signups[$timeslot->id];
 			echo '<td align="center">
 				<input type="text" name="timeslot-'.$timeslot->id.'" value="'.$timeslot->personNeed.'" size="1" maxlength="3"/>
 				</td>';

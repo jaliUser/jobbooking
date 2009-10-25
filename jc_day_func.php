@@ -3,7 +3,10 @@ include_once 'includes/dbi4php.php';
 include_once 'includes/classes/Day.php';
 
 function listDays($site_id) {
-	$sql = 'SELECT id, site_id, date, time FROM days WHERE site_id=?';
+	$sql = 'SELECT id, site_id, date, time 
+			FROM days 
+			WHERE site_id=?
+			ORDER BY date';
 	$rows = dbi_get_cached_rows($sql, array($site_id));
 	
 	$days = array(); 
