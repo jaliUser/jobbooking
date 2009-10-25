@@ -46,6 +46,7 @@ echo '
 	
 	<tr><td colspan="2">-</td></tr>
 	<!-- <tr><td><a href="month.php">Kalendervisning</a></td><td class="help"></td></tr> --><!-- goto users startview, e.g. week.php or chosen view -->
+	<tr><td><a href="'.$siteConfig->config[SiteConfig::$HELP_URL].'">Vejledning</a></td><td class="help"></td></tr>
 	<tr><td><a href="jc_user.php?action=show_update&amp;login='.$login.'">Redigér min profil</a></td><td class="help"></td></tr> 
 	<tr><td><a href="login.php?action=logout&site_id='.$site_id.'">Log ud</a></td><td class="help"></td></tr>
 	</table>

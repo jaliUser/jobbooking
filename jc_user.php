@@ -9,16 +9,32 @@ function show_list() {
 	global $PHP_SELF, $login, $site_id, $site_name;
 	html_top("$site_name - Brugerliste");
 
+	$roles = listRoles();
 	$users = listUsers($site_id);
 	echo '<h1>Brugerliste</h1>
 		<table align="center" class="border1">
 		<tr> <th>Brugernavn</th> <th>Spejdernet</th> <th>Fornavn</th> <th>Efternavn</th> <th>Klan/Pladsnr</th> <th>E-mail</th> <th>Telefon</th> <th>Adresse</th> <th>Alder</th> <th>Gruppe</th> <th>Rolle</th> <th>Antal</th> <th>Underlejr</th> <th>Noter</th> </tr>';
+	$lastRole = null;
+	$emailSum = null;
 	foreach ($users as $user) {
 		$user = User::cast($user);
 		$role = Role::cast(getRole($user->login));
 		$group = getGroup($user->groupID);
 		$subcamp = getSubcampForUser($user->login); 
-
+		
+		if ($lastRole != null && $lastRole != $user->roleID) {
+			$currentRole = Role::cast($roles[$lastRole - 1]);
+			echo "<tr><td colspan='14'>
+					Alle <i>$currentRole->name</i> mails semikolonsepareret: $emailSum<br/><br/>
+					Alle <i>$currentRole->name</i> mails kommasepareret: ".str_replace(",",";",$emailSum)."
+					</td></tr>";
+			$emailSum = "";
+		}
+		if ($user->email != "") {
+			$emailSum .= "$user->email, ";
+		}
+		$lastRole = $user->roleID;
+		
 		echo "<tr> 
 			<td>".(user_is_admin()? "<a href=\"$PHP_SELF?action=show_update&login=$user->login\">$user->login</a>": $user->login)."</td>
 			<td>$user->extLogin</td>
@@ -34,7 +50,7 @@ function show_list() {
 			<td>$user->count</td>
 			<td>$subcamp->name</td>
 			<td>$user->notes</td>
-			</tr>";
+			</tr>";		
 	}
 	echo '</table>';
 	menu_link();
@@ -162,7 +178,15 @@ function do_create() {
 		$error .= "Ugyldig email.<br>";
 	}
 	if (empty($_POST['site_id'])) {
-		$error .= "SiteID mangler.";
+		$error .= "SiteID mangler.<br>";
+	}
+	if (existTelephone($_POST['telephone'])) {
+		$error .= "Anden bruger er allerede registreret med samme telefonnummer!<br>";
+		$error .= "Hvis du har glemt dit kodeord, anvend 'Glemt kodeord' på loginsiden.<br>";
+	}
+	if (!empty($_POST['email']) && existEmail($_POST['email'])) {
+		$error .= "Anden bruger er allerede registreret med samme emailadresse!<br>";
+		$error .= "Hvis du har glemt dit kodeord, anvend 'Glemt kodeord' på loginsiden.<br>";
 	}
 	if (!empty($error)) {
 		echo print_error($error);
@@ -192,6 +216,12 @@ function do_create() {
 function show_update() {
 	reject_public_access();
 	global $PHP_SELF, $login, $site_id, $site_name;
+	
+	if (!user_is_admin() && $login != $_GET['login']) {
+		echo "Unauthorized access!";
+		exit;
+	}
+	
 	html_top("$site_name - Rediger bruger");
 	require_params(array($_GET['login']));
 	
@@ -243,8 +273,8 @@ function show_update() {
 	}
 	
 	echo '<h1>Rediger bruger</h1>
-		<form action="'.$PHP_SELF.'" method="POST">
 		<table align="center" border="0" cellspacing="3" cellpadding="3">
+		<form action="'.$PHP_SELF.'" method="POST">
 		
 		<tr><td>Rolle:</td><td>'.$rolesHTML.'</td></tr>
 		<tr><td>Brugernavn:</td><td><input type="text" name="login" size="25" maxlength="25" value="'.$user->login.'" disabled /></td></tr>
@@ -273,9 +303,15 @@ function show_update() {
 		<tr><td colspan="2"><input type="submit" value="Opdater"/></td></tr>
 		<input type="hidden" name="action" value="do_update">
 		<input type="hidden" name="role_id" value="'.$user->roleID.'" />
-		
-		</table>
-		</form>';
+		</form>
+
+		<form action="'.$PHP_SELF.'" method="POST">			
+		<tr><td colspan="2"><br/><br/>Hvis du sletter din brugerprofil, fjernes alle jobopslag, jobtilmeldinger osv.!</td></tr>
+		<tr><td colspan="2"><input type="submit" value="Slet"/></td></tr>
+		<input type="hidden" name="action" value="do_delete">
+		<input type="hidden" name="login" value="'.$user->login.'" />
+		</form>
+		</table>';
 
 	menu_link();
 }
@@ -328,6 +364,29 @@ function do_update() {
 	//if editing own profile return to menu, otherwise assume admin-mode and return to menu
 	if($login == $user->login) {
 		do_redirect('jc_menu.php');
+	} else {		
+		do_redirect($PHP_SELF.'?action=show_list');
+	}
+}
+
+function do_delete() {
+	reject_public_access();
+	global $PHP_SELF, $login, $site_id, $site_name;
+	
+	$error = "";
+	if (empty($_POST['login'])) {
+		$error .= "Brugernavn mangler..<br>";
+	}
+	if (!empty($error)) {
+		echo print_error($error);
+		exit;
+	}
+	
+	deleteUser($_POST['login']);
+	
+	//if deleting own profile then logout, otherwise assume admin-mode and return to menu
+	if($login == $user->login) {
+		do_redirect('login.php?action=logout&site_id='.$site_id);
 	} else {		
 		do_redirect($PHP_SELF.'?action=show_list');
 	}

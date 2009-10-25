@@ -44,11 +44,37 @@ function updateUserPasswd(User $u) {
 	dbi_clear_cache();
 }
 
-function deleteUser(User $u) {
-	$sql = 'DELETE FROM webcal_user WHERE cal_login=?';
-	dbi_execute($sql, array($u->login));
+function deleteUser($login) {
+	//webcal_entry_user
+	$sql = 'DELETE FROM webcal_entry_user WHERE cal_id IN 
+			(SELECT cal_id FROM webcal_entry we
+			LEFT JOIN job j ON j.id=we.job_id
+			where j.owner_id=?)';
+	dbi_execute($sql, array($login));
+	
+	//webcal_entry
+	$sql = 'DELETE FROM webcal_entry WHERE job_id IN (SELECT id FROM job WHERE owner_id=?)';
+	dbi_execute($sql, array($login));
+	
+	//job
+	$sql = 'DELETE FROM job WHERE owner_id=?';
+	dbi_execute($sql, array($login));
 
-	//TODO: delete user prefs also
+	//user_qualification
+	$sql = 'DELETE FROM user_qualification WHERE cal_login=?';
+	dbi_execute($sql, array($login));
+	
+	//user_jobcategory
+	$sql = 'DELETE FROM user_jobcategory WHERE cal_login=?';
+	dbi_execute($sql, array($login));
+	
+	//webcal_user
+	$sql = 'DELETE FROM webcal_user WHERE cal_login=?';
+	dbi_execute($sql, array($login));
+	
+	//webcal_user_pref
+	$sql = 'DELETE FROM webcal_user_pref WHERE cal_login=?';
+	dbi_execute($sql, array($login));
 	
 	dbi_clear_cache();
 }
@@ -85,6 +111,20 @@ function listUsers($site_id, $role_id=null) {
 	}
 	
 	return $users;
+}
+
+function existEmail($email) {
+	$sql = 'SELECT count(cal_login) FROM webcal_user WHERE cal_email=?';
+	$rows = dbi_get_cached_rows($sql, array($email));
+	
+	return $rows[0][0];
+}
+
+function existTelephone($telephone) {
+	$sql = 'SELECT count(cal_login) FROM webcal_user WHERE cal_telephone=?';
+	$rows = dbi_get_cached_rows($sql, array($telephone));
+	
+	return $rows[0][0];
 }
 
 ?>

@@ -141,7 +141,7 @@ function show_assign() {
 			
 			echo '<td align="center">
 				<input type="text" name="timeslot-'.$timeslot->id.'" value="'.$timeslot->personNeed.'" size="1" maxlength="3" disabled/>
-				<select name="contactID-'.$timeslot->id.'">'.$contactsHTML.'</select>
+				<select name="contactID-'.$timeslot->id.'" '.($timeslot->personNeed > 0 ? '':' disabled').'>'.$contactsHTML.'</select>
 				</td>';
 		}
 		echo '</tr>';
