@@ -40,6 +40,18 @@ function show_blockings() {
 	$timeslots = listTimeslots($job->id);
 	$groupedTimeslots = groupTimeslotsByTime($timeslots);
 	
+//	// fix missing day
+//	if (count($timeslots) > 0 && count($groupedTimeslots[0]) != count($days)) {
+//		foreach ($groupedTimeslots as $distinctTimeArr) {
+//			$newTimeslot = Timeslot::cast($distinctTimeArr[0]);
+//			$newTimeslot->date = 20100801;
+//			$newTimeslot->personNeed = null;
+//			createTimeslot($newTimeslot);
+//		}
+//		$timeslots = listTimeslots($job->id);
+//		$groupedTimeslots = groupTimeslotsByTime($timeslots);
+//	}
+	
 	foreach ($groupedTimeslots as $distinctTimeArr) {
 		//build time-row from first TS in distinctTimeArr			
 		$firstTS = $distinctTimeArr[0];
