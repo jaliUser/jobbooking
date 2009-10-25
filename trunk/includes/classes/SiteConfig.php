@@ -17,6 +17,7 @@ class SiteConfig {
 	
 	static $EMAIL = "JC_EMAIL";
 	static $EMAIL_FROM = "JC_EMAIL_FROM";
+	static $HELP_URL = "JC_HELP_URL";
 }
 
 ?>

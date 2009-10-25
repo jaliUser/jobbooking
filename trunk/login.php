@@ -287,11 +287,15 @@ if ( ! empty ( $return_path ) ) {
    <?php etranslate ( 'Save login via cookies so I dont have to login next time.' )?></label>
 </td></tr>
 <tr><td colspan="4" class="aligncenter">
- <input type="submit" value="<?php etranslate ( 'Login' )?>" tabindex="4" />
+ <input type="submit" value="<?php etranslate ( 'Login' )?>" tabindex="4" /></form>
 </td></tr>
-<tr><td colspan="3" align="center" style="font-weight: bold;"><a href="jc_user.php?action=show_create&site_id=<?php echo (empty($_REQUEST['site_id']) ? '1' : $_REQUEST['site_id'])?>">Opret bruger</a><br /></td></tr>
+<tr><td colspan="3" align="center" style="font-weight: bold;">
+ <form action="jc_user.php" method="get">
+ <input type="hidden" name="action" value="show_create"/>
+ <input type="hidden" name="site_id" value="<?php echo (empty($_REQUEST['site_id']) ? '1' : $_REQUEST['site_id'])?>"/>
+ <input type="submit" value="Opret bruger"/>
+ </form></td></tr>
 </table>
-</form>
 
 <?php }
 

@@ -46,7 +46,7 @@ function show_list() {
 		$area = Area::cast(getArea($job->id));
 
 		echo "<tr><td>";
-		if(user_is_admin() || user_is_consultant() || user_is_helper()) {
+		if(user_is_arearesponsible() == false) {
 			echo "<a href='jc_signup.php?action=show_update&job_id=$job->id'>Tilmeld</a><br>";
 		}
 		if(user_is_admin() || $job->ownerID == $login) {
