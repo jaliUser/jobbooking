@@ -2,6 +2,25 @@
 include_once 'includes/dbi4php.php';
 include_once 'includes/classes/User.php';
 
+function resetPassword($email) {
+	$sql = "SELECT cal_login FROM webcal_user where cal_login=?";
+	$rows = dbi_get_cached_rows($sql, array($email));
+
+	if(count($rows == 1)) { 
+		$login = $rows[0][0];
+		$newPass = "1234";
+		$md5Pass = md5($newPass);
+		
+		$sql = "UPDATE webcal_user SET cal_passwd=? where cal_login=?";
+		dbi_execute($sql, array($md5Pass, $login));
+		
+		dbi_clear_cache();
+		return true;
+	} else {
+		return false;
+	}
+}
+
 /*
  * Returns false if username/login already exist
  */
