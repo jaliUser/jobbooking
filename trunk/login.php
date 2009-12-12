@@ -295,6 +295,12 @@ if ( ! empty ( $return_path ) ) {
  <input type="hidden" name="site_id" value="<?php echo (empty($_REQUEST['site_id']) ? '1' : $_REQUEST['site_id'])?>"/>
  <input type="submit" value="Opret bruger"/>
  </form></td></tr>
+<tr><td colspan="3" align="center" style="font-weight: bold;">
+ <form action="jc_forgot_password.php" method="get">
+ <input type="hidden" name="action" value="show_reset"/>
+ <input type="hidden" name="site_id" value="<?php echo (empty($_REQUEST['site_id']) ? '1' : $_REQUEST['site_id'])?>"/>
+ <input type="submit" value="Glemt kodeord"/>
+ </form></td></tr>
 </table>
 
 <?php }
