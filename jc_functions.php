@@ -24,8 +24,11 @@ function show_user_table($headertext, $link, $users) {
 	echo '</table>';	
 }
 
-function get_mail_headers() {
-	global $siteConfig;
+function get_mail_headers($siteConfig = null) {
+	if ($siteConfig == null) {
+		global $siteConfig;
+	}
+	
 	$headers =  'From: '.$siteConfig->config[SiteConfig::$EMAIL_FROM].' <'.$siteConfig->config[SiteConfig::$EMAIL].'>'. "\r\n" .
 				'Cc: '.$siteConfig->config[SiteConfig::$EMAIL_FROM].' <'.$siteConfig->config[SiteConfig::$EMAIL].'>'. "\r\n" .
     			'X-Mailer: PHP/' . phpversion();
@@ -122,7 +125,25 @@ function html_top($title) {
 }
 
 function html_bottom() {
-	echo '</body></html>';
+	echo '
+	<!-- Start of StatCounter Code -->
+	<script type="text/javascript">
+	var sc_project=5386328; 
+	var sc_invisible=1; 
+	var sc_partition=49; 
+	var sc_click_stat=1; 
+	var sc_security="7db961e6"; 
+	</script>
+	
+	<script type="text/javascript"
+	src="http://www.statcounter.com/counter/counter.js"></script><noscript><div
+	class="statcounter"><a title="wordpress visitor counter"
+	href="http://www.statcounter.com/wordpress.com/"
+	target="_blank"><img class="statcounter"
+	src="http://c.statcounter.com/5386328/0/7db961e6/1/"
+	alt="wordpress visitor counter" ></a></div></noscript>
+	<!-- End of StatCounter Code -->
+	</body></html>';
 }
 
 function menu_link() {

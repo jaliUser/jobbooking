@@ -1,20 +1,79 @@
 <?php
 include_once 'includes/dbi4php.php';
 include_once 'includes/classes/User.php';
+include_once 'includes/classes/SiteConfig.php';
 
-function resetPassword($email) {
+function generate_password () {
+  $pass = '';
+  $pass_length = 8;
+  $salt = 'abchefghjkmnpqrstuvwxyz0123456789';
+  srand ( ( double ) microtime () * 1000000 );
+  $i = 0;
+  while ( $i < $pass_length ) {
+    $pass .= substr ( $salt, rand () % 33, 1 );
+    $i++;
+  }
+  return $pass;
+}
+
+function emailNewPassword($login, $password, $site_id) {
+	$siteConfig = getSiteConfig($site_id);
+	$contact = getUser($login);
+	if (!empty($contact->email) && valid_email($contact->email)) {
+		$to = $contact->email;
+	} else {
+		$to = $siteConfig->config[SiteConfig::$EMAIL];
+	}
+	$subject = "Nyt kodeord til Jobdatabasen på SEE20:10";
+	$message =	"Hej $contact->firstname \r\n".
+				"\r\n". 
+				"Du (eller en anden) har bedt om nyt kodeord til din bruger i Jobdatabasen på SEE20:10.\r\n".	
+				"\r\n".
+				"Brugernavn: ".$login."\r\n".
+				"Nyt kodeord: ".$password."\r\n".
+				"\r\n".
+				"Logind på http://see2010jobcenter.wh.spejdernet.dk\r\n".
+				"\r\n".
+				"Med venlig hilsen\r\n".
+				$siteConfig->siteName."\r\n".
+				"";
+	mail($to, $subject, $message, get_mail_headers($siteConfig));
+}
+
+function resetPasswordFromLogin($login, $site_id) {
 	$sql = "SELECT cal_login FROM webcal_user where cal_login=?";
-	$rows = dbi_get_cached_rows($sql, array($email));
+	$rows = dbi_get_cached_rows($sql, array($login));
 
-	if(count($rows == 1)) { 
-		$login = $rows[0][0];
-		$newPass = "1234";
+	if(count($rows) == 1) { 
+		$cal_login = $rows[0][0];
+		$newPass = generate_password();
 		$md5Pass = md5($newPass);
 		
 		$sql = "UPDATE webcal_user SET cal_passwd=? where cal_login=?";
-		dbi_execute($sql, array($md5Pass, $login));
-		
+		dbi_execute($sql, array($md5Pass, $cal_login));
 		dbi_clear_cache();
+		
+		emailNewPassword($cal_login, $newPass, $site_id);
+		return true;
+	} else {
+		return false;
+	}
+}
+
+function resetPasswordFromEmail($email, $site_id) {
+	$sql = "SELECT cal_login FROM webcal_user where cal_email=?";
+	$rows = dbi_get_cached_rows($sql, array($email));
+
+	if(count($rows) == 1) { 
+		$cal_login = $rows[0][0];
+		$newPass = generate_password();
+		$md5Pass = md5($newPass);
+		
+		$sql = "UPDATE webcal_user SET cal_passwd=? where cal_login=?";
+		dbi_execute($sql, array($md5Pass, $cal_login));
+		dbi_clear_cache();
+		
+		emailNewPassword($cal_login, $newPass, $site_id);
 		return true;
 	} else {
 		return false;
