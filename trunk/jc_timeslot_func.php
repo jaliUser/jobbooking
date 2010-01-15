@@ -236,4 +236,10 @@ function existTimeslot(Timeslot $t) {
 	}
 }
 
+function updateTimeslotTime(Timeslot $t) {
+	echo "updating $t->id";
+	
+	//TODO: notify participants
+}
+
 ?>

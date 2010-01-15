@@ -64,7 +64,14 @@ function show_list() {
 		echo "</td>
 				<td>$job->id</td>
 				<td><a href='$PHP_SELF?action=show_one&job_id=$job->id'>$job->name</a></td>
-				<td>".nl2br($job->description)."</td>
+				<td>";
+		if (strlen($job->description) > 200) {
+			echo nl2br(substr($job->description, 0, 200)) . "... <div align='right'><a href='$PHP_SELF?action=show_one&job_id=$job->id'>Læs mere</a></div>";
+		} else {
+			echo nl2br($job->description);
+		}
+		
+		echo "</td>
 				<td><a href=\"jc_user.php?action=show_one&login=$job->ownerID\">".getUser($job->ownerID)->getFullName()."</a></td>
 				<td>$job->meetplace</td>
 				<td>$job->jobplace</td>

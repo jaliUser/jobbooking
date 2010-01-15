@@ -29,8 +29,8 @@ function get_mail_headers($siteConfig = null) {
 		global $siteConfig;
 	}
 	
-	$headers =  'From: '.$siteConfig->config[SiteConfig::$EMAIL_FROM].' <'.$siteConfig->config[SiteConfig::$EMAIL].'>'. "\r\n" .
-				'Cc: '.$siteConfig->config[SiteConfig::$EMAIL_FROM].' <'.$siteConfig->config[SiteConfig::$EMAIL].'>'. "\r\n" .
+	$headers =  'From: "'.$siteConfig->config[SiteConfig::$EMAIL_FROM].'" <'.$siteConfig->config[SiteConfig::$EMAIL].'>'. "\r\n" .
+				'Cc: "'.$siteConfig->config[SiteConfig::$EMAIL_FROM].'" <'.$siteConfig->config[SiteConfig::$EMAIL].'>'. "\r\n" .
     			'X-Mailer: PHP/' . phpversion();
 	return $headers;
 }

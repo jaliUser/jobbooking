@@ -45,13 +45,22 @@ function show_update() {
 //		$timeslots = listTimeslots($job->id);
 //		$groupedTimeslots = groupTimeslotsByTime($timeslots);
 //	}
-		
+	
+	$disTScnt = 0;
 	foreach ($groupedTimeslots as $distinctTimeArr) {		
-		//build time-row from first TS in distinctTimeArr			
+		//build time-row from first TS in distinctTimeArr
+		$disTScnt++;
+		$TSids = "";
+		for ($dayNo=0; $dayNo<count($days); $dayNo++) {
+			$timeslot = Timeslot::cast($distinctTimeArr[$dayNo]);
+			$TSids .= $timeslot->id . "-";
+		}
+		
 		$firstTS = $distinctTimeArr[0];
-		echo '<tr><td><input type="text" name="start_hour" size="1" maxlength="2" value="'.$firstTS->getStartHour().'" disabled/>:<input type="text" name="start_min" size="1" maxlength="2" value="'.$firstTS->getStartMin().'" disabled/>
-			        - <input type="text" name="end_hour" size="1" maxlength="2" value="'.$firstTS->getEndHour().'" disabled    />:<input type="text" name="end_min" size="1" maxlength="2" value="'.$firstTS->getEndMin().'" disabled/>
-				'.($firstTS->duration > 4*60 ? '<span class="redalert">OBS: > 4 t.</span>':'').'</td>';
+		echo '<tr><td><input type="text" name="start_hour-'.$disTScnt.'" size="1" maxlength="2" value="'.$firstTS->getStartHour().'" />:<input type="text" name="start_min-'.$disTScnt.'" size="1" maxlength="2" value="'.$firstTS->getStartMin().'" />
+			        - <input type="text" name="end_hour-'.$disTScnt.'" size="1" maxlength="2" value="'.$firstTS->getEndHour().'"     />:<input type="text" name="end_min-'.$disTScnt.'" size="1" maxlength="2" value="'.$firstTS->getEndMin().'" />
+				'.($firstTS->duration > 4*60 ? '<span class="redalert">OBS: > 4 t.</span>':'').'</td>
+			<input type="hidden" name="TSids-'.$disTScnt.'" value="'.$TSids.'">';
 
 		for ($dayNo=0; $dayNo<count($days); $dayNo++) {
 			$timeslot = Timeslot::cast($distinctTimeArr[$dayNo]);
@@ -61,9 +70,12 @@ function show_update() {
 		}
 		echo '</tr>';
 	}
-	echo '<tr><td colspan="'.(count($days)+1).'"><input type="submit" value="Opdatér"/><br><br></td></tr>
+	echo '<tr>
+		<td><input type="submit" name="send" value="Opdatér tidspunkter"/></td>
+		<td colspan="'.(count($days)).'"><input type="submit" name="send" value="Opdatér antal"/><br><br></td></tr>
 		<input type="hidden" name="action" value="do_update">
 		<input type="hidden" name="job_id" value="'.$job->id.'">
+		<input type="hidden" name="disTScnt" value="'.$disTScnt.'">
 		</form>';
 	
 	//show form for creating new timeslot
@@ -86,28 +98,94 @@ function show_update() {
 
 function do_update() {
 	global $PHP_SELF, $site_id;
-	$days = listDays($site_id);
-	$firstDay = Day::cast($days[0]);
-	$lastDay = Day::cast($days[count($days)-1]);
-	$timeslots = listTimeslots($_POST['job_id']);
-	// no validation, just remove person_need if non-numeric or negative
-	foreach ($timeslots as $ts) {
-		$ts = Timeslot::cast($ts);
-		if (!Timeslot::isValidPersonNeed($_POST['timeslot-'.$ts->id])) {
-			echo print_error('Behovet for '.$day->date.' er ikke et gyldigt tal!');
-			exit;	
+	
+	if (strpos($_POST['send'], "tidspunkter") && is_numeric($_POST['disTScnt'])) {
+		$disTScnt = $_POST['disTScnt'];
+		// loop distinct timeslots (rows)
+		for ($n=1; $n <= $disTScnt; $n++) {
+			$start_hour = $_POST['start_hour-'.$n];
+			$start_min = $_POST['start_min-'.$n];
+			$end_hour = $_POST['end_hour-'.$n];
+			$end_min = $_POST['end_min-'.$n];
+			
+			$start_caltime = get_caltime($start_hour, $start_min);
+			$end_caltime = get_caltime($end_hour, $end_min);
+			$duration = get_calduration($start_caltime, $end_caltime);
+			
+			if ($duration > 4*60) {
+				//show warning
+			}
+			
+			$TSids = explode("-", trim($_POST['TSids-'.$n], "-"));
+			$firstTS = getTimeslot($TSids[0]);
+			
+			if ($firstTS->startTime == $start_caltime && $firstTS->duration == $duration) {
+				break; //no times changed in distinct timeslot
+			}
+			
+			if (!valid_time($start_hour, $start_min) || !valid_time($end_hour, $end_min) || 
+				($start_hour == 00 && $start_min == 00 && $start_min == 00 && $start_min== 00 )) {
+				echo print_error("Ugyldig tidsperiode!");
+				exit;
+			}
+			
+			$days = listDays($site_id);
+			$j = getJob($_POST['job_id']);
+			$j = Job::cast($j);
+			
+			// loop days and check for errors
+			for ($i=0; $i<count($days); $i++) {
+				$ts = getTimeslot($TSids[$i]); // assume 1-1 order in days and TSids
+				$ts->startTime = $start_caltime;
+				$ts->duration = $duration;
+
+				$day = $days[$i];
+				$date = $day->getDateYMD();
+
+				if ($i == 0 && $ts->personNeed > 0 && $start_caltime < $day->time) {
+					echo print_error('Starttidspunktet for '.$day->date.' ligger før det tidligst mulige.');
+					exit;
+				}
+				if ($i == count($days)-1 && $ts->personNeed > 0 && $end_caltime > $day->time) {
+					echo print_error('Sluttidspunktet for '.$day->date.' ligger efter det senest mulige.');
+					exit;
+				}
+				if (existTimeslot($ts)) {
+					echo print_error('Der findes allerede en registrering for det job, på den dag, på det tidspunkt!<br>
+					      Redigér eksisterende registrering i stedet for at oprette en ny.');
+					exit;
+				}
+				
+				updateTimeslotTime($ts);
+				echo "update time";
+			}
 		}
-		if ($ts->date == $firstDay->getDateYMD() && $_POST['timeslot-'.$ts->id] > 0 && $ts->startTime < $firstDay->time) {
-			echo print_error('Starttidspunktet for '.$ts->date.' '.$ts->getStartHour().':'.$ts->getStartMin().' ligger før det tidligst mulige.');
-			exit;
+	} else {
+		$days = listDays($site_id);
+		$firstDay = Day::cast($days[0]);
+		$lastDay = Day::cast($days[count($days)-1]);
+		$timeslots = listTimeslots($_POST['job_id']);
+		// no validation, just remove person_need if non-numeric or negative
+		foreach ($timeslots as $ts) {
+			$ts = Timeslot::cast($ts);
+			if (!Timeslot::isValidPersonNeed($_POST['timeslot-'.$ts->id])) {
+				echo print_error('Behovet for '.$day->date.' er ikke et gyldigt tal!');
+				exit;	
+			}
+			if ($ts->date == $firstDay->getDateYMD() && $_POST['timeslot-'.$ts->id] > 0 && $ts->startTime < $firstDay->time) {
+				echo print_error('Starttidspunktet for '.$ts->date.' '.$ts->getStartHour().':'.$ts->getStartMin().' ligger før det tidligst mulige.');
+				exit;
+			}
+			if ($ts->date == $lastDay->getDateYMD() && $_POST['timeslot-'.$ts->id] > 0 && $ts->getEndTime() > $lastDay->time) {
+				echo print_error('Sluttidspunktet for '.$ts->date.' '.$ts->getEndHour().':'.$ts->getEndMin().' ligger efter det senest mulige.');
+				exit;
+			}
+			updateTimeslotNeed($ts->id, $_POST['timeslot-'.$ts->id]);
+			echo "update time";
 		}
-		if ($ts->date == $lastDay->getDateYMD() && $_POST['timeslot-'.$ts->id] > 0 && $ts->getEndTime() > $lastDay->time) {
-			echo print_error('Sluttidspunktet for '.$ts->date.' '.$ts->getEndHour().':'.$ts->getEndMin().' ligger efter det senest mulige.');
-			exit;
-		}
-		updateTimeslotNeed($ts->id, $_POST['timeslot-'.$ts->id]);
 	}
-	do_redirect($PHP_SELF.'?action=show_update&job_id='.$_POST['job_id']);
+	
+	//do_redirect($PHP_SELF.'?action=show_update&job_id='.$_POST['job_id']);
 }
 
 function show_assign() {
