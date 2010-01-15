@@ -16,6 +16,7 @@ function show_list() {
 		<tr> <th>Brugernavn</th> <th>Spejdernet</th> <th>Fornavn</th> <th>Efternavn</th> <th>Klan/Pladsnr</th> <th>E-mail</th> <th>Telefon</th> <th>Adresse</th> <th>Alder</th> <th>Gruppe</th> <th>Rolle</th> <th>Antal</th> <th>Underlejr</th> <th>Noter</th> </tr>';
 	$lastRole = null;
 	$emailSum = null;
+	$count = 0;
 	foreach ($users as $user) {
 		$user = User::cast($user);
 		$role = Role::cast(getRole($user->login));
@@ -23,17 +24,15 @@ function show_list() {
 		$subcamp = getSubcampForUser($user->login); 
 		
 		if ($lastRole != null && $lastRole != $user->roleID) {
-			$currentRole = Role::cast($roles[$lastRole - 1]);
-			echo "<tr><td colspan='14'>
-					Alle <i>$currentRole->name</i> mails semikolonsepareret: $emailSum<br/><br/>
-					Alle <i>$currentRole->name</i> mails kommasepareret: ".str_replace(",",";",$emailSum)."
-					</td></tr>";
+			print_role_summary($currentRole, $emailSum, $count, $roles, $lastRole);
 			$emailSum = "";
+			$count = 0;
 		}
 		if ($user->email != "") {
 			$emailSum .= "$user->email, ";
 		}
 		$lastRole = $user->roleID;
+		$count++;
 		
 		echo "<tr> 
 			<td>".(user_is_admin()? "<a href=\"$PHP_SELF?action=show_update&login=$user->login\">$user->login</a>": $user->login)."</td>
@@ -52,8 +51,18 @@ function show_list() {
 			<td>$user->notes</td>
 			</tr>";		
 	}
+	print_role_summary($currentRole, $emailSum, $count, $roles, $lastRole);
 	echo '</table>';
 	menu_link();
+}
+
+function print_role_summary($currentRole, $emailSum, $count, $roles, $lastRole) {
+	$currentRole = Role::cast($roles[$lastRole - 1]);
+	echo "<tr><td colspan='14'>
+			Antal: $count<br/>
+			Alle <i>$currentRole->name</i> mails semikolonsepareret: $emailSum<br/><br/>
+			Alle <i>$currentRole->name</i> mails kommasepareret: ".str_replace(",",";",$emailSum)."
+			</td></tr>";
 }
 
 //allow public access
