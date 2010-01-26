@@ -38,15 +38,40 @@ function updateTimeslotNeed($timeslot_id, $person_need) {
 
 function updateContact($timeslot_id, $contact_id) {
 	global $login;
-	if (!empty($contact_id)) {
-		$sql = "UPDATE webcal_entry SET contact_id=?, upd_user='$login' WHERE cal_id=?";
-		dbi_execute($sql, array($contact_id, $timeslot_id));
-	} else {
-		$sql = "UPDATE webcal_entry SET contact_id=NULL, upd_user='$login' WHERE cal_id=?";
-		dbi_execute($sql, array($timeslot_id));
+	$oldTS = getTimeslot($timeslot_id);
+	
+	if ($oldTS->contactID != $contact_id) {		
+		$job = getJob($oldTS->jobID);
+		$user = getUser($contact_id);
+		
+		if (!empty($contact_id)) {
+			$sql = "UPDATE webcal_entry SET contact_id=?, upd_user='$login' WHERE cal_id=?";
+			dbi_execute($sql, array($contact_id, $timeslot_id));
+			dbi_clear_cache();
+			
+			$subject = "Ny tildeling af tidsperiode";
+			$message = "Hej ".$user->firstName."\r\n".
+						"\r\n".
+						"Du er netop for job '".$job->name."' blevet tildelt tidsperioden ".$oldTS->getStartHour().":".$oldTS->getStartMin()."-".$oldTS->getEndHour().":".$oldTS->getEndMin()." ".$oldTS->date.",\r\n".
+						"hvor der er et resterende behov på ".$oldTS->remainingNeed." personer.\r\n";
+			
+			notifyUser($contact_id, $subject, $message);
+		} else {
+			$sql = "UPDATE webcal_entry SET contact_id=NULL, upd_user='$login' WHERE cal_id=?";
+			dbi_execute($sql, array($timeslot_id));
+			dbi_clear_cache();
+		}
+		
+		if (!empty($oldTS->contactID)) {
+			$subject = "Slettet tildeling af tidsperiode";
+			$message = "Hej ".$user->firstName."\r\n".
+						"\r\n".
+						"Din tildeling af tidsperioden ".$oldTS->getStartHour().":".$oldTS->getStartMin()."-".$oldTS->getEndHour().":".$oldTS->getEndMin()." ".$oldTS->date." for job '".$job->name."' er netop blevet slettet.\r\n".
+						"Der var et resterende behov på ".$oldTS->remainingNeed." personer.\r\n";
+			
+			notifyUser($oldTS->contactID, $subject, $message);
+		}
 	}
-
-	dbi_clear_cache();
 }
 
 function deleteTimeslot($timeslot_id) {
@@ -205,13 +230,20 @@ function groupTimeslotsByDate($timeslots) {
 }
 
 function getTimeslot($timeslot_id) {
-	$sql = 'SELECT cal_id, cal_date, cal_time, cal_duration, job_id, person_need, contact_id FROM webcal_entry WHERE cal_id=?';
+	$sql = 'SELECT we.cal_id, cal_date, cal_time, cal_duration, job_id, person_need, contact_id, SUM(count)
+			FROM webcal_entry we
+			LEFT JOIN webcal_entry_user weu
+			ON we.cal_id=weu.cal_id 
+			WHERE we.cal_id=?';
 	$rows = dbi_get_cached_rows($sql, array($timeslot_id));
 	
 	$t = null;
 	if(count($rows) == 1) { 
 		$row = $rows[0];
 		$t = new Timeslot($row[0], $row[1], $row[2], $row[3], $row[4], $row[5], $row[6]);
+		if ($row[5] != 0) {
+			$t->remainingNeed = $row[5] - $row[7];
+		}
 	}
 	
 	return $t;
@@ -252,7 +284,7 @@ function notifyOrUnsignupTimeslotAttendees(Timeslot $t, Timeslot $oldTS) {
 			$subject = "Tidsperiode flyttet - din jobtilmelding er ændret";
 			$message =	"Hej $contact->firstname \r\n".
 						"\r\n". 
-						"Du er i Jobdatabasen for ".$siteConfig->siteName." tilmeldt som hjælper til følgende job:\r\n".
+						"Du er tilmeldt som hjælper til følgende job:\r\n".
 						"\r\n".
 						"JobID: ".$job->id."\r\n".
 						"Jobnavn: ".$job->name."\r\n".
@@ -263,20 +295,14 @@ function notifyOrUnsignupTimeslotAttendees(Timeslot $t, Timeslot $oldTS) {
 						$t->date.". kl. ".$t->getStartHour().":".$t->getStartMin()."-".$t->getEndHour().":".$t->getEndMin()."\r\n".
 						"\r\n".
 						"Hvis den nye tidsperiode passer dig fint skal du ikke gøre mere,\r\n".
-						"men hvis ændringen ikke passer dig, beder vi dig gå ind og fjerne din tilmelding.\r\n".
-						"\r\n".
-						"Log ind på http://see2010jobcenter.wh.spejdernet.dk\r\n".
-						"\r\n".
-						"Med venlig hilsen\r\n".
-						$siteConfig->siteName."\r\n".
-						"";
+						"men hvis ændringen ikke passer dig, beder vi dig gå ind og fjerne din tilmelding.\r\n";
 		} else {
 			deleteSignup($signup);
 			
 			$subject = "Tidsperiode flyttet - din jobtilmelding er slettet";
 			$message =	"Hej $contact->firstname \r\n".
 						"\r\n". 
-						"Du er i Jobdatabasen for ".$siteConfig->siteName." tilmeldt som hjælper til følgende job:\r\n".
+						"Du er tilmeldt som hjælper til følgende job:\r\n".
 						"\r\n".
 						"JobID: ".$job->id."\r\n".
 						"Jobnavn: ".$job->name."\r\n".
@@ -289,13 +315,7 @@ function notifyOrUnsignupTimeslotAttendees(Timeslot $t, Timeslot $oldTS) {
 						"Men ifølge systemet er du enten optaget af et andet job eller har en blokering i denne periode,\r\n".
 						"så din tilmelding til dette job er blevet slettet.\r\n".
 						"\r\n".
-						"Du kan gå ind og se om du kan finde et andet ledigt, som du synes er interessant.\r\n".
-						"\r\n".
-						"Log ind på http://see2010jobcenter.wh.spejdernet.dk\r\n".
-						"\r\n".
-						"Med venlig hilsen\r\n".
-						$siteConfig->siteName."\r\n".
-						"";
+						"Du kan logge ind og se om du kan finde et andet ledigt job, som du synes er interessant.\r\n";
 		}
 		
 		notifyUser($contact->login, $subject, $message);

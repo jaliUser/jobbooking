@@ -39,6 +39,11 @@ function notifyUser($login, $subject, $message) {
 	global $siteConfig;
 	$user = getUser($login);
 	$headers = get_mail_headers();
+	$message = $message .
+				"\r\n".
+				"Med venlig hilsen\r\n".
+				$siteConfig->siteName."\r\n".
+				$siteConfig->config[SiteConfig::$SITE_URL]."\r\n";
 	
 	if ($user != null && !empty($user->email) && valid_email($user->email)) {
 		$to = $user->email;
