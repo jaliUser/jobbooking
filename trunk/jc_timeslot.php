@@ -224,13 +224,19 @@ function show_assign() {
 		$day = Day::cast($day);
 		echo '<th>'.strftime("%a %d/%m", $day->getDateTS()).'</th>';
 	}
+	echo '</tr><tr><td></td>';
+	
+	foreach ($days as $day) {
+		echo '<td><table class="border0" width="100%"><tr><td align="center">'.vertical("Behov").'</td><td align="center">'.vertical("Rest").'</td></tr></table></td>';
+	}
+	echo '</tr>';
 	
 	$timeslots = listTimeslots($job->id);
 	$groupedTimeslots = groupTimeslotsByTime($timeslots);
 	$contacts = listUsers($site_id, 4);
 	
 	foreach ($groupedTimeslots as $distinctTimeArr) {
-		//build time-row from first TS in distinctTimeArr			
+		//build time-row from first TS in distinctTimeArr
 		$firstTS = $distinctTimeArr[0];
 		echo '<tr><td>'.$firstTS->getStartHour().':'.$firstTS->getStartMin().' - '.$firstTS->getEndHour().':'.$firstTS->getEndMin().'</td>';
 
@@ -246,7 +252,8 @@ function show_assign() {
 			}
 			
 			echo '<td align="center">
-				<input type="text" name="timeslot-'.$timeslot->id.'" value="'.$timeslot->personNeed.'" size="1" maxlength="3" disabled/>
+				<input type="text" value="'.$timeslot->personNeed.'" size="1" maxlength="3" disabled/>
+				<input type="text" value="'.$timeslot->remainingNeed.'" size="1" maxlength="3" disabled/>
 				<select name="contactID-'.$timeslot->id.'" '.($timeslot->personNeed > 0 ? '':' disabled').'>'.$contactsHTML.'</select>
 				</td>';
 		}
@@ -353,7 +360,7 @@ function show_mine() {
 	
 	echo "<h1>Tidsperioder tildelt <i>".$contact->getFullName()."</i></h1>";
 	echo '<table align="center" class="border1">
-			<th>Dato</th> <th>Tid</th> <th>Job</th> <th>Behov</th> <th>Rest</th> <th></th>';
+			<th>Dato</th> <th>Tid</th> <th>Job</th> <th>Behov</th> <th>Rest</th> <th></th> <th></th>';
 	
 	foreach ($timeslots as $timeslot) {
 		$timeslot = Timeslot::cast($timeslot);
@@ -364,7 +371,8 @@ function show_mine() {
 				<td><a href="jc_job.php?action=show_one&job_id='.$job->id.'">'.$job->name.'</a></td>
 				<td>'.$timeslot->personNeed.'</td>
 				<td '.($timeslot->remainingNeed > 0 ? 'class="redalert"':'').'>'.$timeslot->remainingNeed.'</td>
-				<td><a href="jc_signup.php?action=show_update&job_id='.$job->id.'">Tilmeld</a></td>';
+				<td><a href="jc_signup.php?action=show_update&job_id='.$job->id.'">Tilmeld hjælpere</a></td>
+				<td><a href="jc_timeslot.php?action=show_assign&job_id='.$job->id.'">Videregiv tildeling</a></td>';
 		echo '</tr>';
 	}
 	echo '</table>';

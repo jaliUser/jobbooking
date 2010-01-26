@@ -109,7 +109,7 @@ function show_update() {
 		$day = Day::cast($day);
 		echo '<th>'.strftime("%a %d/%m", $day->getDateTS()).'</th>';
 	}
-	echo '</tr><tr><td>';
+	echo '</tr><tr><td></td>';
 	
 	foreach ($days as $day) {
 		echo '<td><table class="border0" width="100%"><tr><td align="center">'.vertical("Behov").'</td><td align="center">'.vertical("Tilmeld").'</td></tr></table></td>';

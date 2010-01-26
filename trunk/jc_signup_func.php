@@ -10,6 +10,28 @@ function createSignup(Signup $s) {
 	dbi_execute($sql, array($s->timeslotID, $s->userID, $s->status, $s->category, $s->percent, $s->count, $s->notes));
 
 	dbi_clear_cache();
+	
+	$subject = "Ny tilmelding til ".$job->name;
+	$ts = getTimeslot($s->timeslotID);
+	if (!empty($ts->contactID)) {
+		$job = getJob($ts->jobID);
+		$user = getUser($ts->contactID);
+		$message = "Hej ".$user->firstname."\r\n".
+					"\r\n".
+					"Du er for job '".$job->name."' tildelt tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->date.".\r\n".
+					"\r\n".
+					"Der er netop kommet en ny tilmelding på ".$s->count." personer for denne tidsperiode, \r\n".
+					"så det resterende behov er ".$ts->remainingNeed." personer.\r\n";
+		
+		notifyUser($timeslot->contactID, $subject, $message);
+	}
+	
+	$user = getUser($s->userID);
+	$message = "Hej ".$user->firstname."\r\n".
+				"\r\n".
+				"Du er nu tilmeldt job '".$job->name."' i tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->date." med ".$s->count." personer.\r\n";	
+
+	notifyUser($s->userID, $subject, $message);
 }
 
 function updateSignup(Signup $s) {
@@ -20,6 +42,28 @@ function updateSignup(Signup $s) {
 	dbi_execute($sql, array($s->status, $s->category, $s->percent, $s->count, $s->notes, $s->timeslotID, $s->userID));
 
 	dbi_clear_cache();
+	
+	$ts = getTimeslot($s->timeslotID);
+	if (!empty($ts->contactID)) {
+		$job = getJob($ts->jobID);
+		$user = getUser($ts->contactID);
+		$subject = "Opdateret tilmelding til ".$job->name;
+		$message = "Hej ".$user->firstname."\r\n".
+					"\r\n".
+					"Du er for job '".$job->name."' tildelt tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->date.".\r\n".
+					"\r\n".
+					"Der er netop opdateret en tilmelding for denne tidsperiode, \r\n".
+					"så det resterende behov er ".$ts->remainingNeed." personer.\r\n";
+		
+		notifyUser($timeslot->contactID, $subject, $message);
+	}
+	
+	$user = getUser($s->userID);
+	$message = "Hej ".$user->firstname."\r\n".
+				"\r\n".
+				"Din tilmelding til job '".$job->name."' i tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->date." er nu opdateret med ".$s->count." personer.\r\n";	
+
+	notifyUser($s->userID, $subject, $message);
 }
 
 function deleteSignup(Signup $s) {
@@ -27,6 +71,28 @@ function deleteSignup(Signup $s) {
 	dbi_execute($sql, array($s->timeslotID, $s->userID));
 
 	dbi_clear_cache();
+	
+	$ts = getTimeslot($s->timeslotID);
+	if (!empty($ts->contactID)) {
+		$job = getJob($ts->jobID);
+		$user = getUser($ts->contactID);
+		$subject = "Slettet tilmelding til ".$job->name;
+		$message = "Hej ".$user->firstname."\r\n".
+					"\r\n".
+					"Du er for job '".$job->name."' tildelt tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->date.".\r\n".
+					"\r\n".
+					"Der er netop slettet en tilmelding for denne tidsperiode, \r\n".
+					"så det resterende behov er ".$ts->remainingNeed." personer.\r\n";
+		
+		notifyUser($timeslot->contactID, $subject, $message);
+	}
+	
+	$user = getUser($s->userID);
+	$message = "Hej ".$user->firstname."\r\n".
+				"\r\n".
+				"Din tilmelding til job '".$job->name."' i tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->date." er nu slettet.\r\n";	
+
+	notifyUser($s->userID, $subject, $message);
 }
 
 function signupsContainsTimeslot($signups, $timeslotID) {
@@ -122,8 +188,9 @@ function getSignup($timeslot_id, $user_id) {
 }
 
 function createUpdateDeleteSignup(Signup $s) {
-	if (existSignup($s->timeslotID, $s->userID)) {
-		if (!empty($s->count)) {
+	$oldSignup = getSignup($s->timeslotID, $s->userID);
+	if ($oldSignup != null) {
+		if (!empty($s->count) && $s->count != $oldSignup->count) {
 			updateSignup($s);
 		} else {
 			deleteSignup($s); //TODO: disable signup instead
