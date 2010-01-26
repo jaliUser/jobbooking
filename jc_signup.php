@@ -213,7 +213,8 @@ function do_update() {
 		}
 		
 		//TODO: check available count
-		if ($signup->count > 0 && !isUserFree($signup->userID, $ts)) {
+		$userSignupForTS = getSignup($ts->id, $_POST['user_id']);
+		if ($signup->count > 0 && !isUserFree($signup->userID, $ts) && $userSignupForTS == null) {
 			echo print_error("Brugeren er optaget af andet job eller blokering i tidsperioden ". $ts->date." ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin());
 			exit; 
 		} else {

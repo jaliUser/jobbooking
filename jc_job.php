@@ -20,6 +20,10 @@ function show_list() {
 	
 	$role = getRole($login);
 	$area = getAreaFromContact($login);
+	$sumNeedPers = 0;
+	$sumNeedHour = 0;
+	$sumRestPers = 0;
+	$sumRestHour = 0;
 	
 	$jobs = listJobs($site_id, $_GET['status'], $_GET['user_id'], $_GET['filter']);
 	if (!empty($_GET['user_id']) && !empty($_GET['status'])) {
@@ -82,8 +86,22 @@ function show_list() {
 				".(user_is_admin() || $_GET['user_id'] == $login ? "<td title='".$job->getLongStatus()."'>".$job->getShortStatus()."</td>":'')."
 				".(user_is_admin() ?"<td>$job->priority</td><td>$job->totalHours</td><td>$job->remainingHours</td>":'')."
 				</tr>";
+		
+		$sumNeedPers += $job->totalNeed;
+		$sumNeedHour += $job->remainingNeed;
+		$sumRestPers += $job->totalHours;
+		$sumRestHour += $job->remainingHours;
 	}
-	echo '</table>';
+	
+	if(user_is_admin()) {
+		echo "<tr><td colspan='9'>Total</td>
+				<td>$sumNeedPers</td>
+				<td>$sumNeedHour</td>
+				<td colspan='2'></td>
+				<td>$sumRestPers</td>
+				<td>$sumRestHour</td></tr>";
+	}
+	echo "</table>";
 	
 	// show user list for admins
 	if (user_is_admin() && !empty($_GET['user_id'])) {
@@ -307,8 +325,8 @@ function show_update() {
 	$jobplacesHTML .= '</select>'; 
 
 	echo '<h1>Rediger job</h1>
-		<form action="'.$PHP_SELF.'" method="POST">
 		<table align="center" border="0" cellspacing="3" cellpadding="3">
+		<form action="'.$PHP_SELF.'" method="POST">
 		
 		<tr><td>Kontaktperson:</td><td>'.$ownerHTML.'</td></tr>
 		<tr><td>Område:</td><td>'.$areasHTML.'</td></tr>
@@ -326,8 +344,17 @@ function show_update() {
 		<input type="hidden" name="action" value="do_update">
 		'.($job->ownerID == $login ? '<input type="hidden" name="user_id" value="'.$login.'">' : '').'
 		<input type="hidden" name="job_id" value="'.$job->id.'">
-		</table>
 		</form>';
+		
+		if (user_is_admin() || $user->login == $job->ownerID) {
+			echo '<form action="'.$PHP_SELF.'" method="POST" onsubmit="return OkCancel(\'Er du sikker på du vil slette?\')">			
+				<tr><td colspan="2"><br/><br/>Hvis du sletter jobbet, fjernes alle hjælpernes tilmeldinger til dette job!</td></tr>
+				<tr><td colspan="2"><input type="submit" value="Slet"/></td></tr>
+				<input type="hidden" name="action" value="do_delete">
+				<input type="hidden" name="job_id" value="'.$job->id.'" />
+				</form>';
+		}
+		echo '</table>';
 	menu_link();
 }
 
@@ -399,6 +426,24 @@ function do_approve() {
 	do_redirect($PHP_SELF.'?action=show_list&status=W&user_id='.$login);
 }
 
+function do_delete() {
+	reject_public_access();
+	global $PHP_SELF, $login;
+
+	if (empty($_POST['job_id'])) {
+		echo print_error("JobID mangler");
+		exit;
+	}
+
+	$job = getJob($_POST['job_id']);
+	if (user_is_admin() || $login == $job->ownerID) {
+		deleteJob($_POST['job_id']);
+		do_redirect($PHP_SELF.'?action=show_list');
+	} else {
+		echo "Not authorized!";
+	}
+}
+
 function show_one() {
 	reject_public_access();
 	global $PHP_SELF, $login, $site_id, $site_name;
@@ -437,6 +482,8 @@ if ($_REQUEST['action'] == 'show_create') {
 	do_update();
 } elseif ($_REQUEST['action'] == 'do_approve') {
 	do_approve();
+} elseif ($_REQUEST['action'] == 'do_delete') {
+	do_delete();
 } elseif ($_REQUEST['action'] == 'show_list') {
 	show_list();
 } elseif ($_REQUEST['action'] == 'show_one') {

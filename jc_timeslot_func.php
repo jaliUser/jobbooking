@@ -23,14 +23,6 @@ function createTimeslot(Timeslot $t) {
 	//	return $id;
 }
 
-function updateTimeslot(Timeslot $t) {
-	global $login;
-	$sql = "UPDATE webcal_entry SET cal_date, cal_time, cal_duration, job_id, person_need, contact_id, upd_user='$login' WHERE cal_id=?";
-	dbi_execute($sql, array($t->date, $t->startTime, $t->duration, $t->jobID, $t->personNeed, $t->contactID, $t->id));	
-
-	dbi_clear_cache();
-}
-
 function updateTimeslotNeed($timeslot_id, $person_need) {
 	global $login;
 	if (is_numeric($person_need) && intval($person_need) > 0) {
@@ -184,7 +176,7 @@ function groupTimeslotsByTime($timeslots) {
 	$previousTS = null;
 	foreach ($timeslots as $ts) {
 		$ts = Timeslot::cast($ts);
-		if ($ts->startTime == $previousTS->startTime && $ts->duration == $previousTS->duration) {
+		if ($previousTS != null && $ts->startTime == $previousTS->startTime && $ts->duration == $previousTS->duration) {
 			$distinctTimes[$distinctTimesIdx][] = $ts;
 		} else {
 			$distinctTimesIdx++;
@@ -232,14 +224,97 @@ function existTimeslot(Timeslot $t) {
 	if($rows[0][0] > 0) { 
 		return true;
 	} else {
-		return false;		
+		return false;
 	}
 }
 
-function updateTimeslotTime(Timeslot $t) {
-	echo "updating $t->id";
+function updateTimeslotTime(Timeslot $t, Timeslot $oldTS) {
+	global $login;
+	$sql = "UPDATE webcal_entry SET cal_date=?, cal_time=?, cal_duration=?, upd_user='$login' WHERE cal_id=?";
+	dbi_execute($sql, array($t->date, $t->startTime, $t->duration, $t->id));	
+
+	dbi_clear_cache();
 	
-	//TODO: notify participants
+	notifyOrUnsignupTimeslotAttendees($t, $oldTS);
+}
+
+function notifyOrUnsignupTimeslotAttendees(Timeslot $t, Timeslot $oldTS) {
+	global $siteConfig;
+	$job = getJob($t->jobID);
+	$signups = listTimeslotSignups($t->id);
+	
+	foreach ($signups as $signup) {
+		$signup = Signup::cast($signup);
+		$contact = getUser($signup->userID);
+		
+		// check user is free then notify - else unsignup
+		if (isUserFree($signup->userID, $t, 1)) {
+			$subject = "Tidsperiode flyttet - din jobtilmelding er ændret";
+			$message =	"Hej $contact->firstname \r\n".
+						"\r\n". 
+						"Du er i Jobdatabasen for ".$siteConfig->siteName." tilmeldt som hjælper til følgende job:\r\n".
+						"\r\n".
+						"JobID: ".$job->id."\r\n".
+						"Jobnavn: ".$job->name."\r\n".
+						"\r\n".
+						"i tidsperioden: ".$oldTS->date." kl. ".$oldTS->getStartHour().":".$oldTS->getStartMin()."-".$oldTS->getEndHour().":".$oldTS->getEndMin()."\r\n".
+						"\r\n".
+						"Denne tidsperiode er nu ændret til:\r\n".
+						$t->date.". kl. ".$t->getStartHour().":".$t->getStartMin()."-".$t->getEndHour().":".$t->getEndMin()."\r\n".
+						"\r\n".
+						"Hvis den nye tidsperiode passer dig fint skal du ikke gøre mere,\r\n".
+						"men hvis ændringen ikke passer dig, beder vi dig gå ind og fjerne din tilmelding.\r\n".
+						"\r\n".
+						"Log ind på http://see2010jobcenter.wh.spejdernet.dk\r\n".
+						"\r\n".
+						"Med venlig hilsen\r\n".
+						$siteConfig->siteName."\r\n".
+						"";
+		} else {
+			deleteSignup($signup);
+			
+			$subject = "Tidsperiode flyttet - din jobtilmelding er slettet";
+			$message =	"Hej $contact->firstname \r\n".
+						"\r\n". 
+						"Du er i Jobdatabasen for ".$siteConfig->siteName." tilmeldt som hjælper til følgende job:\r\n".
+						"\r\n".
+						"JobID: ".$job->id."\r\n".
+						"Jobnavn: ".$job->name."\r\n".
+						"\r\n".
+						"i tidsperioden: ".$oldTS->date." kl. ".$oldTS->getStartHour().":".$oldTS->getStartMin()."-".$oldTS->getEndHour().":".$oldTS->getEndMin()."\r\n".
+						"\r\n".
+						"Denne tidsperiode er nu ændret til:\r\n".
+						$t->date.". kl. ".$t->getStartHour().":".$t->getStartMin()."-".$t->getEndHour().":".$t->getEndMin()."\r\n".
+						"\r\n".
+						"Men ifølge systemet er du enten optaget af et andet job eller har en blokering i denne periode,\r\n".
+						"så din tilmelding til dette job er blevet slettet.\r\n".
+						"\r\n".
+						"Du kan gå ind og se om du kan finde et andet ledigt, som du synes er interessant.\r\n".
+						"\r\n".
+						"Log ind på http://see2010jobcenter.wh.spejdernet.dk\r\n".
+						"\r\n".
+						"Med venlig hilsen\r\n".
+						$siteConfig->siteName."\r\n".
+						"";
+		}
+		
+		notifyUser($contact->login, $subject, $message);
+	}
+}
+
+function notifyAdminUnnecessaryNeeds($job_id) {
+	$timeslots = listTimeslots($job_id);
+	foreach ($timeslots as $ts) {
+		$ts = Timeslot::cast($ts);
+		if ($ts->remainingNeed < 0) {
+			//NOTE: this can also be triggered without need being reduced - too many people signed up and needs just updated with same values
+			$subject = "JobID $job_id overbemandet med ".-1*$ts->remainingNeed." (TidsperiodeID ".$ts->id.")";
+			$message = "Tidsperiode ".$ts->id." under job $job_id er blevet endjusteret med behov, \r\n".
+						"så der nu er overbemanding med ".-1*$ts->remainingNeed." personer - DO SOMETHING!";
+			
+			notifyAdmin($subject, $message);
+		}
+	}
 }
 
 ?>

@@ -37,3 +37,12 @@ function isNumeric(s){
     // All characters are numbers.
     return true;
 }
+
+function OkCancel(message) {
+	var result = confirm(message);
+	if (result == true) {
+		return true;
+	} else {
+		return false;
+	}
+}

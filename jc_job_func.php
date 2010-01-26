@@ -21,18 +21,18 @@ function updateJob(Job $j) {
 	dbi_clear_cache();
 }
 
-function deleteJob(Job $j) {
+function deleteJob($job_id) {
 	//NOTE: update status to D (deleted) instead)
 	
 	$sql = 'DELETE FROM webcal_entry_user WHERE cal_id 
 			IN (SELECT cal_id FROM webcal_entry WHERE job_id=?)';
-	dbi_execute($sql, array($j->id));
+	dbi_execute($sql, array($job_id));
 	
 	$sql = 'DELETE FROM webcal_entry WHERE job_id=?';
-	dbi_execute($sql, array($j->id));
+	dbi_execute($sql, array($job_id));
 	
 	$sql = 'DELETE FROM job WHERE id=?';
-	dbi_execute($sql, array($j->id));
+	dbi_execute($sql, array($job_id));
 
 	dbi_clear_cache();
 }
