@@ -24,15 +24,38 @@ function show_user_table($headertext, $link, $users) {
 	echo '</table>';	
 }
 
-function get_mail_headers($siteConfig = null) {
+function get_mail_headers($siteConfig = null, $withoutCC = false) {
 	if ($siteConfig == null) {
 		global $siteConfig;
 	}
 	
 	$headers =  'From: "'.$siteConfig->config[SiteConfig::$EMAIL_FROM].'" <'.$siteConfig->config[SiteConfig::$EMAIL].'>'. "\r\n" .
-				'Cc: "'.$siteConfig->config[SiteConfig::$EMAIL_FROM].'" <'.$siteConfig->config[SiteConfig::$EMAIL].'>'. "\r\n" .
+				($withoutCC == true ? '' : 'Cc: "'.$siteConfig->config[SiteConfig::$EMAIL_FROM].'" <'.$siteConfig->config[SiteConfig::$EMAIL].'>'. "\r\n") .
     			'X-Mailer: PHP/' . phpversion();
 	return $headers;
+}
+
+function notifyUser($login, $subject, $message) {
+	global $siteConfig;
+	$user = getUser($login);
+	$headers = get_mail_headers();
+	
+	if ($user != null && !empty($user->email) && valid_email($user->email)) {
+		$to = $user->email;
+	} else {
+		$to = $siteConfig->config[SiteConfig::$EMAIL];
+		$subject = "BRUGER HAR INGEN EMAIL - " . $subject;
+		$headers = get_mail_headers(null, true);
+	}
+	
+	mail($to, $subject, $message, $headers);
+}
+
+function notifyAdmin($subject, $message) {
+	global $siteConfig;
+	$to = $siteConfig->config[SiteConfig::$EMAIL];
+	
+	mail($to, $subject, $message, get_mail_headers(null, true));
 }
 
 function valid_time($hour, $min) {

@@ -24,7 +24,7 @@ function show_list() {
 		$subcamp = getSubcampForUser($user->login); 
 		
 		if ($lastRole != null && $lastRole != $user->roleID) {
-			print_role_summary($currentRole, $emailSum, $count, $roles, $lastRole);
+			print_role_summary($emailSum, $count, $roles, $lastRole);
 			$emailSum = "";
 			$count = 0;
 		}
@@ -44,19 +44,19 @@ function show_list() {
 			<td>$user->telephone</td>
 			<td width='50'>$user->address</td>
 			<td>$user->ageRange</td>
-			<td>$group->name</td>
+			<td>".($group != null ? $group->name : '')."</td>
 			<td>$role->name</td>
 			<td>$user->count</td>
-			<td>$subcamp->name</td>
+			<td>".($subcamp != null ? $subcamp->name : '')."</td>
 			<td>$user->notes</td>
 			</tr>";		
 	}
-	print_role_summary($currentRole, $emailSum, $count, $roles, $lastRole);
+	print_role_summary($emailSum, $count, $roles, $lastRole);
 	echo '</table>';
 	menu_link();
 }
 
-function print_role_summary($currentRole, $emailSum, $count, $roles, $lastRole) {
+function print_role_summary($emailSum, $count, $roles, $lastRole) {
 	$currentRole = Role::cast($roles[$lastRole - 1]);
 	echo "<tr><td colspan='14'>
 			Antal: $count<br/>
@@ -314,7 +314,7 @@ function show_update() {
 		<input type="hidden" name="role_id" value="'.$user->roleID.'" />
 		</form>
 
-		<form action="'.$PHP_SELF.'" method="POST">			
+		<form action="'.$PHP_SELF.'" method="POST" onsubmit="return OkCancel(\'Er du sikker på du vil slette?\')">			
 		<tr><td colspan="2"><br/><br/>Hvis du sletter din brugerprofil, fjernes alle jobopslag, jobtilmeldinger osv.!</td></tr>
 		<tr><td colspan="2"><input type="submit" value="Slet"/></td></tr>
 		<input type="hidden" name="action" value="do_delete">

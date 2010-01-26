@@ -146,7 +146,7 @@ function existSignup($timeslot_id, $user_id) {
 	}
 }
 
-function isUserFree($login, Timeslot $timeslot) {
+function isUserFree($login, Timeslot $timeslot, $clashNumber = 0) {
 	$sql = 'SELECT COUNT(webcal_entry.cal_id) FROM webcal_entry, webcal_entry_user' .
 			' WHERE webcal_entry.cal_id=webcal_entry_user.cal_id' .
 			' AND cal_login=?' .
@@ -158,10 +158,10 @@ function isUserFree($login, Timeslot $timeslot) {
 			' OR (cal_time<? AND (cal_time+(cal_duration %60)*100+FLOOR(cal_duration/60)*10000) >?)' . //cal_starttime <= Q_end <= cal_endtime
 			' OR (cal_time>=? AND cal_time<?)' . //Q_start <= cal_starttime <= Q_end
 			' )';
-	$rows = dbi_get_cached_rows($sql, array($login, $timeslot->date, $timeslot->startTime, $timeslot->startTime, $timeslot->getEndTime(), $timeslot->getEndTime(), $timeslot->starttime, $timeslot->getEndTime()));
-	//echo $sql.",". $login .",". $timeslot->date .",". $timeslot->startTime .",". $timeslot->startTime .",". $timeslot->getEndTime() .",". $timeslot->getEndTime() .",". $timeslot->starttime .",". $timeslot->getEndTime() . "<br><br>\r\n";
-
-	if ($rows[0][0] > 0) {
+	$rows = dbi_get_cached_rows($sql, array($login, $timeslot->date, $timeslot->startTime, $timeslot->startTime, $timeslot->getEndTime(), $timeslot->getEndTime(), $timeslot->startTime, $timeslot->getEndTime()));
+	//echo $sql.",". $login .",". $timeslot->date .",". $timeslot->startTime .",". $timeslot->startTime .",". $timeslot->getEndTime() .",". $timeslot->getEndTime() .",". $timeslot->startTime .",". $timeslot->getEndTime() . "<br><br>\r\n";
+	
+	if ($rows[0][0] > $clashNumber) {
 		return false;
 	}
 	return true;

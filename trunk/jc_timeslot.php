@@ -15,7 +15,7 @@ function show_update() {
 	//generate rows for existing timeslots
 	echo '<table align="center" class="border1">
 		<form action="'.$PHP_SELF.'" method="POST">
-		<tr><th>Tid</th>';
+		<tr><th width="250">Tid</th>';
 	$days = listDays($site_id);
 	
 	//generate header with days
@@ -71,8 +71,22 @@ function show_update() {
 		echo '</tr>';
 	}
 	echo '<tr>
-		<td><input type="submit" name="send" value="Opdatér tidspunkter"/></td>
-		<td colspan="'.(count($days)).'"><input type="submit" name="send" value="Opdatér antal"/><br><br></td></tr>
+		<td>
+			<input type="submit" name="send" value="Opdatér tidspunkter"/>
+			<span class="help">
+				<br/><br/><b>Vigtigt: Brug denne funktion med omtanke!</b>
+				<br/>Når du ændrer en tidsperiode, vil systemet kontrollere for alle hjælpere tilmeldt jobbet, 
+				om de stadig kan være tilmeldt med den nye tidsperiode, og de får alle tilsendt en email om ændringen. 
+				De som er forhindret i den nye tidsperiode vil blive afmeldt jobbet!
+			</span><br><br>
+		</td>
+		<td colspan="'.(count($days)).'">
+			<input type="submit" name="send" value="Opdatér antal"/>
+			<span class="help">
+				<br/><br/>Hvis du nedjusterer et behov og der er flere hjælpere tilmeldt end der nu er behov for, 
+				<br/>vil Jobcenteret få en email herom, så de overskydende hjælpere kan flyttes til et andet job.
+			</span><br><br>
+		</td></tr>
 		<input type="hidden" name="action" value="do_update">
 		<input type="hidden" name="job_id" value="'.$job->id.'">
 		<input type="hidden" name="disTScnt" value="'.$disTScnt.'">
@@ -100,6 +114,8 @@ function do_update() {
 	global $PHP_SELF, $site_id;
 	
 	if (strpos($_POST['send'], "tidspunkter") && is_numeric($_POST['disTScnt'])) {
+		// update start/end times
+		$days = listDays($site_id);
 		$disTScnt = $_POST['disTScnt'];
 		// loop distinct timeslots (rows)
 		for ($n=1; $n <= $disTScnt; $n++) {
@@ -117,10 +133,10 @@ function do_update() {
 			}
 			
 			$TSids = explode("-", trim($_POST['TSids-'.$n], "-"));
-			$firstTS = getTimeslot($TSids[0]);
+			$firstTS = getTimeslot($TSids[0]); //get TS from DB to check against
 			
 			if ($firstTS->startTime == $start_caltime && $firstTS->duration == $duration) {
-				break; //no times changed in distinct timeslot
+				continue; //no times changed in distinct timeslot
 			}
 			
 			if (!valid_time($start_hour, $start_min) || !valid_time($end_hour, $end_min) || 
@@ -129,15 +145,15 @@ function do_update() {
 				exit;
 			}
 			
-			$days = listDays($site_id);
 			$j = getJob($_POST['job_id']);
 			$j = Job::cast($j);
 			
 			// loop days and check for errors
 			for ($i=0; $i<count($days); $i++) {
 				$ts = getTimeslot($TSids[$i]); // assume 1-1 order in days and TSids
-				$ts->startTime = $start_caltime;
-				$ts->duration = $duration;
+				$oldTS = clone $ts;
+				$ts->startTime = $start_caltime; // set new time and date
+				$ts->duration = $duration; // set new duration
 
 				$day = $days[$i];
 				$date = $day->getDateYMD();
@@ -156,11 +172,11 @@ function do_update() {
 					exit;
 				}
 				
-				updateTimeslotTime($ts);
-				echo "update time";
+				updateTimeslotTime($ts, $oldTS);
 			}
 		}
 	} else {
+		// update timeslot needs
 		$days = listDays($site_id);
 		$firstDay = Day::cast($days[0]);
 		$lastDay = Day::cast($days[count($days)-1]);
@@ -181,11 +197,12 @@ function do_update() {
 				exit;
 			}
 			updateTimeslotNeed($ts->id, $_POST['timeslot-'.$ts->id]);
-			echo "update time";
 		}
+		
+		notifyAdminUnnecessaryNeeds($ts->jobID);
 	}
 	
-	//do_redirect($PHP_SELF.'?action=show_update&job_id='.$_POST['job_id']);
+	do_redirect($PHP_SELF.'?action=show_update&job_id='.$_POST['job_id']);
 }
 
 function show_assign() {
