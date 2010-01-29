@@ -12,9 +12,9 @@ function createSignup(Signup $s) {
 	dbi_clear_cache();
 	
 	$subject = "Ny tilmelding til ".$job->name;
+	$job = getJob($ts->jobID);
 	$ts = getTimeslot($s->timeslotID);
 	if (!empty($ts->contactID)) {
-		$job = getJob($ts->jobID);
 		$user = getUser($ts->contactID);
 		$message = "Hej ".$user->firstname."\r\n".
 					"\r\n".
@@ -43,11 +43,11 @@ function updateSignup(Signup $s) {
 
 	dbi_clear_cache();
 	
+	$subject = "Opdateret tilmelding til ".$job->name;
+	$job = getJob($ts->jobID);
 	$ts = getTimeslot($s->timeslotID);
 	if (!empty($ts->contactID)) {
-		$job = getJob($ts->jobID);
 		$user = getUser($ts->contactID);
-		$subject = "Opdateret tilmelding til ".$job->name;
 		$message = "Hej ".$user->firstname."\r\n".
 					"\r\n".
 					"Du er for job '".$job->name."' tildelt tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->date.".\r\n".
@@ -72,11 +72,12 @@ function deleteSignup(Signup $s) {
 
 	dbi_clear_cache();
 	
+	$subject = "Slettet tilmelding til ".$job->name;
+	$job = getJob($ts->jobID);
 	$ts = getTimeslot($s->timeslotID);
 	if (!empty($ts->contactID)) {
-		$job = getJob($ts->jobID);
+		
 		$user = getUser($ts->contactID);
-		$subject = "Slettet tilmelding til ".$job->name;
 		$message = "Hej ".$user->firstname."\r\n".
 					"\r\n".
 					"Du er for job '".$job->name."' tildelt tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->date.".\r\n".
