@@ -241,28 +241,18 @@ function do_create() {
 	if ($job->status == "W") {
 		$area = getAreaFromId($job->areaID);
 		$contact = getUser($area->contactID);
-		if (!empty($contact->email) && valid_email($contact->email)) {
-			$to = $contact->email;
-		} else {
-			$to = $siteConfig->config[SiteConfig::$EMAIL];
-		}
 		$subject = "Nyt job afventer din godkendelse";
 		$message =	"Hej $contact->firstname \r\n".
 					"\r\n". 
-					"Et nyt jobopslag i Jobdatabasen for ".$siteConfig->siteName." afventer din godkendelse.\r\n".	
+					"Et nyt jobopslag afventer din godkendelse.\r\n".	
 					"\r\n".
-					"JobID: ".$job->id."\r\n".
 					"Jobnavn: ".$job->name."\r\n".
 					"Jobansvarlig: ".getUser($job->ownerID)->getFullName()."\r\n".
 					"\r\n".
 					"Det er din opgave som områdeansvarlig, at vurdere de enkelte jobs og sortere 'skidt fra kanel', så ikke jobdatabasen fyldes med jobopslag lavet for sjov. Hvis der er blevet oprettet et jobopslag, som du ikke kan stå inde for, bør du kontakte den jobansvarlige.\r\n".
 					"\r\n".
-					"Logind på http://see2010jobcenter.wh.spejdernet.dk og godkend jobbet, så hjælpere kan tilmelde sig det.\r\n".
-					"\r\n".
-					"Med venlig hilsen\r\n".
-					$siteConfig->siteName."\r\n".
-					"";
-		mail($to, $subject, $message, get_mail_headers());
+					"Logind og godkend jobbet, så hjælpere kan tilmelde sig det.\r\n";
+		notifyUser($contact->email, $subject, $message);
 	}
 	
 	do_redirect($PHP_SELF.'?action=show_list&user_id='.$_REQUEST['owner_id']);
