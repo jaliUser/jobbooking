@@ -190,11 +190,12 @@ function getSignup($timeslot_id, $user_id) {
 function createUpdateDeleteSignup(Signup $s) {
 	$oldSignup = getSignup($s->timeslotID, $s->userID);
 	if ($oldSignup != null) {
-		if (!empty($s->count) && $s->count != $oldSignup->count) {
-			updateSignup($s);
-		} else {
+		if (empty($s->count)) {
 			deleteSignup($s); //TODO: disable signup instead
+		} else if (!empty($s->count) && $s->count != $oldSignup->count) {
+			updateSignup($s);
 		}
+		//if new same as old - do nothing
 	} else {
 		if (!empty($s->count)) {
 			createSignup($s);
