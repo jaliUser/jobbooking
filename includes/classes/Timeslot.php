@@ -92,6 +92,11 @@ class Timeslot {
 		$year = substr($this->date,0,4);
 		return mktime($hour, $min, $sec, $month, $day, $year);
 	}
+	
+	function get_DD_MM_YYYY() {
+		$startTS = get_cal_unixtime($this->date, $this->startTime); 
+		return gmdate("d/m-Y", $startTS + $this->duration*60);
+	}
 		
 	static function isValidPersonNeed($personNeed) {
 		if ((!empty($personNeed) && !is_numeric($personNeed)) || $personNeed < 0) {

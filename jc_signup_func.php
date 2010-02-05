@@ -12,24 +12,24 @@ function createSignup(Signup $s) {
 	dbi_clear_cache();
 	
 	$subject = "Ny tilmelding til ".$job->name;
-	$job = getJob($ts->jobID);
 	$ts = getTimeslot($s->timeslotID);
+	$job = getJob($ts->jobID);
 	if (!empty($ts->contactID)) {
 		$user = getUser($ts->contactID);
 		$message = "Hej ".$user->firstname."\r\n".
 					"\r\n".
-					"Du er for job '".$job->name."' tildelt tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->date.".\r\n".
+					"Du er for job '".$job->name."' tildelt tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->get_DD_MM_YYYY().".\r\n".
 					"\r\n".
 					"Der er netop kommet en ny tilmelding på ".$s->count." personer for denne tidsperiode, \r\n".
 					"så det resterende behov er ".$ts->remainingNeed." personer.\r\n";
 		
-		notifyUser($timeslot->contactID, $subject, $message);
+		notifyUser($ts->contactID, $subject, $message);
 	}
 	
 	$user = getUser($s->userID);
 	$message = "Hej ".$user->firstname."\r\n".
 				"\r\n".
-				"Du er nu tilmeldt job '".$job->name."' i tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->date." med ".$s->count." personer.\r\n";	
+				"Du er nu tilmeldt job '".$job->name."' i tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->get_DD_MM_YYYY()." med ".$s->count." personer.\r\n";	
 
 	notifyUser($s->userID, $subject, $message);
 }
@@ -44,24 +44,24 @@ function updateSignup(Signup $s) {
 	dbi_clear_cache();
 	
 	$subject = "Opdateret tilmelding til ".$job->name;
-	$job = getJob($ts->jobID);
 	$ts = getTimeslot($s->timeslotID);
+	$job = getJob($ts->jobID);
 	if (!empty($ts->contactID)) {
 		$user = getUser($ts->contactID);
 		$message = "Hej ".$user->firstname."\r\n".
 					"\r\n".
-					"Du er for job '".$job->name."' tildelt tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->date.".\r\n".
+					"Du er for job '".$job->name."' tildelt tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->get_DD_MM_YYYY().".\r\n".
 					"\r\n".
 					"Der er netop opdateret en tilmelding for denne tidsperiode, \r\n".
 					"så det resterende behov er ".$ts->remainingNeed." personer.\r\n";
 		
-		notifyUser($timeslot->contactID, $subject, $message);
+		notifyUser($ts->contactID, $subject, $message);
 	}
 	
 	$user = getUser($s->userID);
 	$message = "Hej ".$user->firstname."\r\n".
 				"\r\n".
-				"Din tilmelding til job '".$job->name."' i tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->date." er nu opdateret med ".$s->count." personer.\r\n";	
+				"Din tilmelding til job '".$job->name."' i tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->get_DD_MM_YYYY()." er nu opdateret med ".$s->count." personer.\r\n";	
 
 	notifyUser($s->userID, $subject, $message);
 }
@@ -73,25 +73,25 @@ function deleteSignup(Signup $s) {
 	dbi_clear_cache();
 	
 	$subject = "Slettet tilmelding til ".$job->name;
-	$job = getJob($ts->jobID);
 	$ts = getTimeslot($s->timeslotID);
+	$job = getJob($ts->jobID);
 	if (!empty($ts->contactID)) {
 		
 		$user = getUser($ts->contactID);
 		$message = "Hej ".$user->firstname."\r\n".
 					"\r\n".
-					"Du er for job '".$job->name."' tildelt tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->date.".\r\n".
+					"Du er for job '".$job->name."' tildelt tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->get_DD_MM_YYYY().".\r\n".
 					"\r\n".
 					"Der er netop slettet en tilmelding for denne tidsperiode, \r\n".
 					"så det resterende behov er ".$ts->remainingNeed." personer.\r\n";
 		
-		notifyUser($timeslot->contactID, $subject, $message);
+		notifyUser($ts->contactID, $subject, $message);
 	}
 	
 	$user = getUser($s->userID);
 	$message = "Hej ".$user->firstname."\r\n".
 				"\r\n".
-				"Din tilmelding til job '".$job->name."' i tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->date." er nu slettet.\r\n";	
+				"Din tilmelding til job '".$job->name."' i tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->get_DD_MM_YYYY()." er nu slettet.\r\n";	
 
 	notifyUser($s->userID, $subject, $message);
 }
