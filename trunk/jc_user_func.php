@@ -19,25 +19,14 @@ function generate_password () {
 function emailNewPassword($login, $password, $site_id) {
 	$siteConfig = getSiteConfig($site_id);
 	$contact = getUser($login);
-	if (!empty($contact->email) && valid_email($contact->email)) {
-		$to = $contact->email;
-	} else {
-		$to = $siteConfig->config[SiteConfig::$EMAIL];
-	}
-	$subject = "Nyt kodeord til Jobdatabasen på SEE20:10";
+	$subject = "Nyt kodeord til Jobdatabasen";
 	$message =	"Hej $contact->firstname \r\n".
 				"\r\n". 
-				"Du (eller en anden) har bedt om nyt kodeord til din bruger i Jobdatabasen på SEE20:10.\r\n".	
+				"Du (eller en anden) har bedt om nyt kodeord til din bruger i Jobdatabasen på ".$siteConfig->siteName.".\r\n".	
 				"\r\n".
 				"Brugernavn: ".$login."\r\n".
-				"Nyt kodeord: ".$password."\r\n".
-				"\r\n".
-				"Logind på http://see2010jobcenter.wh.spejdernet.dk\r\n".
-				"\r\n".
-				"Med venlig hilsen\r\n".
-				$siteConfig->siteName."\r\n".
-				"";
-	mail($to, $subject, $message, get_mail_headers($siteConfig));
+				"Nyt kodeord: ".$password."\r\n";
+	notifyUser($login, $subject, $message, $siteConfig); //giving siteConfig since user is not logged in
 }
 
 function resetPasswordFromLogin($login, $site_id) {

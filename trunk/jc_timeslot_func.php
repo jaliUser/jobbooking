@@ -52,7 +52,7 @@ function updateContact($timeslot_id, $contact_id) {
 			$subject = "Ny tildeling af tidsperiode";
 			$message = "Hej ".$user->firstName."\r\n".
 						"\r\n".
-						"Du er netop for job '".$job->name."' blevet tildelt tidsperioden ".$oldTS->getStartHour().":".$oldTS->getStartMin()."-".$oldTS->getEndHour().":".$oldTS->getEndMin()." ".$oldTS->date.",\r\n".
+						"Du er netop for job '".$job->name."' blevet tildelt tidsperioden ".$oldTS->getStartHour().":".$oldTS->getStartMin()."-".$oldTS->getEndHour().":".$oldTS->getEndMin()." ".$oldTS->get_DD_MM_YYYY().",\r\n".
 						"hvor der er et resterende behov på ".$oldTS->remainingNeed." personer.\r\n";
 			
 			notifyUser($contact_id, $subject, $message);
@@ -66,7 +66,7 @@ function updateContact($timeslot_id, $contact_id) {
 			$subject = "Slettet tildeling af tidsperiode";
 			$message = "Hej ".$user->firstName."\r\n".
 						"\r\n".
-						"Din tildeling af tidsperioden ".$oldTS->getStartHour().":".$oldTS->getStartMin()."-".$oldTS->getEndHour().":".$oldTS->getEndMin()." ".$oldTS->date." for job '".$job->name."' er netop blevet slettet.\r\n".
+						"Din tildeling af tidsperioden ".$oldTS->getStartHour().":".$oldTS->getStartMin()."-".$oldTS->getEndHour().":".$oldTS->getEndMin()." ".$oldTS->get_DD_MM_YYYY()." for job '".$job->name."' er netop blevet slettet.\r\n".
 						"Der var et resterende behov på ".$oldTS->remainingNeed." personer.\r\n";
 			
 			notifyUser($oldTS->contactID, $subject, $message);
@@ -234,7 +234,8 @@ function getTimeslot($timeslot_id) {
 			FROM webcal_entry we
 			LEFT JOIN webcal_entry_user weu
 			ON we.cal_id=weu.cal_id 
-			WHERE we.cal_id=?';
+			WHERE we.cal_id=?
+			GROUP BY we.cal_id';
 	$rows = dbi_get_cached_rows($sql, array($timeslot_id));
 	
 	$t = null;
@@ -289,10 +290,10 @@ function notifyOrUnsignupTimeslotAttendees(Timeslot $t, Timeslot $oldTS) {
 						"JobID: ".$job->id."\r\n".
 						"Jobnavn: ".$job->name."\r\n".
 						"\r\n".
-						"i tidsperioden: ".$oldTS->date." kl. ".$oldTS->getStartHour().":".$oldTS->getStartMin()."-".$oldTS->getEndHour().":".$oldTS->getEndMin()."\r\n".
+						"i tidsperioden: ".$oldTS->get_DD_MM_YYYY()." kl. ".$oldTS->getStartHour().":".$oldTS->getStartMin()."-".$oldTS->getEndHour().":".$oldTS->getEndMin()."\r\n".
 						"\r\n".
 						"Denne tidsperiode er nu ændret til:\r\n".
-						$t->date.". kl. ".$t->getStartHour().":".$t->getStartMin()."-".$t->getEndHour().":".$t->getEndMin()."\r\n".
+						$t->get_DD_MM_YYYY().". kl. ".$t->getStartHour().":".$t->getStartMin()."-".$t->getEndHour().":".$t->getEndMin()."\r\n".
 						"\r\n".
 						"Hvis den nye tidsperiode passer dig fint skal du ikke gøre mere,\r\n".
 						"men hvis ændringen ikke passer dig, beder vi dig gå ind og fjerne din tilmelding.\r\n";
@@ -307,10 +308,10 @@ function notifyOrUnsignupTimeslotAttendees(Timeslot $t, Timeslot $oldTS) {
 						"JobID: ".$job->id."\r\n".
 						"Jobnavn: ".$job->name."\r\n".
 						"\r\n".
-						"i tidsperioden: ".$oldTS->date." kl. ".$oldTS->getStartHour().":".$oldTS->getStartMin()."-".$oldTS->getEndHour().":".$oldTS->getEndMin()."\r\n".
+						"i tidsperioden: ".$oldTS->get_DD_MM_YYYY()." kl. ".$oldTS->getStartHour().":".$oldTS->getStartMin()."-".$oldTS->getEndHour().":".$oldTS->getEndMin()."\r\n".
 						"\r\n".
 						"Denne tidsperiode er nu ændret til:\r\n".
-						$t->date.". kl. ".$t->getStartHour().":".$t->getStartMin()."-".$t->getEndHour().":".$t->getEndMin()."\r\n".
+						$t->get_DD_MM_YYYY().". kl. ".$t->getStartHour().":".$t->getStartMin()."-".$t->getEndHour().":".$t->getEndMin()."\r\n".
 						"\r\n".
 						"Men ifølge systemet er du enten optaget af et andet job eller har en blokering i denne periode,\r\n".
 						"så din tilmelding til dette job er blevet slettet.\r\n".
