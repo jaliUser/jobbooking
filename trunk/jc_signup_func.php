@@ -11,9 +11,9 @@ function createSignup(Signup $s) {
 
 	dbi_clear_cache();
 	
-	$subject = "Ny tilmelding til ".$job->name;
 	$ts = getTimeslot($s->timeslotID);
 	$job = getJob($ts->jobID);
+	$subject = "Ny tilmelding til ".$job->name;
 	if (!empty($ts->contactID)) {
 		$user = getUser($ts->contactID);
 		$message = "Hej ".$user->firstname."\r\n".
@@ -43,9 +43,9 @@ function updateSignup(Signup $s) {
 
 	dbi_clear_cache();
 	
-	$subject = "Opdateret tilmelding til ".$job->name;
 	$ts = getTimeslot($s->timeslotID);
 	$job = getJob($ts->jobID);
+	$subject = "Opdateret tilmelding til ".$job->name;
 	if (!empty($ts->contactID)) {
 		$user = getUser($ts->contactID);
 		$message = "Hej ".$user->firstname."\r\n".
@@ -72,9 +72,9 @@ function deleteSignup(Signup $s) {
 
 	dbi_clear_cache();
 	
-	$subject = "Slettet tilmelding til ".$job->name;
 	$ts = getTimeslot($s->timeslotID);
 	$job = getJob($ts->jobID);
+	$subject = "Slettet tilmelding til ".$job->name;
 	if (!empty($ts->contactID)) {
 		
 		$user = getUser($ts->contactID);
