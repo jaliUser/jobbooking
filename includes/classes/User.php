@@ -21,6 +21,9 @@ class User {
 	var $qualifications;
 	var $notes;
 	var $extLogin;
+	var $signups; //not in DB
+	var $signupsDuration; //not in DB
+	var $signupsDurationEach; //not in DB
 	
 	function User($login, $passwd, $lastname, $firstname, $isAdmin, $email, $enabled, $telephone, $address, $title, $birthday, $lastLogin, $roleID, $siteID, $groupID, $count, $ageRange, $qualifications, $notes, $extLogin) {
 		$this->login = $login;
