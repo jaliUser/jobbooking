@@ -39,6 +39,7 @@ echo '
 	'.(user_is_admin() ? '<tr><td colspan="2">-</td></tr>' :'').'
 	'.(user_is_admin() ? '<tr><td><a href="jc_user.php?action=show_create">Opret bruger</a></td><td class="help"></td></tr>' :'').'
 	'.(user_is_admin() ? '<tr><td><a href="jc_user.php?action=show_list">Vis brugere</a></td><td class="help"></td></tr>' :'').'
+	'.(user_is_admin() ? '<tr><td><a href="jc_user.php?action=show_helpers_limit">Vis brugere < 8 timer</a></td><td class="help"></td></tr>' :'').'
 	
 	<tr><td colspan="2">-</td></tr>
 	<tr><td><a href="jc_subcamp.php?action=show_list">Vis jobkonsulenter i underlejrene</a></td><td class="help"></td></tr>

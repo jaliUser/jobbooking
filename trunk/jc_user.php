@@ -60,9 +60,72 @@ function print_role_summary($emailSum, $count, $roles, $lastRole) {
 	$currentRole = Role::cast($roles[$lastRole - 1]);
 	echo "<tr><td colspan='14'>
 			Antal: $count<br/>
-			Alle <i>$currentRole->name</i> mails semikolonsepareret: $emailSum<br/><br/>
-			Alle <i>$currentRole->name</i> mails kommasepareret: ".str_replace(",",";",$emailSum)."
+			<b>Alle <i>$currentRole->name</i> kommasepareret:</b> $emailSum<br/><br/>
+			<b>Alle <i>$currentRole->name</i> semikolonsepareret:</b> ".str_replace(",",";",$emailSum)."
 			</td></tr>";
+}
+
+function show_helpers_limit() {
+	reject_public_access();
+	global $PHP_SELF, $login, $site_id, $site_name;
+	html_top("$site_name - Hjælpere over/under grænse");
+
+	$hourLimit = 8;
+	$usersWithSignups = listHelpersOverLimit($site_id);
+	$users = listUsers($site_id, 3);
+	
+	echo '<h1>Hjælpere over/under grænse</h1>
+		<table align="center" class="border1">
+		<tr> <th>Brugernavn</th> <th>Fornavn</th> <th>Efternavn</th> <th>Klan/Pladsnr</th> <th>E-mail</th> <th>Telefon</th> <th>Antal</th> <th>Noter</th>  <th>Tilmeldinger</th> <th>Timer</th> <th>Timer/pers</th> </tr>';
+	$emailSumOver = null;
+	$emailSumUnder = null;
+	$countOver = 0;
+	$countUnder = 0;
+	foreach ($users as $user) {
+		if ($usersWithSignups[$user->login] != null) {
+			$user = $usersWithSignups[$user->login];
+		}
+		$user = User::cast($user);
+		
+		if ($user->signupsDurationEach >= $hourLimit) {
+			if ($user->email != "") {
+				$emailSumOver .= "$user->email, ";
+			}
+			$countOver++;
+		} else {
+			if ($user->email != "") {
+				$emailSumUnder .= "$user->email, ";
+			}
+			$countUnder++;
+		}
+				
+		echo "<tr> 
+			<td><a href=\"jc_signup.php?action=show_mine&user_id=$user->login\">$user->login</a></td>
+			<td><a href=\"$PHP_SELF?action=show_one&login=$user->login\">$user->firstname</a></td>
+			<td>$user->lastname</td>
+			<td>$user->title</td>
+			<td>$user->email</td>
+			<td>$user->telephone</td>
+			<td>$user->count</td>
+			<td title='".$user->notes."'>".substr($user->notes, 0, 40)."</td>
+			<td>$user->signups</td>
+			<td>$user->signupsDuration</td>
+			<td>$user->signupsDurationEach</td>
+			</tr>";		
+	}
+
+	echo "<tr><td colspan='11'>
+			Antal <i>over $hourLimit</i>: $countOver<br/>
+			<b>Alle <i>over $hourLimit</i> kommasepareret:</b> $emailSumOver<br/><br/>
+			<b>Alle <i>over $hourLimit</i> semikolonsepareret:</b> ".str_replace(",",";",$emailSumOver)."
+			<br/><br/>
+			Antal <i>under $hourLimit</i>: $countUnder<br/>
+			<b>Alle <i>under $hourLimit</i> kommasepareret:</b> $emailSumUnder<br/><br/>
+			<b>Alle <i>under $hourLimit</i> semikolonsepareret:</b> ".str_replace(",",";",$emailSumUnder)."
+			</td></tr>";
+
+	echo '</table>';
+	menu_link();
 }
 
 //allow public access
@@ -468,6 +531,8 @@ if ($_REQUEST['action'] == 'show_create') {
 	do_update();
 } elseif ($_REQUEST['action'] == 'show_list') {
 	show_list();
+} elseif ($_REQUEST['action'] == 'show_helpers_limit') {
+	show_helpers_limit();
 } elseif ($_REQUEST['action'] == 'do_delete') {
 	do_delete();
 } elseif ($_REQUEST['action'] == 'show_one') {
