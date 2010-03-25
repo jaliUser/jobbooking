@@ -17,6 +17,9 @@ class Subcamp {
 		return $subcamp;
 	}
 
+	function getShortName() {
+		return substr($this->name, 0, 3);
+	}
 }
 
 ?>

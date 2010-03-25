@@ -60,6 +60,10 @@ class User {
 		return $this->firstname . " " . $this->lastname;
 	}
 	
+	function getFullNameAndLogin() {
+		return $this->firstname . " " . $this->lastname . " (" . $this->login . ")";
+	}
+	
 	static function isValidUsername($login) {
 		if (!preg_match("!^[a-z0-9_]{0,25}$!i", $login)) {
 			return false;

@@ -16,6 +16,7 @@ function show_list() {
 		<tr> <th>Brugernavn</th> <th>Spejdernet</th> <th>Fornavn</th> <th>Efternavn</th> <th>Klan/Pladsnr</th> <th>E-mail</th> <th>Telefon</th> <th>Adresse</th> <th>Alder</th> <th>Gruppe</th> <th>Rolle</th> <th>Antal</th> <th>Underlejr</th> <th>Noter</th> </tr>';
 	$lastRole = null;
 	$emailSum = null;
+	$userCount = 0;
 	$count = 0;
 	foreach ($users as $user) {
 		$user = User::cast($user);
@@ -24,14 +25,19 @@ function show_list() {
 		$subcamp = getSubcampForUser($user->login); 
 		
 		if ($lastRole != null && $lastRole != $user->roleID) {
+			if ($lastRole == 3) {
+				echo "<tr><td colspan='11'></td><td>$userCount</td><td colspan='2'></td></tr>";
+			}
 			print_role_summary($emailSum, $count, $roles, $lastRole);
 			$emailSum = "";
+			$userCount = 0;
 			$count = 0;
 		}
 		if ($user->email != "") {
 			$emailSum .= "$user->email, ";
 		}
 		$lastRole = $user->roleID;
+		$userCount += $user->count;
 		$count++;
 		
 		echo "<tr> 
@@ -49,7 +55,7 @@ function show_list() {
 			<td>$user->count</td>
 			<td>".($subcamp != null ? $subcamp->name : '')."</td>
 			<td>$user->notes</td>
-			</tr>";		
+			</tr>";
 	}
 	print_role_summary($emailSum, $count, $roles, $lastRole);
 	echo '</table>';
@@ -76,7 +82,7 @@ function show_helpers_limit() {
 	
 	echo '<h1>Hjælpere over/under grænse</h1>
 		<table align="center" class="border1">
-		<tr> <th>Brugernavn</th> <th>Fornavn</th> <th>Efternavn</th> <th>Klan/Pladsnr</th> <th>E-mail</th> <th>Telefon</th> <th>Antal</th> <th>Noter</th>  <th>Tilmeldinger</th> <th>Timer</th> <th>Timer/pers</th> </tr>';
+		<tr> <th>Handlinger</th> <th>Brugernavn</th> <th>Fornavn</th> <th>Efternavn</th> <th>Klan/Pladsnr</th> <th>E-mail</th> <th>Telefon</th> <th>Antal</th> <th>Noter</th>  <th>Tilmeldinger</th> <th>Timer</th> <th>Timer/pers</th> </tr>';
 	$emailSumOver = null;
 	$emailSumUnder = null;
 	$countOver = 0;
@@ -100,7 +106,8 @@ function show_helpers_limit() {
 		}
 				
 		echo "<tr> 
-			<td><a href=\"jc_signup.php?action=show_mine&user_id=$user->login\">$user->login</a></td>
+			<td><a href=\"jc_signup.php?action=show_mine&user_id=$user->login\">Tilmeldinger</a></td>
+			<td>$user->login</td>
 			<td><a href=\"$PHP_SELF?action=show_one&login=$user->login\">$user->firstname</a></td>
 			<td>$user->lastname</td>
 			<td>$user->title</td>
@@ -180,7 +187,7 @@ function show_create() {
 		<table align="center" border="0" cellspacing="3" cellpadding="3">
 		<tr><td>Rolle:</td><td>'.$rolesHTML.'</td></tr>
 		<tr><td>Brugernavn:</td><td><input type="text" name="login" size="25" maxlength="25" /> * <span class="help">Kun tegnene A-Z og _ er tilladte (IKKE mellemrum, &AElig;, &Oslash; og &Aring;)</span></td></tr>
-		<tr><td>Kodeord:</td><td><input type="password" name="password" size="25" maxlength="32" /> *</td></tr>
+		<tr><td>Kodeord:</td><td><input type="password" name="password" size="25" maxlength="32" /> * <span class="help">Minimum 4 karakterer</span></td></tr>
 		<tr><td>Fornavn:</td><td><input type="text" name="firstname" size="25" maxlength="25" /> *</td></tr>
 		<tr><td>Efternavn:</td><td><input type="text" name="lastname" size="25" maxlength="25" /> *</td></tr>
 		<tr><td>Spejdernet-brugernavn:</td><td><input type="text" name="ext_login" size="25" maxlength="25" /></td></tr>
@@ -197,15 +204,18 @@ function show_create() {
 		<tr><td>Foretrukne jobkategorier:</td><td>'.$jobcategoryHTML.'</td></tr>';
 	}
 
-	echo '<tr><td>Gruppe:</td><td>'.$groupsHTML.'</td></tr>
+	echo '<tr><td>Gruppe:</td><td>'.$groupsHTML.' *</td></tr>
 		<tr><td>Noter:</td><td><textarea name="notes" cols="50" rows="3"></textarea></td></tr>
 		<tr><td colspan="2" class="help">* markerer et obligatorisk felt</td></tr>
 
 		<tr><td colspan="2"><input type="submit" value="Opret"/></td></tr>
 		<input type="hidden" name="action" value="do_create">
-		<input type="hidden" name="site_id" value="'.$site_id.'">
+		<input type="hidden" name="site_id" value="'.$site_id.'">';
 		
-		</table>
+	if (empty($_GET['role_id']) || $_GET['role_id'] == 3) {
+		echo '<tr><td colspan="2" class="redalert">Når du er oprettet skal du huske at tilmelde dig et job!</td></tr>';
+	}
+	echo '</table>
 		</form>';
 
 	//dont show menu if user is __public__
@@ -252,10 +262,13 @@ function do_create() {
 	if (empty($_POST['site_id'])) {
 		$error .= "SiteID mangler.<br>";
 	}
-	if (existTelephone($_POST['telephone'])) {
-		$error .= "Anden bruger er allerede registreret med samme telefonnummer!<br>";
-		$error .= "Hvis du har glemt dit kodeord, anvend 'Glemt kodeord' på loginsiden.<br>";
+	if ($_POST['role_id'] == 3 && empty($_POST['group_id']) || $_POST['group_id'] == "0") {
+		$error .= "Ugyldig gruppe.<br>";
 	}
+//	if (existTelephone($_POST['telephone'])) {
+//		$error .= "Anden bruger er allerede registreret med samme telefonnummer!<br>";
+//		$error .= "Hvis du har glemt dit kodeord, anvend 'Glemt kodeord' på loginsiden.<br>";
+//	}
 	if (!empty($_POST['email']) && existEmail($_POST['email'])) {
 		$error .= "Anden bruger er allerede registreret med samme emailadresse!<br>";
 		$error .= "Hvis du har glemt dit kodeord, anvend 'Glemt kodeord' på loginsiden.<br>";
@@ -351,7 +364,7 @@ function show_update() {
 		<tr><td>Rolle:</td><td>'.$rolesHTML.'</td></tr>
 		<tr><td>Brugernavn:</td><td><input type="text" name="login" size="25" maxlength="25" value="'.$user->login.'" disabled /></td></tr>
 			<input type="hidden" name="login" value="'.$user->login.'" />
-		<tr><td>Kodeord:</td><td class="help"><input type="password" name="password" size="25" maxlength="32" value="" /> Efterlad tomt, hvis uændret</td></tr>
+		<tr><td>Kodeord:</td><td class="help"><input type="password" name="password" size="25" maxlength="32" value="" /> <span class="help">Efterlad tomt, hvis uændret - ellers minimum 4 karakterer</span></td></tr>
 		<tr><td>Fornavn:</td><td><input type="text" name="firstname" size="25" maxlength="25" value="'.$user->firstname.'" /> *</td></tr>
 		<tr><td>Efternavn:</td><td><input type="text" name="lastname" size="25" maxlength="25" value="'.$user->lastname.'" /> *</td></tr>
 		<tr><td>Spejdernet-brugernavn:</td><td><input type="text" name="ext_login" size="25" maxlength="25" value="'.$user->extLogin.'" /></td></tr>
@@ -365,7 +378,7 @@ function show_update() {
 		<tr><td>Kvalifikationer:</td><td>'.$qualificationHTML.'<br><span class="help">Hvis der kr&aelig;ves certifikater, skal disse medbringes på lejren!</span></td></tr>
 		<tr><td>Specielle kvalifikationer:</td><td><input type="text" name="qualifications" size="25" maxlength="255" value="'.$user->qualifications.'" /></td></tr>
 		<tr><td>Klan/holdnavn/pladsnr:</td><td><input type="text" name="title" size="25" maxlength="75" value="'.$user->title.'" /></td></tr>
-		<tr><td>Gruppe:</td><td>'.$groupsHTML.'</td></tr>
+		<tr><td>Gruppe:</td><td>'.$groupsHTML.' *</td></tr>
 		<tr><td>Foretrukne jobkategorier:</td><td>'.$jobcategoryHTML.'</td></tr>';
 	}	
 	
@@ -416,6 +429,9 @@ function do_update() {
 	}
 	if (!empty($_POST['email']) && !valid_email($_POST['email'])) {
 		$error .= "Ugyldig email.<br>";
+	}
+	if ($_POST['role_id'] == 3 && empty($_POST['group_id']) || $_POST['group_id'] == "0") {
+		$error .= "Ugyldig gruppe.<br>";
 	}
 	if (!empty($error)) {
 		echo print_error($error);

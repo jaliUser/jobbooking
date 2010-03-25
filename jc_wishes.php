@@ -134,22 +134,23 @@ function show_list() {
 	$daysHTMLto .= '</select>';
 	
 	echo '<h1>Ledighedsperioder for hjælpere</h1>';
-	echo '<table align="center" border="0">
-		<form action="" method="POST">
-		<tr><td>Fra dato:</td><td>'.$daysHTMLfrom.'</td></tr>
-		<tr><td>Fra tid:</td><td><input type="text" name="start_hour" size="1" maxlength="2" value="'.$start_hour.'" /> :
-								 <input type="text" name="start_min" size="1" maxlength="2" value="'.$start_min.'" /></td></tr>
-		<tr><td>Til dato:</td><td>'.$daysHTMLto.'</td></tr>
-		<tr><td>Til tid:</td><td><input type="text" name="end_hour" size="1" maxlength="2" value="'.$end_hour.'" /> :
-								 <input type="text" name="end_min" size="1" maxlength="2" value="'.$end_min.'" /></td></tr>
-		
-		<tr><td colspan="3"><input type="submit" value="Søg"/></td></tr>
-		<input type="hidden" name="action" value="show_list"/>
-		</form>
-		</table><p>';
+//	echo '<table align="center" border="0">
+//		<form action="" method="POST">
+//		<tr><td>Fra dato:</td><td>'.$daysHTMLfrom.'</td></tr>
+//		<tr><td>Fra tid:</td><td><input type="text" name="start_hour" size="1" maxlength="2" value="'.$start_hour.'" /> :
+//								 <input type="text" name="start_min" size="1" maxlength="2" value="'.$start_min.'" /></td></tr>
+//		<tr><td>Til dato:</td><td>'.$daysHTMLto.'</td></tr>
+//		<tr><td>Til tid:</td><td><input type="text" name="end_hour" size="1" maxlength="2" value="'.$end_hour.'" /> :
+//								 <input type="text" name="end_min" size="1" maxlength="2" value="'.$end_min.'" /></td></tr>
+//		
+//		<tr><td colspan="3"><input type="submit" value="Søg"/></td></tr>
+//		<input type="hidden" name="action" value="show_list"/>
+//		</form>
+//		</table><p>';
 	
 	$job = getJob(-2);
-	$timeslots = listTimeslotWishesInPeriod($site_id, $_POST['start_date'], $start_caltime, $_POST['end_date'], $end_caltime);
+//	$timeslots = listTimeslotWishesInPeriod($site_id, $_POST['start_date'], $start_caltime, $_POST['end_date'], $end_caltime);
+	$timeslots = listTimeslotWishesForSite($site_id);
 	
 	echo '<table align="center" class="border1">
 			<tr> <th>Navn</th> <th>Fra</th> <th>Til</th><th>Antal</th> </tr>';
