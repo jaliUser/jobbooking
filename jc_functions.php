@@ -154,20 +154,20 @@ function html_bottom() {
 	echo '
 	<!-- Start of StatCounter Code -->
 	<script type="text/javascript">
-	var sc_project=5386328; 
+	var sc_project=5711663; 
 	var sc_invisible=1; 
-	var sc_partition=49; 
+	var sc_partition=71; 
 	var sc_click_stat=1; 
-	var sc_security="7db961e6"; 
+	var sc_security="e38f9a83"; 
 	</script>
-	
+
 	<script type="text/javascript"
 	src="http://www.statcounter.com/counter/counter.js"></script><noscript><div
-	class="statcounter"><a title="wordpress visitor counter"
-	href="http://www.statcounter.com/wordpress.com/"
+	class="statcounter"><a title="my space counter"
+	href="http://www.statcounter.com/myspace/"
 	target="_blank"><img class="statcounter"
-	src="http://c.statcounter.com/5386328/0/7db961e6/1/"
-	alt="wordpress visitor counter" ></a></div></noscript>
+	src="http://c.statcounter.com/5711663/0/e38f9a83/1/" alt="my
+	space counter" ></a></div></noscript>
 	<!-- End of StatCounter Code -->
 	</body></html>';
 }
