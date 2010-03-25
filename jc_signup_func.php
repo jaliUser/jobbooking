@@ -13,8 +13,8 @@ function createSignup(Signup $s) {
 	
 	$ts = getTimeslot($s->timeslotID);
 	$job = getJob($ts->jobID);
-	$subject = "JK - Ny tilmelding til ".$job->name;
 	if (!empty($ts->contactID)) {
+		$subject = "JK: Ny tilmelding til ".$job->name;
 		$user = getUser($ts->contactID);
 		$message = "Hej ".$user->getFullNameAndLogin()."\r\n".
 					"\r\n".
@@ -27,6 +27,7 @@ function createSignup(Signup $s) {
 		notifyUser($ts->contactID, $subject, $message);
 	}
 	
+	$subject = "Ny tilmelding til ".$job->name;
 	$user = getUser($s->userID);
 	$message = "Hej ".$user->getFullNameAndLogin()."\r\n".
 				"\r\n".
@@ -46,8 +47,8 @@ function updateSignup(Signup $s) {
 	
 	$ts = getTimeslot($s->timeslotID);
 	$job = getJob($ts->jobID);
-	$subject = "JK - Opdateret tilmelding til ".$job->name;
 	if (!empty($ts->contactID)) {
+		$subject = "JK: Opdateret tilmelding til ".$job->name;
 		$user = getUser($ts->contactID);
 		$message = "Hej ".$user->getFullNameAndLogin()."\r\n".
 					"\r\n".
@@ -60,6 +61,7 @@ function updateSignup(Signup $s) {
 		notifyUser($ts->contactID, $subject, $message);
 	}
 	
+	$subject = "Opdateret tilmelding til ".$job->name;
 	$user = getUser($s->userID);
 	$message = "Hej ".$user->getFullNameAndLogin()."\r\n".
 				"\r\n".
@@ -76,9 +78,8 @@ function deleteSignup(Signup $s) {
 	
 	$ts = getTimeslot($s->timeslotID);
 	$job = getJob($ts->jobID);
-	$subject = "JK - Slettet tilmelding til ".$job->name;
 	if (!empty($ts->contactID)) {
-		
+		$subject = "JK: Slettet tilmelding til ".$job->name;
 		$user = getUser($ts->contactID);
 		$message = "Hej ".$user->getFullNameAndLogin()."\r\n".
 					"\r\n".
@@ -91,6 +92,7 @@ function deleteSignup(Signup $s) {
 		notifyUser($ts->contactID, $subject, $message);
 	}
 	
+	$subject = "Slettet tilmelding til ".$job->name;
 	$user = getUser($s->userID);
 	$message = "Hej ".$user->getFullNameAndLogin()."\r\n".
 				"\r\n".
