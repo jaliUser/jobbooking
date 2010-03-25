@@ -30,4 +30,18 @@ function getSubcampForUser($cal_login) {
 	return $subcamp;
 }
 
+function getSubcampForContact($cal_login) {
+	$sql = 'SELECT s.id, s.site_id, s.name, s.contact_id FROM subcamp s 
+			WHERE s.contact_id=?';
+	$rows = dbi_get_cached_rows($sql, array($cal_login));
+	
+	$subcamp = null;
+	if (count($rows) == 1) {
+		$row = $rows[0];
+		$subcamp = new Subcamp($row[0], $row[1], $row[2], $row[3]);
+	}
+	
+	return $subcamp;
+}
+
 ?>
