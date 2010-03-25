@@ -13,12 +13,13 @@ function createSignup(Signup $s) {
 	
 	$ts = getTimeslot($s->timeslotID);
 	$job = getJob($ts->jobID);
-	$subject = "Ny tilmelding til ".$job->name;
+	$subject = "JK - Ny tilmelding til ".$job->name;
 	if (!empty($ts->contactID)) {
 		$user = getUser($ts->contactID);
-		$message = "Hej ".$user->firstname."\r\n".
+		$message = "Hej ".$user->getFullNameAndLogin()."\r\n".
 					"\r\n".
 					"Du er for job '".$job->name."' tildelt tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->get_DD_MM_YYYY().".\r\n".
+					"Som jobkonsulent er det din opgave at skaffe arbejdskraft til de tidsperioder, som du er tildelt.\r\n".
 					"\r\n".
 					"Der er netop kommet en ny tilmelding på ".$s->count." personer for denne tidsperiode, \r\n".
 					"så det resterende behov er ".$ts->remainingNeed." personer.\r\n";
@@ -27,7 +28,7 @@ function createSignup(Signup $s) {
 	}
 	
 	$user = getUser($s->userID);
-	$message = "Hej ".$user->firstname."\r\n".
+	$message = "Hej ".$user->getFullNameAndLogin()."\r\n".
 				"\r\n".
 				"Du er nu tilmeldt job '".$job->name."' i tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->get_DD_MM_YYYY()." med ".$s->count." personer.\r\n";	
 
@@ -45,12 +46,13 @@ function updateSignup(Signup $s) {
 	
 	$ts = getTimeslot($s->timeslotID);
 	$job = getJob($ts->jobID);
-	$subject = "Opdateret tilmelding til ".$job->name;
+	$subject = "JK - Opdateret tilmelding til ".$job->name;
 	if (!empty($ts->contactID)) {
 		$user = getUser($ts->contactID);
-		$message = "Hej ".$user->firstname."\r\n".
+		$message = "Hej ".$user->getFullNameAndLogin()."\r\n".
 					"\r\n".
 					"Du er for job '".$job->name."' tildelt tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->get_DD_MM_YYYY().".\r\n".
+					"Som jobkonsulent er det din opgave at skaffe arbejdskraft til de tidsperioder, som du er tildelt.\r\n".
 					"\r\n".
 					"Der er netop opdateret en tilmelding for denne tidsperiode, \r\n".
 					"så det resterende behov er ".$ts->remainingNeed." personer.\r\n";
@@ -59,7 +61,7 @@ function updateSignup(Signup $s) {
 	}
 	
 	$user = getUser($s->userID);
-	$message = "Hej ".$user->firstname."\r\n".
+	$message = "Hej ".$user->getFullNameAndLogin()."\r\n".
 				"\r\n".
 				"Din tilmelding til job '".$job->name."' i tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->get_DD_MM_YYYY()." er nu opdateret med ".$s->count." personer.\r\n";	
 
@@ -74,13 +76,14 @@ function deleteSignup(Signup $s) {
 	
 	$ts = getTimeslot($s->timeslotID);
 	$job = getJob($ts->jobID);
-	$subject = "Slettet tilmelding til ".$job->name;
+	$subject = "JK - Slettet tilmelding til ".$job->name;
 	if (!empty($ts->contactID)) {
 		
 		$user = getUser($ts->contactID);
-		$message = "Hej ".$user->firstname."\r\n".
+		$message = "Hej ".$user->getFullNameAndLogin()."\r\n".
 					"\r\n".
 					"Du er for job '".$job->name."' tildelt tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->get_DD_MM_YYYY().".\r\n".
+					"Som jobkonsulent er det din opgave at skaffe arbejdskraft til de tidsperioder, som du er tildelt.\r\n".
 					"\r\n".
 					"Der er netop slettet en tilmelding for denne tidsperiode, \r\n".
 					"så det resterende behov er ".$ts->remainingNeed." personer.\r\n";
@@ -89,7 +92,7 @@ function deleteSignup(Signup $s) {
 	}
 	
 	$user = getUser($s->userID);
-	$message = "Hej ".$user->firstname."\r\n".
+	$message = "Hej ".$user->getFullNameAndLogin()."\r\n".
 				"\r\n".
 				"Din tilmelding til job '".$job->name."' i tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->get_DD_MM_YYYY()." er nu slettet.\r\n";	
 

@@ -248,7 +248,9 @@ function show_assign() {
 			foreach ($contacts as $contact) {
 				$contact = User::cast($contact);
 				$selected = ($contact->login == $timeslot->contactID) ? ' selected' : '';
-				$contactsHTML .= '<option value="'.$contact->login.'"'.$selected.'>'.$contact->firstname.'</option>';			
+				$subcamp = getSubcampForContact($contact->login);
+				$subcampShort = ($subcamp != null ? $subcamp->getShortName() : null);
+				$contactsHTML .= '<option value="'.$contact->login.'"'.$selected.'>'.$contact->firstname.' '.$subcampShort.'</option>';			
 			}
 			
 			echo '<td align="center">
@@ -360,7 +362,7 @@ function show_mine() {
 	
 	echo "<h1>Tidsperioder tildelt <i>".$contact->getFullName()."</i></h1>";
 	echo '<table align="center" class="border1">
-			<th>Dato</th> <th>Tid</th> <th>Job</th> <th>Behov</th> <th>Rest</th> <th></th> <th></th>';
+			<th>Dato</th> <th>Tid</th> <th>Job</th> <th>Behov</th> <th>Rest</th> <th>Handlinger</th> ';
 	
 	foreach ($timeslots as $timeslot) {
 		$timeslot = Timeslot::cast($timeslot);
@@ -371,8 +373,11 @@ function show_mine() {
 				<td><a href="jc_job.php?action=show_one&job_id='.$job->id.'">'.$job->name.'</a></td>
 				<td>'.$timeslot->personNeed.'</td>
 				<td '.($timeslot->remainingNeed > 0 ? 'class="redalert"':'').'>'.$timeslot->remainingNeed.'</td>
-				<td><a href="jc_signup.php?action=show_update&job_id='.$job->id.'">Tilmeld hjælpere</a></td>
-				<td><a href="jc_timeslot.php?action=show_assign&job_id='.$job->id.'">Videregiv tildeling</a></td>';
+				<td>
+					<a href="jc_signup.php?action=show_list&job_id='.$job->id.'">Vis tildelinger</a><br/>
+					<a href="jc_signup.php?action=show_update&job_id='.$job->id.'">Tilmeld hjælpere</a><br/>
+					<a href="jc_timeslot.php?action=show_assign&job_id='.$job->id.'">Videregiv tildeling<br/>
+				</td>';
 		echo '</tr>';
 	}
 	echo '</table>';

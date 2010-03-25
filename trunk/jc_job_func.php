@@ -114,8 +114,8 @@ function listJobs($site_id, $status=null, $owner_id=null, $filter=null) {
 		$j = new Job($row[0], $row[1], $row[2], $row[3], $row[4], $row[5], $row[6], $row[7], $row[8], $row[9], $row[10]);
 		$j->totalNeed = $row[11];
 		$j->remainingNeed = $row[11] - $signups[$row[0]][1];
-		$j->totalHours = $row[12] / 60;
-		$j->remainingHours = ($row[12] - $signups[$row[0]][2]) / 60;
+		$j->totalHours = round($row[12] / 60, 1);
+		$j->remainingHours = round(($row[12] - $signups[$row[0]][2]) / 60, 1);
 		$jobs[] = $j;
 	}
 	
