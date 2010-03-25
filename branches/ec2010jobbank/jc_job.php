@@ -5,10 +5,10 @@ include_once 'jc_init.php';
 
 function getPlaces() {
 	$places[] = "";
-	$places[] = "Nørreport";
-	$places[] = "Østerport";
-	$places[] = "Sønderport";
-	$places[] = "Vesterport";
+	$places[] = "Musikhuset";
+	$places[] = "Vester Alle";
+	$places[] = "Radisson";
+	$places[] = "Tivoli";
 	$places[] = "Andet";
 	return $places;
 }
@@ -174,7 +174,7 @@ function show_create() {
 - drikkevarer
 - særlig beklædning
 - transport</textarea></td></tr>
-		<tr><td>Status:</td><td>'.(user_is_admin() ? $statusHTML : 'Afventer <input type="hidden" name="status" value="W">').'</td></tr>
+		<tr><td>Status:</td><td>'.(true ? $statusHTML : 'Afventer <input type="hidden" name="status" value="W">').'</td></tr>
 		'.(user_is_admin() ? '<tr><td>Prioritet:</td><td>'.$priorityHTML.'</td></tr>' : '<input type="hidden" name="priority" value="3">').'
 		<tr><td colspan="2" class="help">* markerer et obligatorisk felt</td></tr>
 

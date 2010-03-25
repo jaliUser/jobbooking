@@ -13,7 +13,7 @@ function show_list() {
 	$users = listUsers($site_id);
 	echo '<h1>Brugerliste</h1>
 		<table align="center" class="border1">
-		<tr> <th>Brugernavn</th> <th>Spejdernet</th> <th>Fornavn</th> <th>Efternavn</th> <th>Klan/Pladsnr</th> <th>E-mail</th> <th>Telefon</th> <th>Adresse</th> <th>Alder</th> <th>Gruppe</th> <th>Rolle</th> <th>Antal</th> <th>Underlejr</th> <th>Noter</th> </tr>';
+		<tr> <th>Brugernavn</th> <!-- <th>Spejdernet</th> --> <th>Fornavn</th> <th>Efternavn</th> <th>Team-navn</th> <th>E-mail</th> <th>Telefon</th> <th>Adresse</th> <!-- <th>Alder</th> --> <th>Afdeling</th> <th>Rolle</th> <th>Antal</th> <!-- <th>Underlejr</th> --> <th>Noter</th> </tr>';
 	$lastRole = null;
 	$emailSum = null;
 	$userCount = 0;
@@ -42,18 +42,18 @@ function show_list() {
 		
 		echo "<tr> 
 			<td>".(user_is_admin()? "<a href=\"$PHP_SELF?action=show_update&login=$user->login\">$user->login</a>": $user->login)."</td>
-			<td>$user->extLogin</td>
+			<!-- <td>$user->extLogin</td> -->
 			<td><a href=\"$PHP_SELF?action=show_one&login=$user->login\">$user->firstname</a></td>
 			<td>$user->lastname</td>
 			<td>$user->title</td>
 			<td>$user->email</td>
 			<td>$user->telephone</td>
 			<td width='50'>$user->address</td>
-			<td>$user->ageRange</td>
+			<!-- <td>$user->ageRange</td> -->
 			<td>".($group != null ? $group->name : '')."</td>
 			<td>$role->name</td>
 			<td>$user->count</td>
-			<td>".($subcamp != null ? $subcamp->name : '')."</td>
+			<!-- <td>".($subcamp != null ? $subcamp->name : '')."</td> -->
 			<td>$user->notes</td>
 			</tr>";
 	}
@@ -190,21 +190,21 @@ function show_create() {
 		<tr><td>Kodeord:</td><td><input type="password" name="password" size="25" maxlength="32" /> * <span class="help">Minimum 4 karakterer</span></td></tr>
 		<tr><td>Fornavn:</td><td><input type="text" name="firstname" size="25" maxlength="25" /> *</td></tr>
 		<tr><td>Efternavn:</td><td><input type="text" name="lastname" size="25" maxlength="25" /> *</td></tr>
-		<tr><td>Spejdernet-brugernavn:</td><td><input type="text" name="ext_login" size="25" maxlength="25" /></td></tr>
+		<!-- <tr><td>Spejdernet-brugernavn:</td><td><input type="text" name="ext_login" size="25" maxlength="25" /></td></tr> -->
 		<tr><td>E-mail:</td><td><input type="text" name="email" size="25" maxlength="75" /></td></tr>
 		<tr><td>Telefon (helst mobil):</td><td><input type="text" name="telephone" size="25" maxlength="50" /> * <span class="help">Bruges til SMS-service for påmindelse og evt. ændringer af jobs.</span></td></tr>
 		<tr><td>Adresse/postnr/by:</td><td><input type="text" name="address" size="25" maxlength="75" /> *</td></tr>';
 
 	if (empty($_GET['role_id']) || $_GET['role_id'] == 3) {
-	echo '<tr><td>Alder under lejren:</td><td><input type="text" name="age_range" size="10" maxlength="10" /> *</td></tr>
+	echo '<!-- <tr><td>Alder under lejren:</td><td><input type="text" name="age_range" size="10" maxlength="10" /> *</td></tr> -->
 		<tr><td>Antal:</td><td><input type="text" name="count" size="2" maxlength="3" /> * <span class="help">Hvor mange hjælpere er I?</span></td></tr>
-		<tr><td>Kvalifikationer:</td><td>'.$qualificationHTML.'<br><span class="help">Hvis der kr&aelig;ves certifikater, skal disse medbringes på lejren!</span></td></tr>
+		<tr><td>Kvalifikationer:</td><td>'.$qualificationHTML.'<br> <!-- <span class="help">Hvis der kr&aelig;ves certifikater, skal disse medbringes på lejren!</span> --> </td></tr>
 		<tr><td>Specielle kvalifikationer:</td><td><input type="text" name="qualifications" size="25" maxlength="255" /></td></tr>
-		<tr><td>Klan/holdnavn/pladsnr:</td><td><input type="text" name="title" size="25" maxlength="75" /></td></tr>
+		<tr><td>Team navn:</td><td><input type="text" name="title" size="25" maxlength="75" /></td></tr>
 		<tr><td>Foretrukne jobkategorier:</td><td>'.$jobcategoryHTML.'</td></tr>';
 	}
 
-	echo '<tr><td>Gruppe:</td><td>'.$groupsHTML.' *</td></tr>
+	echo '<tr><td>Afdeling:</td><td>'.$groupsHTML.' *</td></tr>
 		<tr><td>Noter:</td><td><textarea name="notes" cols="50" rows="3"></textarea></td></tr>
 		<tr><td colspan="2" class="help">* markerer et obligatorisk felt</td></tr>
 
@@ -367,18 +367,18 @@ function show_update() {
 		<tr><td>Kodeord:</td><td class="help"><input type="password" name="password" size="25" maxlength="32" value="" /> <span class="help">Efterlad tomt, hvis uændret - ellers minimum 4 karakterer</span></td></tr>
 		<tr><td>Fornavn:</td><td><input type="text" name="firstname" size="25" maxlength="25" value="'.$user->firstname.'" /> *</td></tr>
 		<tr><td>Efternavn:</td><td><input type="text" name="lastname" size="25" maxlength="25" value="'.$user->lastname.'" /> *</td></tr>
-		<tr><td>Spejdernet-brugernavn:</td><td><input type="text" name="ext_login" size="25" maxlength="25" value="'.$user->extLogin.'" /></td></tr>
+		<!-- <tr><td>Spejdernet-brugernavn:</td><td><input type="text" name="ext_login" size="25" maxlength="25" value="'.$user->extLogin.'" /></td></tr> -->
 		<tr><td>E-mail:</td><td><input type="text" name="email" size="25" maxlength="75" value="'.$user->email.'" /></td></tr>
 		<tr><td>Telefon (helst mobil):</td><td><input type="text" name="telephone" size="25" maxlength="50" value="'.$user->telephone.'" /> * <span class="help">Bruges til SMS-service for påmindelse og evt. ændringer af jobs.</span></td></tr>
 		<tr><td>Adresse/postnr/by:</td><td><input type="text" name="address" size="25" maxlength="75" value="'.$user->address.'" /> *</td></tr>';
 
 	if ($user->roleID == 3) {
-	echo '<tr><td>Alder under lejren:</td><td><input type="text" name="age_range" size="10" maxlength="10" value="'.$user->ageRange.'" /> *</td></tr>
+	echo '<!-- <tr><td>Alder under lejren:</td><td><input type="text" name="age_range" size="10" maxlength="10" value="'.$user->ageRange.'" /> *</td></tr> -->
 		<tr><td>Antal:</td><td><input type="text" name="count" size="2" maxlength="3" value="'.$user->count.'" /> * <span class="help">Hvor mange hjælpere er I?</span></td></tr>
-		<tr><td>Kvalifikationer:</td><td>'.$qualificationHTML.'<br><span class="help">Hvis der kr&aelig;ves certifikater, skal disse medbringes på lejren!</span></td></tr>
+		<tr><td>Kvalifikationer:</td><td>'.$qualificationHTML.'<br> <!-- <span class="help">Hvis der kr&aelig;ves certifikater, skal disse medbringes på lejren!</span> --> </td></tr>
 		<tr><td>Specielle kvalifikationer:</td><td><input type="text" name="qualifications" size="25" maxlength="255" value="'.$user->qualifications.'" /></td></tr>
-		<tr><td>Klan/holdnavn/pladsnr:</td><td><input type="text" name="title" size="25" maxlength="75" value="'.$user->title.'" /></td></tr>
-		<tr><td>Gruppe:</td><td>'.$groupsHTML.' *</td></tr>
+		<tr><td>Team navn:</td><td><input type="text" name="title" size="25" maxlength="75" value="'.$user->title.'" /></td></tr>
+		<tr><td>Afdeling:</td><td>'.$groupsHTML.' *</td></tr>
 		<tr><td>Foretrukne jobkategorier:</td><td>'.$jobcategoryHTML.'</td></tr>';
 	}	
 	
