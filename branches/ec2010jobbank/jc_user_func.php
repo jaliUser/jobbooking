@@ -20,7 +20,7 @@ function emailNewPassword($login, $password, $site_id) {
 	$siteConfig = getSiteConfig($site_id);
 	$contact = getUser($login);
 	$subject = "Nyt kodeord til Jobdatabasen";
-	$message =	"Hej $contact->firstname \r\n".
+	$message =	"Hej ".$contact->getFullNameAndLogin()."\r\n".
 				"\r\n". 
 				"Du (eller en anden) har bedt om nyt kodeord til din bruger i Jobdatabasen på ".$siteConfig->siteName.".\r\n".	
 				"\r\n".

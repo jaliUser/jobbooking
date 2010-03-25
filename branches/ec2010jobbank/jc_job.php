@@ -242,7 +242,7 @@ function do_create() {
 		$area = getAreaFromId($job->areaID);
 		$contact = getUser($area->contactID);
 		$subject = "Nyt job afventer din godkendelse";
-		$message =	"Hej $contact->firstname \r\n".
+		$message =	"Hej ".$contact->getFullNameAndLogin()."\r\n".
 					"\r\n". 
 					"Et nyt jobopslag afventer din godkendelse.\r\n".	
 					"\r\n".
