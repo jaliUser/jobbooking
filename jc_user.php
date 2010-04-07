@@ -82,7 +82,7 @@ function show_helpers_limit() {
 	
 	echo '<h1>Hjælpere over/under grænse</h1>
 		<table align="center" class="border1">
-		<tr> <th>Handlinger</th> <th>Brugernavn</th> <th>Fornavn</th> <th>Efternavn</th> <th>Klan/Pladsnr</th> <th>E-mail</th> <th>Telefon</th> <th>Antal</th> <th>Noter</th>  <th>Tilmeldinger</th> <th>Timer</th> <th>Timer/pers</th> </tr>';
+		<tr> <th>Handlinger</th> <th>Brugernavn</th> <th>Fornavn</th> <th>Efternavn</th> <th>Klan/Pladsnr</th> <th>E-mail</th> <th>Telefon</th> <th>Antal</th> <th>Noter (fuld tekst i ToolTip)</th>  <th>Tilmeldinger</th> <th>Timer</th> <th>Timer/pers</th> <th>Foretrukne</th> </tr>';
 	$emailSumOver = null;
 	$emailSumUnder = null;
 	$countOver = 0;
@@ -104,6 +104,13 @@ function show_helpers_limit() {
 			}
 			$countUnder++;
 		}
+		
+		$catString = "";
+		$categories = listUserJobCategories($user->login);
+		foreach ($categories as $cat) {
+			$cat = JobCategory::cast($cat);
+			$catString .= $cat->name . ", ";
+		}
 				
 		echo "<tr> 
 			<td><a href=\"jc_signup.php?action=show_mine&user_id=$user->login\">Tilmeldinger</a></td>
@@ -114,14 +121,15 @@ function show_helpers_limit() {
 			<td>$user->email</td>
 			<td>$user->telephone</td>
 			<td>$user->count</td>
-			<td title='".$user->notes."'>".substr($user->notes, 0, 40)."</td>
+			<td title='".$user->notes."'>".(strlen($user->notes) > 30 ? substr($user->notes, 0, 30) . '...' : substr($user->notes, 0, 30))."</td>
 			<td>$user->signups</td>
 			<td>$user->signupsDuration</td>
 			<td>$user->signupsDurationEach</td>
+			<td>$catString</td>
 			</tr>";		
 	}
 
-	echo "<tr><td colspan='11'>
+	echo "<tr><td colspan='12'>
 			Antal <i>over $hourLimit</i>: $countOver<br/>
 			<b>Alle <i>over $hourLimit</i> kommasepareret:</b> $emailSumOver<br/><br/>
 			<b>Alle <i>over $hourLimit</i> semikolonsepareret:</b> ".str_replace(",",";",$emailSumOver)."
@@ -190,18 +198,18 @@ function show_create() {
 		<tr><td>Kodeord:</td><td><input type="password" name="password" size="25" maxlength="32" /> * <span class="help">Minimum 4 karakterer</span></td></tr>
 		<tr><td>Fornavn:</td><td><input type="text" name="firstname" size="25" maxlength="25" /> *</td></tr>
 		<tr><td>Efternavn:</td><td><input type="text" name="lastname" size="25" maxlength="25" /> *</td></tr>
-		<tr><td>Spejdernet-brugernavn:</td><td><input type="text" name="ext_login" size="25" maxlength="25" /></td></tr>
+		<!-- <tr><td>Spejdernet-brugernavn:</td><td><input type="text" name="ext_login" size="25" maxlength="25" /></td></tr> -->
 		<tr><td>E-mail:</td><td><input type="text" name="email" size="25" maxlength="75" /></td></tr>
 		<tr><td>Telefon (helst mobil):</td><td><input type="text" name="telephone" size="25" maxlength="50" /> * <span class="help">Bruges til SMS-service for påmindelse og evt. ændringer af jobs.</span></td></tr>
-		<tr><td>Adresse/postnr/by:</td><td><input type="text" name="address" size="25" maxlength="75" /> *</td></tr>';
+		<!-- <tr><td>Adresse/postnr/by:</td><td><input type="text" name="address" size="25" maxlength="75" /> *</td></tr> -->';
 
 	if (empty($_GET['role_id']) || $_GET['role_id'] == 3) {
-	echo '<tr><td>Alder under lejren:</td><td><input type="text" name="age_range" size="10" maxlength="10" /> *</td></tr>
+	echo '<!-- <tr><td>Alder under lejren:</td><td><input type="text" name="age_range" size="10" maxlength="10" /> *</td></tr> -->
 		<tr><td>Antal:</td><td><input type="text" name="count" size="2" maxlength="3" /> * <span class="help">Hvor mange hjælpere er I?</span></td></tr>
 		<tr><td>Kvalifikationer:</td><td>'.$qualificationHTML.'<br><span class="help">Hvis der kr&aelig;ves certifikater, skal disse medbringes på lejren!</span></td></tr>
 		<tr><td>Specielle kvalifikationer:</td><td><input type="text" name="qualifications" size="25" maxlength="255" /></td></tr>
 		<tr><td>Klan/holdnavn/pladsnr:</td><td><input type="text" name="title" size="25" maxlength="75" /></td></tr>
-		<tr><td>Foretrukne jobkategorier:</td><td>'.$jobcategoryHTML.'</td></tr>';
+		<!-- <tr><td>Foretrukne jobkategorier:</td><td>'.$jobcategoryHTML.'</td></tr> -->';
 	}
 
 	echo '<tr><td>Gruppe:</td><td>'.$groupsHTML.' *</td></tr>
@@ -247,12 +255,12 @@ function do_create() {
 	if (strlen($_POST['telephone']) < 8) {
 		$error .= "Telefonnr. skal være mindst 8 karakterer.<br>";
 	}
-	if (strlen($_POST['address']) < 4) {
-		$error .= "Adresse skal være mindst 4 karakterer.<br>";
-	}
-	if ($_POST['role_id'] == 3 && strlen($_POST['age_range']) < 1) {
-		$error .= "Alder skal være mindst 1 karakter.<br>";
-	}
+//	if (strlen($_POST['address']) < 4) {
+//		$error .= "Adresse skal være mindst 4 karakterer.<br>";
+//	}
+//	if ($_POST['role_id'] == 3 && strlen($_POST['age_range']) < 1) {
+//		$error .= "Alder skal være mindst 1 karakter.<br>";
+//	}
 	if ($_POST['role_id'] == 3 && (strlen($_POST['count']) < 1 || !is_numeric($_POST['count']))) {
 		$error .= "Antal skal være et tal og mindst 1 ciffer.<br>";
 	}
@@ -367,19 +375,19 @@ function show_update() {
 		<tr><td>Kodeord:</td><td class="help"><input type="password" name="password" size="25" maxlength="32" value="" /> <span class="help">Efterlad tomt, hvis uændret - ellers minimum 4 karakterer</span></td></tr>
 		<tr><td>Fornavn:</td><td><input type="text" name="firstname" size="25" maxlength="25" value="'.$user->firstname.'" /> *</td></tr>
 		<tr><td>Efternavn:</td><td><input type="text" name="lastname" size="25" maxlength="25" value="'.$user->lastname.'" /> *</td></tr>
-		<tr><td>Spejdernet-brugernavn:</td><td><input type="text" name="ext_login" size="25" maxlength="25" value="'.$user->extLogin.'" /></td></tr>
+		<!-- <tr><td>Spejdernet-brugernavn:</td><td><input type="text" name="ext_login" size="25" maxlength="25" value="'.$user->extLogin.'" /></td></tr> -->
 		<tr><td>E-mail:</td><td><input type="text" name="email" size="25" maxlength="75" value="'.$user->email.'" /></td></tr>
 		<tr><td>Telefon (helst mobil):</td><td><input type="text" name="telephone" size="25" maxlength="50" value="'.$user->telephone.'" /> * <span class="help">Bruges til SMS-service for påmindelse og evt. ændringer af jobs.</span></td></tr>
-		<tr><td>Adresse/postnr/by:</td><td><input type="text" name="address" size="25" maxlength="75" value="'.$user->address.'" /> *</td></tr>';
+		<!-- <tr><td>Adresse/postnr/by:</td><td><input type="text" name="address" size="25" maxlength="75" value="'.$user->address.'" /> *</td></tr> -->';
 
 	if ($user->roleID == 3) {
-	echo '<tr><td>Alder under lejren:</td><td><input type="text" name="age_range" size="10" maxlength="10" value="'.$user->ageRange.'" /> *</td></tr>
+	echo '<!-- <tr><td>Alder under lejren:</td><td><input type="text" name="age_range" size="10" maxlength="10" value="'.$user->ageRange.'" /> *</td></tr> -->
 		<tr><td>Antal:</td><td><input type="text" name="count" size="2" maxlength="3" value="'.$user->count.'" /> * <span class="help">Hvor mange hjælpere er I?</span></td></tr>
 		<tr><td>Kvalifikationer:</td><td>'.$qualificationHTML.'<br><span class="help">Hvis der kr&aelig;ves certifikater, skal disse medbringes på lejren!</span></td></tr>
 		<tr><td>Specielle kvalifikationer:</td><td><input type="text" name="qualifications" size="25" maxlength="255" value="'.$user->qualifications.'" /></td></tr>
 		<tr><td>Klan/holdnavn/pladsnr:</td><td><input type="text" name="title" size="25" maxlength="75" value="'.$user->title.'" /></td></tr>
 		<tr><td>Gruppe:</td><td>'.$groupsHTML.' *</td></tr>
-		<tr><td>Foretrukne jobkategorier:</td><td>'.$jobcategoryHTML.'</td></tr>';
+		<!-- <tr><td>Foretrukne jobkategorier:</td><td>'.$jobcategoryHTML.'</td></tr> -->';
 	}	
 	
 	echo '<tr><td>Noter:</td><td><textarea name="notes" cols="50" rows="3">'.$user->notes.'</textarea></td></tr>
@@ -418,12 +426,12 @@ function do_update() {
 	if (strlen($_POST['telephone']) < 8) {
 		$error .= "Telefonnr. skal være mindst 8 karakterer.<br>";
 	}
-	if (strlen($_POST['address']) < 4) {
-		$error .= "Adresse skal være mindst 4 karakterer.<br>";
-	}
-	if ($_POST['role_id'] == 3 && strlen($_POST['age_range']) < 1) {
-		$error .= "Alder skal være mindst 1 karakter.<br>";
-	}
+//	if (strlen($_POST['address']) < 4) {
+//		$error .= "Adresse skal være mindst 4 karakterer.<br>";
+//	}
+//	if ($_POST['role_id'] == 3 && strlen($_POST['age_range']) < 1) {
+//		$error .= "Alder skal være mindst 1 karakter.<br>";
+//	}
 	if ($_POST['role_id'] == 3 && (strlen($_POST['count']) < 1 || !is_numeric($_POST['count']))) {
 		$error .= "Antal skal være et tal og mindst 1 ciffer.<br>";
 	}

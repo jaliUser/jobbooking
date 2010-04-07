@@ -3,6 +3,8 @@ include_once 'includes/init.php';
 include_once 'jc_init.php';
 //use reject_public_access() in individual functions
 
+$usePredefPlaces = false;
+
 function getPlaces() {
 	$places[] = "";
 	$places[] = "Nørreport";
@@ -113,7 +115,7 @@ function show_list() {
 
 function show_create() {
 	reject_public_access();
-	global $PHP_SELF, $login, $site_id, $site_name;
+	global $PHP_SELF, $login, $site_id, $site_name, $usePredefPlaces;
 	html_top($site_name . " - Opret job");
 
 	//generate html for all areas
@@ -147,18 +149,20 @@ function show_create() {
 					<option>1</option> <option>2</option> <option selected>3</option> <option>4</option> <option>5</option>
 					</select>';
 	
-	$places = getPlaces();
-	$meetplacesHTML = '<select name="meetplace-predef">';
-	foreach ($places as $place) {
-		$meetplacesHTML .= "<option>$place</option>";
+	if ($usePredefPlaces) {
+		$places = getPlaces();
+		$meetplacesHTML = '<select name="meetplace-predef">';
+		foreach ($places as $place) {
+			$meetplacesHTML .= "<option>$place</option>";
+		}
+		$meetplacesHTML .= '</select>';
+		
+		$jobplacesHTML = '<select name="jobplace-predef">';
+		foreach ($places as $place) {
+			$jobplacesHTML .= "<option>$place</option>";
+		}
+		$jobplacesHTML .= '</select>'; 
 	}
-	$meetplacesHTML .= '</select>';
-	
-	$jobplacesHTML = '<select name="jobplace-predef">';
-	foreach ($places as $place) {
-		$jobplacesHTML .= "<option>$place</option>";
-	}
-	$jobplacesHTML .= '</select>'; 
 
 	echo '<h1>Opret job</h1>
 		<form action="'.$PHP_SELF.'" method="POST">
@@ -168,8 +172,8 @@ function show_create() {
 		<tr><td>Område:</td><td>'.$areasHTML.'</td></tr>
 		<tr><td>Overskrift:</td><td><input type="text" name="name" size="64" maxlength="64" /> *</td></tr>
 		<tr><td>Beskrivelse af opgaven:</td><td><textarea name="description" cols="48" rows="5"></textarea> *</td></tr>
-		<tr><td>Mødested:</td><td>'.$meetplacesHTML.' Hvis andet: <input type="text" name="meetplace" size="25" maxlength="25" /> *</td></tr>
-		<tr><td>Jobsted:</td><td>'.$jobplacesHTML.' Hvis andet: <input type="text" name="jobplace" size="25" maxlength="25" /> <span class="help">Udfyldes kun hvis forskelligt fra mødested.</span></td></tr>
+		<tr><td>Mødested:</td><td>'.($usePredefPlaces ? $meetplacesHTML.' Hvis andet: ' : '').'<input type="text" name="meetplace" size="25" maxlength="25" /> *</td></tr>
+		<tr><td>Jobsted:</td><td>'.($usePredefPlaces ? $jobplacesHTML.' Hvis andet: ' : '').'<input type="text" name="jobplace" size="25" maxlength="25" /> <span class="help">Udfyldes kun hvis forskelligt fra mødested.</span></td></tr>
 		<tr><td>Bemærkninger:</td><td><textarea name="notes" cols="48" rows="5">F.eks. noget om:
 - drikkevarer
 - særlig beklædning
@@ -193,14 +197,14 @@ function do_create() {
 	global $PHP_SELF, $site_id, $siteConfig;
 
 	$meetplace = "";
-	if (!empty($_POST['meetplace-predef'])) {
+	if (!empty($_POST['meetplace-predef']) && $_POST['meetplace-predef'] != "Andet") {
 		$meetplace = $_POST['meetplace-predef'];
 	} else {
 		$meetplace = $_POST['meetplace'];
 	}
 	
 	$jobplace = "";
-	if (!empty($_POST['jobplace-predef'])) {
+	if (!empty($_POST['jobplace-predef']) && $_POST['jobplace-predef'] != "Andet") {
 		$jobplace = $_POST['jobplace-predef'];
 	} else {
 		$jobplace = $_POST['jobplace'];
@@ -252,7 +256,7 @@ function do_create() {
 					"Det er din opgave som områdeansvarlig, at vurdere de enkelte jobs og sortere 'skidt fra kanel', så ikke jobdatabasen fyldes med jobopslag lavet for sjov. Hvis der er blevet oprettet et jobopslag, som du ikke kan stå inde for, bør du kontakte den jobansvarlige.\r\n".
 					"\r\n".
 					"Logind og godkend jobbet, så hjælpere kan tilmelde sig det.\r\n";
-		notifyUser($contact->email, $subject, $message);
+		notifyUser($contact->login, $subject, $message);
 	}
 	
 	do_redirect($PHP_SELF.'?action=show_list&user_id='.$_REQUEST['owner_id']);
@@ -260,7 +264,7 @@ function do_create() {
 
 function show_update() {
 	reject_public_access();
-	global $PHP_SELF, $login, $site_id, $site_name;
+	global $PHP_SELF, $login, $site_id, $site_name, $usePredefPlaces;
 	html_top($site_name . " - Rediger job");
 
 	$job = getJob($_GET['job_id']);
@@ -301,18 +305,20 @@ function show_update() {
 					<option '.($job->priority=='5' ? 'selected' : '').'>5</option>
 					</select>';
 	
-	$places = getPlaces();
-	$meetplacesHTML = '<select name="meetplace-predef">';
-	foreach ($places as $place) {
-		$meetplacesHTML .= "<option>$place</option>";
+	if ($usePredefPlaces) {
+		$places = getPlaces();
+		$meetplacesHTML = '<select name="meetplace-predef">';
+		foreach ($places as $place) {
+			$meetplacesHTML .= "<option>$place</option>";
+		}
+		$meetplacesHTML .= '</select>'; 
+		
+		$jobplacesHTML = '<select name="jobplace-predef">';
+		foreach ($places as $place) {
+			$jobplacesHTML .= "<option>$place</option>";
+		}
+		$jobplacesHTML .= '</select>'; 
 	}
-	$meetplacesHTML .= '</select>'; 
-	
-	$jobplacesHTML = '<select name="jobplace-predef">';
-	foreach ($places as $place) {
-		$jobplacesHTML .= "<option>$place</option>";
-	}
-	$jobplacesHTML .= '</select>'; 
 
 	echo '<h1>Rediger job</h1>
 		<table align="center" border="0" cellspacing="3" cellpadding="3">
@@ -322,8 +328,8 @@ function show_update() {
 		<tr><td>Område:</td><td>'.$areasHTML.'</td></tr>
 		<tr><td>Overskrift:</td><td><input type="text" name="name" size="64" maxlength="64" value="'.$job->name.'" /> *</td></tr>
 		<tr><td>Beskrivelse af opgaven:</td><td><textarea name="description" cols="48" rows="5">'.$job->description.'</textarea> *</td></tr>
-		<tr><td>Mødested:</td><td>'.$meetplacesHTML.' Hvis andet: <input type="text" name="meetplace" size="25" maxlength="25" value="'.$job->meetplace.'" /> *</td></tr>
-		<tr><td>Jobsted:</td><td>'.$jobplacesHTML.' Hvis andet: <input type="text" name="jobplace" size="25" maxlength="25" value="'.$job->jobplace.'" /> <span class="help">Udfyldes kun hvis forskelligt fra mødested.</span></td></tr>
+		<tr><td>Mødested:</td><td>'.($usePredefPlaces ? $meetplacesHTML.' Hvis andet: ' : '').'<input type="text" name="meetplace" size="25" maxlength="25" value="'.$job->meetplace.'" /> *</td></tr>
+		<tr><td>Jobsted:</td><td>'.($usePredefPlaces ? $jobplacesHTML.' Hvis andet: ' : '').'<input type="text" name="jobplace" size="25" maxlength="25" value="'.$job->jobplace.'" /> <span class="help">Udfyldes kun hvis forskelligt fra mødested.</span></td></tr>
 		<tr><td>Bemærkninger:</td><td><textarea name="notes" cols="48" rows="5">'.$job->notes.'</textarea></td></tr>
 		<tr><td>Status:</td><td>'.(user_is_admin() ? $statusHTML : Job::jobStatus($job->status).'<input type="hidden" name="status" value="'.$job->status.'">' ).'</td></tr>
 		'.(user_is_admin() ? '<tr><td>Prioritet:</td><td>'.$priorityHTML.'</td></tr>' : '<input type="hidden" name="priority" value="'.$job->priority.'">').'
@@ -353,14 +359,14 @@ function do_update() {
 	global $PHP_SELF, $site_id;
 
 	$meetplace = "";
-	if (!empty($_POST['meetplace-predef'])) {
+	if (!empty($_POST['meetplace-predef']) && $_POST['meetplace-predef'] != "Andet") {
 		$meetplace = $_POST['meetplace-predef'];
 	} else {
 		$meetplace = $_POST['meetplace'];
 	}
 	
 	$jobplace = "";
-	if (!empty($_POST['jobplace-predef'])) {
+	if (!empty($_POST['jobplace-predef']) && $_POST['jobplace-predef'] != "Andet") {
 		$jobplace = $_POST['jobplace-predef'];
 	} else {
 		$jobplace = $_POST['jobplace'];
