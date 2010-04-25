@@ -8,7 +8,9 @@ ADD `notes` VARCHAR(255) NULL,
 ADD `def_date` TIMESTAMP NULL,
 ADD `def_user` VARCHAR(25) NULL,
 ADD `upd_date` TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-ADD `upd_user` VARCHAR(25) NULL;
+ADD `upd_user` VARCHAR(25) NULL,
+ADD `no_email` CHAR( 1 ) NULL,
+ADD `is_contacted` CHAR( 1 ) NULL;
 
 ALTER TABLE `webcal_entry` 
 ADD `job_id` TINYINT NULL, 
