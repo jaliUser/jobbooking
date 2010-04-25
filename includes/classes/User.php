@@ -21,11 +21,13 @@ class User {
 	var $qualifications;
 	var $notes;
 	var $extLogin;
+	var $noEmail;
+	var $isContacted;
 	var $signups; //not in DB
 	var $signupsDuration; //not in DB
 	var $signupsDurationEach; //not in DB
 	
-	function User($login, $passwd, $lastname, $firstname, $isAdmin, $email, $enabled, $telephone, $address, $title, $birthday, $lastLogin, $roleID, $siteID, $groupID, $count, $ageRange, $qualifications, $notes, $extLogin) {
+	function User($login, $passwd, $lastname, $firstname, $isAdmin, $email, $enabled, $telephone, $address, $title, $birthday, $lastLogin, $roleID, $siteID, $groupID, $count, $ageRange, $qualifications, $notes, $extLogin, $noEmail, $isContacted) {
 		$this->login = $login;
 		$this->passwd = $passwd;
 		$this->lastname = $lastname;
@@ -46,6 +48,8 @@ class User {
 		$this->qualifications = $qualifications;
 		$this->notes = $notes;
 		$this->extLogin = $extLogin;
+		$this->noEmail = $noEmail;
+		$this->isContacted = $isContacted;
 	}
 
 	static function cast(User $user) {

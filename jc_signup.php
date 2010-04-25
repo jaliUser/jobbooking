@@ -98,6 +98,13 @@ function show_update() {
 	
 	echo "<h1>Tilmelding til <i><a href=\"jc_job.php?action=show_one&job_id=$job->id\">$job->name</a></i> for <i><a href=\"jc_user.php?action=show_one&login=$user->login\">".$user->getFullName()."</a></i> (".$user->count." pers.)</h1>".
 		'<p class="help">I kolonnerne <i>Behov</i> kan du se det aktuelle behov for personer til de forskellige tidsperioder. Hvis du eller dit hold ønsker at hjælpe med dette job, udfyld det antal personer du/I kan stille med, for en given tidsperiode. Efter du har klikket på <i>Opdatér</i>, vil du se behovet blive reduceret med det antal personer du har tilmeldt.</p>';
+	
+	if (!empty($_GET['submit'])) {
+		echo '<p align="center" class="redalert">Din tilmelding er nu opdateret.<br/>
+			Du kan se dine jobtilmeldinger nederst på siden,<br/>
+			og det resterende behov for dette job er reduceret med antallet for din tilmelding.</p>';
+	}
+	
 	//generate rows for existing timeslots
 	echo '<table align="center" class="border1">
 		<form action="'.$PHP_SELF.'" method="POST">
@@ -135,6 +142,9 @@ function show_update() {
 				</td>';
 		}
 		echo '</tr>';
+	}
+	if ($_GET['job_id'] > 0) {
+		echo '<tr><td colspan="'.(count($days)+1).'"><input type="checkbox" name="override_double_booking"/>Gennemtving tilmelding på trods af dobbeltbookning (overlappende tidsperioder)</td></tr>';
 	}
 	echo '<tr><td colspan="'.(count($days)+1).'"><input type="submit" value="Opdatér"/></td></tr>
 		<input type="hidden" name="action" value="do_update">
@@ -212,9 +222,14 @@ function do_update() {
 				exit;
 		}
 		
-		//TODO: check available count
 		$userSignupForTS = getSignup($ts->id, $_POST['user_id']);
-		if ($signup->count > 0 && !isUserFree($signup->userID, $ts) && $userSignupForTS == null) {
+		
+		if ($signup->count > 0 && ($signup->count - $userSignupForTS->count) > $ts->remainingNeed) {
+			echo print_error("Der kan ikke tilmeldes flere end der er behov for");
+			exit;
+		}
+		
+		if (empty($_POST['override_double_booking']) && $signup->count > 0 && !isUserFree($signup->userID, $ts) && $userSignupForTS == null) {
 			echo print_error("Brugeren er optaget af andet job eller blokering i tidsperioden ". $ts->date." ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin());
 			exit; 
 		} else {
@@ -225,7 +240,7 @@ function do_update() {
 	if (!empty($_POST['redir_action'])) {
 		do_redirect($PHP_SELF.'?action=show_blockings&user_id='.$_POST['user_id']);
 	} else {
-		do_redirect($PHP_SELF.'?action=show_update&job_id='.$_POST['job_id'].'&user_id='.$_POST['user_id']);
+		do_redirect($PHP_SELF.'?action=show_update&job_id='.$_POST['job_id'].'&user_id='.$_POST['user_id'].'&submit=1');
 	}
 }
 
