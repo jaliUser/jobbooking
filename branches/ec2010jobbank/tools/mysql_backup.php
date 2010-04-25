@@ -11,10 +11,15 @@ set_time_limit(0); //  that shouldnt HANG!
 /**
  * Oplysninger om databasen
  */
-$DB_HOST = "localhost";
-$DB_USERNAME = "see2010jobcenter";
-$DB_PASSWORD = "p3jd3rJobC3nt3r";
-$DB_NAME = "dbsee2010jobcenter"; 
+$DB_HOST[0] = "localhost";
+$DB_USERNAME[0] = "see2010jobcenter";
+$DB_PASSWORD[0] = "";
+$DB_NAME[0] = "dbsee2010jobcenter"; 
+
+//$DB_HOST[1] = "";
+//$DB_USERNAME[1] = "";
+//$DB_PASSWORD[1] = "";
+//$DB_NAME[1] = "";
 
 /**
  * Oplysninger om ftp
@@ -32,49 +37,46 @@ $FTP_PATH = "/jc_backup/"; //Tilføj evt. en mappe /backup/
 $LOCAL_DUMP_PATH = "/srv/webhotel/see2010jobcenter/tmp-back/";
 
 /**
- * Prefix til dump
+ * For hver database, lav dump og upload via ftp 
  */
-$FILENAME_PREFFIX = "sqldump";
+for ($i=0; $i < count($DB_HOST); $i++) {
+	// Laver filnavn
+	date_default_timezone_set('Europe/Copenhagen');
+	$tid = date('YmdHis', time());
+	$filename = $DB_NAME[$i].$tid.".sql";
+	 
+	//  Laver MySQL dump kald
+	$dump_cmd = "mysqldump -h$DB_HOST[$i] -u$DB_USERNAME[$i] -p$DB_PASSWORD[$i]";
+	$dump_cmd .= " $DB_NAME[$i]";
+	$dump_cmd .= " > $LOCAL_DUMP_PATH$filename";
+	
+	//Køre MySQL dump
+	exec($dump_cmd);
+	
+	// Forbinder til FTP server
+	$conn_id = ftp_connect($FTP_REMOTE);
+	
+	//Logger ind på FTP server
+	$login_result = ftp_login($conn_id, $FTP_LOGIN, $FTP_PASSWORD);
+	
+	//Uploader MySQl dump til FTP server
+	if ((!$conn_id) || (!$login_result)) {
+	    echo "The connection to $FTP_REMOTE failed !\r\n";
+	    exit;
+	} else {
+	    echo "Connected on $FTP_REMOTE with user $FTP_LOGIN\r\n";
+	    
+	    if (ftp_put($conn_id,$FTP_PATH.$filename ,$LOCAL_DUMP_PATH.$filename, FTP_BINARY)) {
+	        echo "$filename have been sent...\r\n";
+	    } else {
+	        echo "Upload have failed\r\n";
+	    }
+	    ftp_close($conn_id);
+	    echo "Done.!\r\n";
+	}
+}
 
-/******************************************************
- * 
- * Her under skal du kun rette hvis du ved hvad du gør!
- * 
- *****************************************************/
-
-// Laver filnavn
-date_default_timezone_set('Europe/Copenhagen');
-$tid = date('YmdHis', time());
-$filename = $FILENAME_PREFFIX.$tid.".sql";
- 
-//  Laver MySQL dump kald
-$dump_cmd = "mysqldump -h$DB_HOST -u$DB_USERNAME -p$DB_PASSWORD";
-$dump_cmd .= " $DB_NAME";
-$dump_cmd .= " > $LOCAL_DUMP_PATH$filename";
-
-//Køre MySQL dump
-exec($dump_cmd);
-
-// Forbinder til FTP server
-$conn_id = ftp_connect($FTP_REMOTE);
-
-//Logger ind på FTP server
-$login_result = ftp_login($conn_id, $FTP_LOGIN, $FTP_PASSWORD);
-
-//Uploader MySQl dump til FTP server
-if ((!$conn_id) || (!$login_result)) {
-       echo "The connection to $FTP_REMOTE failed !\r\n";
-       exit;
-   } else {
-       echo "Connected on $FTP_REMOTE with user $FTP_LOGIN\r\n";
-       
-       if (ftp_put($conn_id,$FTP_PATH.$filename ,$LOCAL_DUMP_PATH.$filename, FTP_BINARY)) {
-       	 echo "$filename have been sent...\r\n";
-       } else {
-         echo "Upload have failed\r\n";
-       }
-       ftp_close($conn_id);
-       echo "Done.!\r\n";
-   }
+//Backup external DB
+//fopen("http://ec2010jobbank.thodata.dk/tools/mysql_backup.php", "r"); 
    
 ?>

@@ -1,5 +1,52 @@
 <?php
 
+function bool2char($bool) {
+	if ($bool == true) {
+		return "1";
+	} else {
+		return "0";
+	}
+}
+
+function char2bool($char) {
+	if ($char == "1") {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+function checkbox2char($postValue) {
+	if (!empty($postValue)) {
+		return "1";
+	} else {
+		return "";
+	}
+}
+
+function char2checkbox($char) {
+	if ($char == "1") {
+		return " checked ";
+	}
+}
+
+function one2x($char) {
+	if ($char == "1") {
+		return "X";
+	}
+}
+
+function referer_action() {
+	$actionStart = strpos($_SERVER['HTTP_REFERER'], "action=") + 7;
+	$actionEnd = strpos($_SERVER['HTTP_REFERER'], "&", $actionStart);
+	if ($actionEnd === false) {
+		return substr($_SERVER['HTTP_REFERER'], $actionStart);
+	} else {
+		$length = $actionEnd - $actionStart;
+		return substr($_SERVER['HTTP_REFERER'], $actionStart, $length);
+	}
+}
+
 function show_user_table($headertext, $link, $users) {
 	global $site_id; 
 	echo '<hr/><h3>'.$headertext.':</h3>
