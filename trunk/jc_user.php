@@ -13,7 +13,7 @@ function show_list() {
 	$users = listUsers($site_id);
 	echo '<h1>Brugerliste</h1>
 		<table align="center" class="border1">
-		<tr> <th>Brugernavn</th> <th>Spejdernet</th> <th>Fornavn</th> <th>Efternavn</th> <th>Klan/Pladsnr</th> <th>E-mail</th> <th>Telefon</th> <th>Adresse</th> <th>Alder</th> <th>Gruppe</th> <th>Rolle</th> <th>Antal</th> <th>Underlejr</th> <th>Noter</th> </tr>';
+		<tr> <th>Brugernavn<br/><span class="help">Ret bruger</span></th> <th>Spejdernet</th> <th>Fornavn<br/><span class="help">Vis bruger</span></th> <th>Efternavn</th> <th>Klan/Pladsnr</th> <th>E-mail</th> <th>Telefon</th> <th>Adresse</th> <th>Alder</th> <th>Gruppe</th> <th>Rolle</th> <th>Antal</th> <th>Underlejr</th> <th>Noter</th> </tr>';
 	$lastRole = null;
 	$emailSum = null;
 	$userCount = 0;
@@ -82,7 +82,7 @@ function show_helpers_limit() {
 	
 	echo '<h1>Hjælpere over/under grænse</h1>
 		<table align="center" class="border1">
-		<tr> <th>Handlinger</th> <th>Brugernavn</th> <th>Fornavn</th> <th>Efternavn</th> <th>Klan/Pladsnr</th> <th>E-mail</th> <th>Telefon</th> <th>Antal</th> <th>Noter (fuld tekst i ToolTip)</th>  <th>Tilmeldinger</th> <th>Timer</th> <th>Timer/pers</th> <th>Foretrukne</th> </tr>';
+		<tr> <th>Handlinger</th> <th>Brugernavn</th> <th>Fuldt navn<br/><span class="help">Vis bruger</span></th> <th>Klan/Pladsnr</th> <th>E-mail</th> <th>Telefon</th> <th>Antal</th> <th>Noter (fuld tekst i ToolTip)</th>  <th>Tilmeldinger</th> <th>Timer</th> <th>Timer/pers</th> <th>Foretrukne</th> <th title="Ingen email">IM</th> <th title="Er kontaktet">EK</th> </tr>';
 	$emailSumOver = null;
 	$emailSumUnder = null;
 	$countOver = 0;
@@ -113,10 +113,10 @@ function show_helpers_limit() {
 		}
 				
 		echo "<tr> 
-			<td><a href=\"jc_signup.php?action=show_mine&user_id=$user->login\">Tilmeldinger</a></td>
+			<td><a href=\"jc_signup.php?action=show_mine&user_id=$user->login\">Tilmeldinger</a><br/>
+				<a href=\"$PHP_SELF?action=show_update&login=$user->login\">Ret bruger</a></td>
 			<td>$user->login</td>
-			<td><a href=\"$PHP_SELF?action=show_one&login=$user->login\">$user->firstname</a></td>
-			<td>$user->lastname</td>
+			<td><a href=\"$PHP_SELF?action=show_one&login=$user->login\">".$user->getFullName()."</a></td>
 			<td>$user->title</td>
 			<td>$user->email</td>
 			<td>$user->telephone</td>
@@ -126,10 +126,12 @@ function show_helpers_limit() {
 			<td>$user->signupsDuration</td>
 			<td>$user->signupsDurationEach</td>
 			<td>$catString</td>
+			<td>".one2x($user->noEmail)."</td>
+			<td>".one2x($user->isContacted)."</td>
 			</tr>";		
 	}
 
-	echo "<tr><td colspan='12'>
+	echo "<tr><td colspan='13'>
 			Antal <i>over $hourLimit</i>: $countOver<br/>
 			<b>Alle <i>over $hourLimit</i> kommasepareret:</b> $emailSumOver<br/><br/>
 			<b>Alle <i>over $hourLimit</i> semikolonsepareret:</b> ".str_replace(",",";",$emailSumOver)."
@@ -212,6 +214,11 @@ function show_create() {
 		<!-- <tr><td>Foretrukne jobkategorier:</td><td>'.$jobcategoryHTML.'</td></tr> -->';
 	}
 
+	if (user_is_admin()) {
+		echo '<tr><td>Ingen email:</td><td><input type="checkbox" name="no_email" /></td></tr>
+			  <tr><td>Er kontaktet:</td><td><input type="checkbox" name="is_contacted" /></td></tr>';
+	}
+	
 	echo '<tr><td>Gruppe:</td><td>'.$groupsHTML.' *</td></tr>
 		<tr><td>Noter:</td><td><textarea name="notes" cols="50" rows="3"></textarea></td></tr>
 		<tr><td colspan="2" class="help">* markerer et obligatorisk felt</td></tr>
@@ -286,7 +293,7 @@ function do_create() {
 		exit;
 	}
 	
-	$user = new User($_POST['login'], null, $_POST['lastname'], $_POST['firstname'], null, $_POST['email'], null, $_POST['telephone'], $_POST['address'], $_POST['title'], null, null, $_POST['role_id'], $_POST['site_id'], $_POST['group_id'], $_POST['count'], $_POST['age_range'], $_POST['qualifications'], $_POST['notes'], $_POST['ext_login']);
+	$user = new User($_POST['login'], null, $_POST['lastname'], $_POST['firstname'], null, $_POST['email'], null, $_POST['telephone'], $_POST['address'], $_POST['title'], null, null, $_POST['role_id'], $_POST['site_id'], $_POST['group_id'], $_POST['count'], $_POST['age_range'], $_POST['qualifications'], $_POST['notes'], $_POST['ext_login'], $_POST['no_email'], $_POST['is_contacted']);
 	$user->setPasswd($_POST['password']);
 	
 	$ok = createUser($user);
@@ -295,7 +302,7 @@ function do_create() {
 		updateUserQualifications($_POST['login'], $_POST['qualification']);
 		
 		if($login == "__public__") {
-			do_redirect('login.php?site_id='.$_POST['site_id']);
+			do_redirect('login.php?site_id='.$_POST['site_id'].'&user_id='.$_POST['login']);
 		} else {
 			do_redirect($PHP_SELF.'?action=show_list');
 		}
@@ -390,11 +397,20 @@ function show_update() {
 		<!-- <tr><td>Foretrukne jobkategorier:</td><td>'.$jobcategoryHTML.'</td></tr> -->';
 	}	
 	
+	if (user_is_admin()) {
+		echo '<tr><td>Ingen email:</td><td><input type="checkbox" name="no_email" '.char2checkbox($user->noEmail).' /></td></tr>
+			  <tr><td>Er kontaktet:</td><td><input type="checkbox" name="is_contacted" '.char2checkbox($user->isContacted).' /></td></tr>';
+	} else {
+		echo '<input type="hidden" name="no_email" '.char2checkbox($user->noEmail).' />
+			  <input type="hidden" name="is_contacted" '.char2checkbox($user->isContacted).' />';
+	}
+	
 	echo '<tr><td>Noter:</td><td><textarea name="notes" cols="50" rows="3">'.$user->notes.'</textarea></td></tr>
 		<tr><td colspan="2" class="help">* markerer et obligatorisk felt</td></tr>
 
 		<tr><td colspan="2"><input type="submit" value="Opdater"/></td></tr>
 		<input type="hidden" name="action" value="do_update">
+		<input type="hidden" name="nextaction" value="'.referer_action().'">
 		<input type="hidden" name="role_id" value="'.$user->roleID.'" />
 		</form>
 
@@ -402,6 +418,7 @@ function show_update() {
 		<tr><td colspan="2"><br/><br/>Hvis du sletter din brugerprofil, fjernes alle jobopslag, jobtilmeldinger osv.!</td></tr>
 		<tr><td colspan="2"><input type="submit" value="Slet"/></td></tr>
 		<input type="hidden" name="action" value="do_delete">
+		<input type="hidden" name="nextaction" value="'.referer_action().'">
 		<input type="hidden" name="login" value="'.$user->login.'" />
 		</form>
 		</table>';
@@ -446,7 +463,7 @@ function do_update() {
 		exit;
 	}
 	
-	$user = new User($_POST['login'], null, $_POST['lastname'], $_POST['firstname'], null, $_POST['email'], null, $_POST['telephone'], $_POST['address'], $_POST['title'], null, null, $_POST['role_id'], $site_id, $_POST['group_id'], $_POST['count'], $_POST['age_range'], $_POST['qualifications'], $_POST['notes'], $_POST['ext_login']);
+	$user = new User($_POST['login'], null, $_POST['lastname'], $_POST['firstname'], null, $_POST['email'], null, $_POST['telephone'], $_POST['address'], $_POST['title'], null, null, $_POST['role_id'], $site_id, $_POST['group_id'], $_POST['count'], $_POST['age_range'], $_POST['qualifications'], $_POST['notes'], $_POST['ext_login'], checkbox2char($_POST['no_email']), checkbox2char($_POST['is_contacted']));
 	
 	updateUser($user);
 	updateUserJobCategories($_POST['login'], $_POST['jobcategory']);
@@ -461,7 +478,7 @@ function do_update() {
 	if($login == $user->login) {
 		do_redirect('jc_menu.php');
 	} else {		
-		do_redirect($PHP_SELF.'?action=show_list');
+		do_redirect($PHP_SELF.'?action='.$_POST['nextaction']);
 	}
 }
 
@@ -484,7 +501,7 @@ function do_delete() {
 	if($login == $user->login) {
 		do_redirect('login.php?action=logout&site_id='.$site_id);
 	} else {		
-		do_redirect($PHP_SELF.'?action=show_list');
+		do_redirect($PHP_SELF.'?action='.$_POST['nextaction']);
 	}
 }
 

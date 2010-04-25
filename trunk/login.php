@@ -266,13 +266,21 @@ if ( ! empty ( $return_path ) ) {
     htmlentities ( $return_path ) . '" />' . "\n";
 }
 ?>
-
+<?php 
+if (!empty($_REQUEST['user_id'])) {
+	echo "<p align='center' style='font-weight:bold; color:red;'>
+			Du er nu oprettet som bruger i jobdatabasen med brugernavnet vist herunder.<br/>
+			Hvis du glemmer dit kodeord, kan du få tilsendt et nyt ved at anvende funktionen 'Glemt kodeord'.<br/>
+			Log ind nedenfor og tilmeld dig et af de ledige jobopslag.
+		</p>";
+}
+?>
 <table align="center" cellspacing="10" cellpadding="10">
 <tr><td rowspan="2">
  <img src="images/login.gif" alt="Login" /></td><td align="right">
  <label for="user"><?php etranslate ( 'Username' )?>:</label></td><td>
  <input name="login" id="user" size="15" maxlength="25"
-   value="<?php if ( ! empty ( $last_login ) ) echo $last_login;?>"
+   value="<?php if (!empty($_REQUEST['user_id'])) echo $_REQUEST['user_id']; ?><?php if ( ! empty ( $last_login ) ) echo $last_login;?>"
    tabindex="1" />
 </td></tr>
 <tr><td class="alignright">
