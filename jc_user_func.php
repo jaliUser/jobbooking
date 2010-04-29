@@ -73,7 +73,7 @@ function resetPasswordFromEmail($email, $site_id) {
  * Returns false if username/login already exist
  */
 function createUser(User $u) {
-	global $login, $site_name;
+	global $login;
 	# check that cal_login is unique, otherwise abort
 	$sql = 'SELECT COUNT(cal_login) FROM webcal_user WHERE cal_login=?';
 	$res = dbi_execute ($sql, array($u->login));
@@ -96,7 +96,8 @@ function createUser(User $u) {
 	$subject = "Oprettelse af bruger";
 	$message = "Hej ".$u->getFullNameAndLogin()."\r\n".
 				"\r\n".
-				"Du er nu oprettet som bruger i jobdatabasen for $site_name med følgende brugernavn: $u->login.\r\n".
+				"Du er nu oprettet som bruger i jobdatabasen med følgende brugernavn: $u->login\r\n".
+				"(Bemærk der er forskel på store og små bogstaver!)\r\n".
 				"\r\n".
 				"Hvis du glemmer dit kodeord, kan du få tilsendt et nyt ved at anvende funktionen 'Glemt kodeord' fra login-siden.\r\n";
 

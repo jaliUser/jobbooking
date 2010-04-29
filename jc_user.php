@@ -82,7 +82,22 @@ function show_helpers_limit() {
 	
 	echo '<h1>Hjælpere over/under grænse</h1>
 		<table align="center" class="border1">
-		<tr> <th>Handlinger</th> <th>Brugernavn</th> <th>Fuldt navn<br/><span class="help">Vis bruger</span></th> <th>Klan/Pladsnr</th> <th>E-mail</th> <th>Telefon</th> <th>Antal</th> <th>Noter (fuld tekst i ToolTip)</th>  <th>Tilmeldinger</th> <th>Timer</th> <th>Timer/pers</th> <th>Foretrukne</th> <th title="Ingen email">IM</th> <th title="Er kontaktet">EK</th> </tr>';
+		<tr> 
+			<th>Handlinger</th>
+			<th>Brugernavn</th>
+			<th>Fuldt navn<br/><span class="help">Vis bruger</span></th>
+			<th>Klan/Pladsnr</th>
+			<th>E-mail</th>
+			<th>Telefon</th>
+			<th>Antal</th>
+			<th>Noter (fuld tekst i ToolTip)</th>
+			<th title="Tilmeldinger">Tilme.</th>
+			<th>Timer</th>
+			<th title="Timer/person">T/p</th>
+			<th>Foretrukne</th>
+			<th title="Ingen email">IM</th>
+			<th title="Er kontaktet">EK</th>
+		</tr>';
 	$emailSumOver = null;
 	$emailSumUnder = null;
 	$countOver = 0;
@@ -131,7 +146,7 @@ function show_helpers_limit() {
 			</tr>";		
 	}
 
-	echo "<tr><td colspan='13'>
+	echo "<tr><td colspan='14'>
 			Antal <i>over $hourLimit</i>: $countOver<br/>
 			<b>Alle <i>over $hourLimit</i> kommasepareret:</b> $emailSumOver<br/><br/>
 			<b>Alle <i>over $hourLimit</i> semikolonsepareret:</b> ".str_replace(",",";",$emailSumOver)."
@@ -201,7 +216,7 @@ function show_create() {
 		<tr><td>Fornavn:</td><td><input type="text" name="firstname" size="25" maxlength="25" /> *</td></tr>
 		<tr><td>Efternavn:</td><td><input type="text" name="lastname" size="25" maxlength="25" /> *</td></tr>
 		<!-- <tr><td>Spejdernet-brugernavn:</td><td><input type="text" name="ext_login" size="25" maxlength="25" /></td></tr> -->
-		<tr><td>E-mail:</td><td><input type="text" name="email" size="25" maxlength="75" /></td></tr>
+		<tr><td>E-mail:</td><td><input type="text" name="email" size="25" maxlength="75" /> <span class="help">Vigtig!</span></td></tr>
 		<tr><td>Telefon (helst mobil):</td><td><input type="text" name="telephone" size="25" maxlength="50" /> * <span class="help">Bruges til SMS-service for påmindelse og evt. ændringer af jobs.</span></td></tr>
 		<!-- <tr><td>Adresse/postnr/by:</td><td><input type="text" name="address" size="25" maxlength="75" /> *</td></tr> -->';
 
@@ -383,7 +398,7 @@ function show_update() {
 		<tr><td>Fornavn:</td><td><input type="text" name="firstname" size="25" maxlength="25" value="'.$user->firstname.'" /> *</td></tr>
 		<tr><td>Efternavn:</td><td><input type="text" name="lastname" size="25" maxlength="25" value="'.$user->lastname.'" /> *</td></tr>
 		<!-- <tr><td>Spejdernet-brugernavn:</td><td><input type="text" name="ext_login" size="25" maxlength="25" value="'.$user->extLogin.'" /></td></tr> -->
-		<tr><td>E-mail:</td><td><input type="text" name="email" size="25" maxlength="75" value="'.$user->email.'" /></td></tr>
+		<tr><td>E-mail:</td><td><input type="text" name="email" size="25" maxlength="75" value="'.$user->email.'" /> <span class="help">Vigtig!</span></td></tr>
 		<tr><td>Telefon (helst mobil):</td><td><input type="text" name="telephone" size="25" maxlength="50" value="'.$user->telephone.'" /> * <span class="help">Bruges til SMS-service for påmindelse og evt. ændringer af jobs.</span></td></tr>
 		<!-- <tr><td>Adresse/postnr/by:</td><td><input type="text" name="address" size="25" maxlength="75" value="'.$user->address.'" /> *</td></tr> -->';
 

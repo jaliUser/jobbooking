@@ -128,33 +128,42 @@ function listJobUserSignups($job_id, $user_id) {
 	return $signupArr;
 }
 
-function listJobSignups($job_id) {
-	$sql = 'SELECT weu.cal_id, cal_login, cal_status, cal_category, cal_percent, count, notes  
+function listJobSignups($job_id, $order='cal_id') {
+	$sql = 'SELECT weu.cal_id, cal_login, cal_status, cal_category, cal_percent, count, notes, weu.def_date, weu.def_user, weu.upd_date, weu.upd_user  
 			FROM webcal_entry_user weu, webcal_entry we 
 			WHERE we.cal_id=weu.cal_id AND we.job_id=? AND count IS NOT NULL
-			ORDER BY weu.cal_id';
+			ORDER BY weu.'.$order;
 	$rows = dbi_get_cached_rows($sql, array($job_id));
 	
 	$signupArr = array(); 
 	for ($i=0; $i<count($rows); $i++) { 
 		$row = $rows[$i];		
 		$s = new Signup($row[0], $row[1], $row[2], $row[3], $row[4], $row[5], $row[6]);
+		$s->defDate = $row[7];
+		$s->defUser = $row[8];
+		$s->updDate = $row[9];
+		$s->updUser = $row[10];
 		$signupArr[] = $s;
 	}
 	
 	return $signupArr;
 }
 
-function listTimeslotSignups($timeslot_id) {
-	$sql = 'SELECT cal_id, cal_login, cal_status, cal_category, cal_percent, count, notes
+function listTimeslotSignups($timeslot_id, $order='def_date') {
+	$sql = 'SELECT cal_id, cal_login, cal_status, cal_category, cal_percent, count, notes, def_date, def_user, upd_date, upd_user
 			FROM webcal_entry_user 
-			WHERE cal_id=?';
+			WHERE cal_id=?
+			ORDER BY '.$order;
 	$rows = dbi_get_cached_rows($sql, array($timeslot_id));
 
 	$signupArr = array(); 
 	for ($i=0; $i<count($rows); $i++) { 
 		$row = $rows[$i];		
 		$s = new Signup($row[0], $row[1], $row[2], $row[3], $row[4], $row[5], $row[6]);
+		$s->defDate = $row[7];
+		$s->defUser = $row[8];
+		$s->updDate = $row[9];
+		$s->updUser = $row[10];
 		$signupArr[] = $s;
 	}
 	
