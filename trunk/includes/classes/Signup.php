@@ -8,6 +8,10 @@ class Signup {
 	var $percent;
 	var $count;
 	var $notes;
+	var $defDate;
+	var $defUser;
+	var $updDate;
+	var $updUser;
 
 	function signup($timeslotID, $userID, $status, $category, $percent, $count, $notes) {
 		$this->timeslotID = $timeslotID;

@@ -13,14 +13,14 @@ function createTimeslot(Timeslot $t) {
     } else {
       $id = 1;
     }
-        
+
 	//auto-increment id
 	$sql = "INSERT INTO webcal_entry (cal_id, cal_date, cal_time, cal_duration, job_id, person_need, cal_create_by, cal_name, contact_id, def_date, def_user, upd_user) 
 			VALUES (?,?,?,?,?,?,?,?,?,now(),'$login','$login')";
 	dbi_execute($sql, array($id, $t->date, $t->startTime, $t->duration, $t->jobID, $t->personNeed, $login, "autogen", $t->contactID));
 
 	dbi_clear_cache();
-	//	return $id;
+	return $id;
 }
 
 function updateTimeslotNeed($timeslot_id, $person_need) {
