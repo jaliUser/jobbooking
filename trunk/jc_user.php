@@ -76,7 +76,7 @@ function show_helpers_limit() {
 	global $PHP_SELF, $login, $site_id, $site_name;
 	html_top("$site_name - Hjælpere over/under grænse");
 
-	$hourLimit = 8;
+	$hourLimit = 7;
 	$usersWithSignups = listHelpersOverLimit($site_id);
 	$users = listUsers($site_id, 3);
 	
@@ -109,12 +109,12 @@ function show_helpers_limit() {
 		$user = User::cast($user);
 		
 		if ($user->signupsDurationEach >= $hourLimit) {
-			if ($user->email != "") {
+			if ($user->email != "" && !$user->noEmail) {
 				$emailSumOver .= "$user->email, ";
 			}
 			$countOver++;
 		} else {
-			if ($user->email != "") {
+			if ($user->email != "" && !$user->noEmail) {
 				$emailSumUnder .= "$user->email, ";
 			}
 			$countUnder++;

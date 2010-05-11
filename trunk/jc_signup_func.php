@@ -31,7 +31,7 @@ function createSignup(Signup $s) {
 	$user = getUser($s->userID);
 	$message = "Hej ".$user->getFullNameAndLogin()."\r\n".
 				"\r\n".
-				"Du er nu tilmeldt job '".$job->name."' i tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->get_DD_MM_YYYY()." med ".$s->count." personer.\r\n";	
+				"Du er nu tilmeldt job '".$job->name."'".getTimeText($job, $ts)." med ".$s->count." personer.\r\n";	
 
 	notifyUser($s->userID, $subject, $message);
 }
@@ -65,7 +65,7 @@ function updateSignup(Signup $s) {
 	$user = getUser($s->userID);
 	$message = "Hej ".$user->getFullNameAndLogin()."\r\n".
 				"\r\n".
-				"Din tilmelding til job '".$job->name."' i tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->get_DD_MM_YYYY()." er nu opdateret med ".$s->count." personer.\r\n";	
+				"Din tilmelding til job '".$job->name."'".getTimeText($job, $ts)." er nu opdateret med ".$s->count." personer.\r\n";	
 
 	notifyUser($s->userID, $subject, $message);
 }
@@ -96,9 +96,17 @@ function deleteSignup(Signup $s) {
 	$user = getUser($s->userID);
 	$message = "Hej ".$user->getFullNameAndLogin()."\r\n".
 				"\r\n".
-				"Din tilmelding til job '".$job->name."' i tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->get_DD_MM_YYYY()." er nu slettet.\r\n";	
+				"Din tilmelding til job '".$job->name."'".getTimeText($job, $ts)." er nu slettet.\r\n";	
 
 	notifyUser($s->userID, $subject, $message);
+}
+
+function getTimeText($job, $ts) {
+	if ($job->type == "WN") {
+		return " i tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->get_DD_MM_YYYY();
+	} else {
+		return "";
+	}
 }
 
 function signupsContainsTimeslot($signups, $timeslotID) {
