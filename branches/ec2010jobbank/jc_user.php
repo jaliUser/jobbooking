@@ -214,13 +214,12 @@ function show_create() {
 		<!-- <tr><td>Foretrukne jobkategorier:</td><td>'.$jobcategoryHTML.'</td></tr> -->';
 	}
 
-	echo '<tr><td>Afdeling:</td><td>'.$groupsHTML.' *</td></tr>
 	if (user_is_admin()) {
 		echo '<tr><td>Ingen email:</td><td><input type="checkbox" name="no_email" /></td></tr>
 			  <tr><td>Er kontaktet:</td><td><input type="checkbox" name="is_contacted" /></td></tr>';
 	}
 	
-	echo '<tr><td>Gruppe:</td><td>'.$groupsHTML.' *</td></tr>
+	echo '<tr><td>Afdeling:</td><td>'.$groupsHTML.' *</td></tr>
 		<tr><td>Noter:</td><td><textarea name="notes" cols="50" rows="3"></textarea></td></tr>
 		<tr><td colspan="2" class="help">* markerer et obligatorisk felt</td></tr>
 
