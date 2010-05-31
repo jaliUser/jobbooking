@@ -165,14 +165,14 @@ function show_update() {
 		foreach ($signups as $signup) {
 			$signup = Signup::cast($signup);
 			$timeslot = getTimeslot($signup->timeslotID);
-			$job = getJob($timeslot->jobID);
+			$userjob = getJob($timeslot->jobID);
 			
 			echo '<tr><td>'.strftime("%a %d/%m", $timeslot->getStartTS()).'</td>
 					  <td>'.strftime("%H:%M", $timeslot->getStartTS()).strftime("-%H:%M", $timeslot->getEndTS()).'</td>
 					  <td>'.$signup->count.'</td>
-					  <td><a href="jc_job.php?action=show_one&job_id='.$job->id.'">'.$job->name.'</a></td>
+					  <td><a href="jc_job.php?action=show_one&job_id='.$userjob->id.'">'.$userjob->name.'</a></td>
 					  <td></td>
-					  <td>'.($job->id != $_GET['job_id'] ? '<a href="jc_signup.php?action=show_update&job_id='.$job->id.'&user_id='.$user->login.'">Redigér</a>' : '(Ovenstående)').'</td>
+					  <td>'.($userjob->id != $_GET['job_id'] ? '<a href="jc_signup.php?action=show_update&job_id='.$userjob->id.'&user_id='.$user->login.'">Redigér</a>' : '(Ovenstående)').'</td>
 					  </tr>';
 		}
 		echo '</table>';
@@ -364,6 +364,9 @@ function show_list() {
 	$job = Job::cast($job);
 		
 	echo "<h1>Tilmeldinger til <i><a href=\"jc_job.php?action=show_one&job_id=$job->id\">$job->name</a></i></h1>";
+	if (!user_is_admin() && $login != $job->ownerID) {
+		echo "<p align='center' class='redalert'>Du står ikke som kontaktperson på dette job, og kan derfor kun se tilmeldingerne, men ikke rette i dem!</p>";
+	}
 	//generate rows for existing timeslots
 	echo '<table name="outer" width="1000" align="center" border="0">';
 
@@ -405,9 +408,11 @@ function show_list() {
 				foreach ($signups as $signup) {
 					$signup = Signup::cast($signup);
 					$user = getUser($signup->userID);
-					echo "<tr>
-							<td><a href='jc_signup.php?action=show_update&job_id=$job->id&user_id=$user->login'>Ret</td>
-							<td colspan=\"4\"><a href=\"jc_user.php?action=show_one&login=$user->login\">".$user->getFullName()."</a></td>
+					echo "<tr><td>";
+					if (user_is_admin() || $job->ownerID == $login) {
+						echo "<a href='jc_signup.php?action=show_update&job_id=$job->id&user_id=$user->login'>Ret</a>";
+					}
+					echo "</td><td colspan=\"4\"><a href=\"jc_user.php?action=show_one&login=$user->login\">".$user->getFullName()."</a></td>
 							<td>$user->title</td>
 							<td>$signup->count</td>
 							<td>$signup->defDate <span class='help'>(<a href='jc_user.php?action=show_one&login=$signup->defUser'>$signup->defUser</a>)</span></td>

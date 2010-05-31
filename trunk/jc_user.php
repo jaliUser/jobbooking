@@ -323,8 +323,9 @@ function do_create() {
 		}
 	}
 	else {
-		print_error_header('Brugernavnet er ugyldigt eller findes allerede!<br/>
-							Kun tegnene A-Z og _ er tilladte, ikke &AElig;, &Oslash; og &Aring;.');
+		echo print_error('Brugernavnet er ugyldigt eller findes allerede!<br/>
+						  Kun tegnene A-Z og _ er tilladte, ikke &AElig;, &Oslash; og &Aring;.');
+		exit;
 	}
 }
 

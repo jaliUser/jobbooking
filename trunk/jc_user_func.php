@@ -123,11 +123,33 @@ function updateUserPasswd(User $u) {
 }
 
 function deleteUser($login) {
-	//webcal_entry_user
+//	global $site_id;
+//	$user = getUser($login);
+//	$subject = "Sletning af bruger";
+//	$message = "Hej ".$user->getFullNameAndLogin()."\r\n".
+//				"\r\n".
+//				"Din bruger i jobdatabasen er nu slettet.\r\n";
+//
+//				"\r\n".
+//				"\r\n".
+//				"\r\n";
+//	
+//	//webcal_entry_user - own jobs and associated signups
+//	$jobs = listJobs($site_id, null, $login);
+//	
+//	
+//	notifyUser($login, $subject, $message);
+	
+	//START DELETE
+	//webcal_entry_user - associated signups to own jobs
 	$sql = 'DELETE FROM webcal_entry_user WHERE cal_id IN 
 			(SELECT cal_id FROM webcal_entry we
 			LEFT JOIN job j ON j.id=we.job_id
 			where j.owner_id=?)';
+	dbi_execute($sql, array($login));
+	
+	//webcal_entry_user - own signups
+	$sql = 'DELETE FROM webcal_entry_user WHERE cal_login=?)';
 	dbi_execute($sql, array($login));
 	
 	//webcal_entry
