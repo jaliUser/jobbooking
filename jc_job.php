@@ -4,6 +4,7 @@ include_once 'jc_init.php';
 //use reject_public_access() in individual functions
 
 $usePredefPlaces = false;
+$showOthersSignups = false;
 
 $notesExample = "F.eks. noget om:
 - drikkevarer
@@ -21,7 +22,7 @@ function getPlaces() {
 }
 
 function show_list() {
-	global $PHP_SELF, $login, $site_id, $site_name;
+	global $PHP_SELF, $login, $site_id, $site_name, $showOthersSignups;
 	$site_id = (!empty($_GET['site_id']) ? $_GET['site_id'] : $site_id);
 	html_top($site_name . " - Jobliste");
 	
@@ -60,8 +61,10 @@ function show_list() {
 		if(user_is_arearesponsible() == false) {
 			echo "<a href='jc_signup.php?action=show_update".($job->type == "NN" ? '_noneed' : '')."&job_id=$job->id'>Tilmeld</a><br>";				
 		}
-		if(user_is_admin() || $job->ownerID == $login) {
+		if(user_is_admin() || $job->ownerID == $login || ($showOthersSignups && user_is_employer())) {
 			echo "<a href='jc_signup.php?action=show_list".($job->type == "NN" ? '_noneed' : '')."&job_id=$job->id'>Vis&nbsp;tilmeldinger</a><br>";
+		}
+		if(user_is_admin() || $job->ownerID == $login) {
 			echo "<a href='$PHP_SELF?action=show_update&job_id=$job->id'>Redigér&nbsp;job</a><br>";
 			if ($job->type == "WN") {
 				echo "<a href='jc_timeslot.php?action=show_update&job_id=$job->id'>Redigér&nbsp;behov</a><br>";
@@ -76,20 +79,21 @@ function show_list() {
 		}
 		echo "</td>
 				<td>$job->id</td>
-				<td><a href='$PHP_SELF?action=show_one&job_id=$job->id'>$job->name</a></td>
-				<td>";
-		if (strlen($job->description) > 200) {
-			echo nl2br(substr($job->description, 0, 200)) . "... <div align='right'><a href='$PHP_SELF?action=show_one&job_id=$job->id'>Læs mere</a></div>";
+				<td><a href='$PHP_SELF?action=show_one&job_id=$job->id'>$job->name</a></td>";
+		if (strlen($job->description) > 100) {
+			echo "<td title='$job->description'>".nl2br(substr($job->description, 0, 100)) . "... <div align='right'><a href='$PHP_SELF?action=show_one&job_id=$job->id'>Læs mere</a></div></td>";
 		} else {
-			echo nl2br($job->description);
+			echo "<td>".nl2br($job->description)."</td>";
 		}
-		
-		echo "</td>
-				<td><a href=\"jc_user.php?action=show_one&login=$job->ownerID\">".getUser($job->ownerID)->getFullName()."</a></td>
+		echo "<td><a href=\"jc_user.php?action=show_one&login=$job->ownerID\">".getUser($job->ownerID)->getFullName()."</a></td>
 				<td>$job->meetplace</td>
-				<td>$job->jobplace</td>
-				<td>$job->notes</td>
-				<td title='$area->description'>$area->name</td>
+				<td>$job->jobplace</td>";
+		if (strlen($job->notes) > 100) {
+			echo "<td title='$job->notes'>".nl2br(substr($job->notes, 0, 100)) . "... <div align='right'><a href='$PHP_SELF?action=show_one&job_id=$job->id'>Læs mere</a></div></td>";
+		} else {
+			echo "<td>".nl2br($job->notes)."</td>";
+		}
+		echo "<td title='$area->description'>$area->name</td>
 				<td title='Behov'>$job->totalNeed</td>
 				<td title='Rest'>$job->remainingNeed</td>
 				".(user_is_admin() || $_GET['user_id'] == $login ? "<td title='".$job->getLongStatus()."'>".$job->getShortStatus()."</td>":'')."
