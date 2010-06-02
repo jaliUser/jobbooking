@@ -165,14 +165,14 @@ function show_update() {
 		foreach ($signups as $signup) {
 			$signup = Signup::cast($signup);
 			$timeslot = getTimeslot($signup->timeslotID);
-			$job = getJob($timeslot->jobID);
+			$userjob = getJob($timeslot->jobID);
 			
 			echo '<tr><td>'.strftime("%a %d/%m", $timeslot->getStartTS()).'</td>
 					  <td>'.strftime("%H:%M", $timeslot->getStartTS()).strftime("-%H:%M", $timeslot->getEndTS()).'</td>
 					  <td>'.$signup->count.'</td>
-					  <td><a href="jc_job.php?action=show_one&job_id='.$job->id.'">'.$job->name.'</a></td>
+					  <td><a href="jc_job.php?action=show_one&job_id='.$userjob->id.'">'.$userjob->name.'</a></td>
 					  <td></td>
-					  <td>'.($job->id != $_GET['job_id'] ? '<a href="jc_signup.php?action=show_update&job_id='.$job->id.'&user_id='.$user->login.'">Redigér</a>' : '(Ovenstående)').'</td>
+					  <td>'.($userjob->id != $_GET['job_id'] ? '<a href="jc_signup.php?action=show_update&job_id='.$userjob->id.'&user_id='.$user->login.'">Redigér</a>' : '(Ovenstående)').'</td>
 					  </tr>';
 		}
 		echo '</table>';
@@ -244,6 +244,116 @@ function do_update() {
 	}
 }
 
+function show_update_noneed() {
+	reject_public_access();
+	global $PHP_SELF, $login, $site_id, $site_name;
+	html_top($site_name . " - Tilmelding til job");
+	
+	$job = getJob($_GET['job_id']);
+	$job = Job::cast($job);
+	
+	if ($job->type != "NN") {
+		echo print_error("Job er ikke af typen NoNeed.");
+		exit;
+	}
+	
+	if (!empty($_GET['user_id'])) {
+		$user = User::cast(getUser($_GET['user_id']));
+	} else {
+		$user = User::cast(getUser($login));
+	}
+	
+	echo "<h1>Tilmelding til <i><a href=\"jc_job.php?action=show_one&job_id=$job->id\">$job->name</a></i> for <i><a href=\"jc_user.php?action=show_one&login=$user->login\">".$user->getFullName()."</a></i> (".$user->count." pers.)</h1>".
+		'<p class="help">Hvis du eller dit hold har aftalt med underlejren at hjælpe med et underlejrjob, 
+			<br/>så udfyld det antal personer du/I stiller med, og skriv en note om hvad opgaven/aftalen lyder på.
+			<br/>OBS: Tilmeld dig kun dette job, hvis du på forhånd har aftalt det med jobkonsulenten/den jobansvarlige.!
+			<br/>Efter du har klikket på <i>Opdatér</i>, vil du se din tilmelding nederst på siden.
+		</p>';
+	
+	if (!empty($_GET['submit'])) {
+		echo '<p align="center" class="redalert">Din tilmelding er nu opdateret.<br/>
+			Du kan se dine jobtilmeldinger nederst på siden.</p>';
+	}
+	
+	$signups = listJobUserSignups($job->id, $user->login);
+	$signupValues = array_values($signups);
+	$signup = $signupValues[0];
+	
+	echo '<table align="center" class="border1">
+		<form action="'.$PHP_SELF.'" method="POST">
+		<tr><td>Antal:</td><td><input type="text" name="count" value="'.$signup->count.'" size="1" maxlength="3" /> person(er)</td></tr>
+		<tr><td>Note:</td><td><input type="text" name="notes" value="'.$signup->notes.'" size="100" maxlength="255" /></td></tr>';
+	
+	echo '<tr><td colspan="2"><input type="submit" value="Opdatér"/></td></tr>
+		<input type="hidden" name="action" value="do_update_noneed">
+		<input type="hidden" name="job_id" value="'.$job->id.'">
+		<input type="hidden" name="user_id" value="'.$user->login.'">
+		</form>';
+	echo '</table>';
+	
+	//TODO: flyt til separat metode
+	// show resulting signups
+	$signups = listUserSignups($user->login);
+	if (count($signups) > 0) {
+		$days = listDays($site_id);
+	
+		echo "<h3>Jobtilmeldinger for <i><a href=\"jc_user.php?action=show_one&login=$user->login\">".$user->getFullName()."</a></i></h3>";
+		echo '<table align="center" class="border1">
+				<tr><th>Dato</th><th>Tid</th><th>Personer</th><th>Job</th><th></th><th><i>Handling</i></th></tr>';
+		
+		foreach ($signups as $signup) {
+			$signup = Signup::cast($signup);
+			$timeslot = getTimeslot($signup->timeslotID);
+			$job = getJob($timeslot->jobID);
+			
+			echo '<tr><td>'.strftime("%a %d/%m", $timeslot->getStartTS()).'</td>
+					  <td>'.strftime("%H:%M", $timeslot->getStartTS()).strftime("-%H:%M", $timeslot->getEndTS()).'</td>
+					  <td>'.$signup->count.'</td>
+					  <td><a href="jc_job.php?action=show_one&job_id='.$job->id.'">'.$job->name.'</a></td>
+					  <td></td>
+					  <td>'.($job->id != $_GET['job_id'] ? '<a href="jc_signup.php?action=show_update&job_id='.$job->id.'&user_id='.$user->login.'">Redigér</a>' : '(Ovenstående)').'</td>
+					  </tr>';
+		}
+		echo '</table>';
+	}
+	
+	// show user list for admins
+	if (user_is_admin() || user_is_consultant()) {
+		show_user_table("Vælg bruger der skal tilmeldes for", "$PHP_SELF?action=show_update&job_id=$job->id", listUsers($site_id, 3));
+	}
+	
+	menu_link();
+}
+
+function do_update_noneed() {
+	reject_public_access();
+	global $PHP_SELF;
+	$error = "";
+	if (empty($_POST['job_id'])) {
+		$error .= "JobID mangler.<br>";
+	}
+	if (empty($_POST['user_id'])) {
+		$error .= "BrugerID mangler.";
+	}
+	if (!empty($_POST['count']) && empty($_POST['notes'])) {
+		$error .= "Note mangler.";
+	}
+	if (!Signup::isValidCount($_POST['count'])) {
+		$error .= "Ugyldigt antal.";
+	}
+	if (!empty($error)) {
+		echo print_error($error);
+		exit;
+	}
+	
+	$timeslots = listTimeslots($_POST['job_id']);
+	$ts = $timeslots[0];
+	$signup = new Signup($ts->id, $_POST['user_id'], 'A', null, 0, $_POST['count'], $_POST['notes']);		
+	createUpdateDeleteSignup($signup);
+	
+	do_redirect($PHP_SELF.'?action=show_update_noneed&job_id='.$_POST['job_id'].'&user_id='.$_POST['user_id'].'&submit=1');
+}
+
 function show_list() {
 	//reject_public_access();
 	global $PHP_SELF, $login, $site_id, $site_name;
@@ -253,9 +363,12 @@ function show_list() {
 	$job = getJob($_GET['job_id']);
 	$job = Job::cast($job);
 		
-	echo "<h1>Tilmeldinger til <i> $job->name</i></h1>";
+	echo "<h1>Tilmeldinger til <i><a href=\"jc_job.php?action=show_one&job_id=$job->id\">$job->name</a></i></h1>";
+	if (!user_is_admin() && $login != $job->ownerID) {
+		echo "<p align='center' class='redalert'>Du står ikke som kontaktperson på dette job, og kan derfor kun se tilmeldingerne, men ikke rette i dem!</p>";
+	}
 	//generate rows for existing timeslots
-	echo '<table name="outer" width="800" align="center" border="0">';
+	echo '<table name="outer" width="1000" align="center" border="0">';
 
 	$days = listDays($site_id);
 	//$signups = listJobSignups($job->id);
@@ -267,12 +380,15 @@ function show_list() {
 		$distinctDateArr = ($groupedTimeslots[$key] != null ? $groupedTimeslots[$key] : array());
 		
 		echo '<tr><td><table align="center" class="border1" width="100%">
-			<tr><th width="15%">'.strftime("%a %d/%m", $day->getDateTS()).'</th>
+			<tr>
+				<th width="2%"></th>
+				<th width="18%">'.strftime("%a %d/%m", $day->getDateTS()).'</th>
 				<th width="5%">Behov</th>
 				<th width="5%">Rest</th>
 				<th width="15%">Jobkonsulent</th>
-				<th width="30%">Klannavn</th>
-				<th width="10%">Tilmeldt</th>
+				<th width="15%">Teamnavn</th>
+				<th width="3%">Antal</th>
+				<th width="22%">Tilmeldt</th>
 			</tr>';
 		
 		foreach ($distinctDateArr as $timeslot) {
@@ -280,25 +396,69 @@ function show_list() {
 			if ($timeslot->personNeed != "" && (empty($_GET['filter']) || $timeslot->remainingNeed > 0)) {
 				$contact = User::cast(getUser($timeslot->contactID));
 				echo '<tr class="subth">
+					<td></td>
 					<td>'.strftime("%H:%M", $timeslot->getStartTS()).strftime("-%H:%M", $timeslot->getEndTS()).'</td>
 					<td>'.$timeslot->personNeed.'</td>
 					<td '.($timeslot->remainingNeed > 0 ? 'class="redalert"':'').'>'.$timeslot->remainingNeed.'</td>
 					<td>'.$contact->firstname.'</td>
-					<td colspan="2"></td>
+					<td colspan="3"></td>
 			  	  </tr>';
 
 				$signups = listTimeslotSignups($timeslot->id);
 				foreach ($signups as $signup) {
 					$signup = Signup::cast($signup);
 					$user = getUser($signup->userID);
-					echo "<tr><td colspan=\"4\"><a href=\"jc_user.php?action=show_one&login=$user->login\">".$user->getFullName()."</a></td>
+					echo "<tr><td>";
+					if (user_is_admin() || $job->ownerID == $login) {
+						echo "<a href='jc_signup.php?action=show_update&job_id=$job->id&user_id=$user->login'>Ret</a>";
+					}
+					echo "</td><td colspan=\"4\"><a href=\"jc_user.php?action=show_one&login=$user->login\">".$user->getFullName()."</a></td>
 							<td>$user->title</td>
 							<td>$signup->count</td>
+							<td>$signup->defDate <span class='help'>(<a href='jc_user.php?action=show_one&login=$signup->defUser'>$signup->defUser</a>)</span></td>
 						</tr>";
 				}
 			}
 		}
 		echo '</table></td></tr><tr><td>&nbsp;</td></tr>';	
+	}
+	echo '</table>';
+	menu_link();
+}
+
+function show_list_noneed() {
+	//reject_public_access();
+	global $PHP_SELF, $login, $site_id, $site_name;
+	require_params(array($_GET['job_id'], $site_id));
+	html_top($site_name . " - Tilmeldinger til job");
+	
+	$job = getJob($_GET['job_id']);
+	$job = Job::cast($job);
+		
+	echo "<h1>Tilmeldinger til <i><a href=\"jc_job.php?action=show_one&job_id=$job->id\">$job->name</a></i></h1>";
+	//generate rows for existing timeslots
+	echo '<table width="1000" align="center" class="border1">
+			<tr>
+				<th width="3%"></th>
+				<th width="27%">Navn</th>
+				<th width="15%">Teamnavn</th>
+				<th width="5%">Antal</th>
+				<th width="30%">Note</th>
+				<th width="20%">Tilmeldt</th>
+			</tr>';
+
+	$signups = listJobSignups($job->id, "def_date");
+	foreach ($signups as $signup) {
+		$signup = Signup::cast($signup);
+		$user = getUser($signup->userID);
+		echo "<tr>
+				<td><a href='jc_signup.php?action=show_update_noneed&job_id=$job->id&user_id=$user->login'>Ret</td>
+				<td><a href='jc_user.php?action=show_one&login=$user->login'>".$user->getFullName()."</td>
+				<td>$user->title</td>
+				<td>$signup->count</td>
+				<td>$signup->notes</td>
+				<td>$signup->defDate <span class='help'>(<a href='jc_user.php?action=show_one&login=$signup->defUser'>$signup->defUser</a>)</span></td>
+			</tr>";	
 	}
 	echo '</table>';
 	menu_link();
@@ -382,7 +542,7 @@ function show_mine() {
 		if (empty($_GET['show_block'])) {
 			echo '<td><a href="jc_job.php?action=show_one&job_id='.$job->id.'">'.$job->name.'</a></td>
 				<td></td>
-				<td><a href="jc_signup.php?action=show_update&job_id='.$job->id.'&user_id='.$user->login.'">Redigér</a></td>';
+				<td><a href="jc_signup.php?action=show_update'.($job->type == "NN" ? '_noneed' : '').'&job_id='.$job->id.'&user_id='.$user->login.'">Redigér</a></td>';
 		}
 		echo '</tr>';	
 	}
@@ -400,10 +560,16 @@ if ($_REQUEST['action'] == 'show_update') {
 	show_update();
 } elseif ($_REQUEST['action'] == 'do_update') {
 	do_update();
+} elseif ($_REQUEST['action'] == 'show_update_noneed') {
+	show_update_noneed();
+} elseif ($_REQUEST['action'] == 'do_update_noneed') {
+	do_update_noneed();
 } elseif ($_REQUEST['action'] == 'show_blockings') {
 	show_blockings();
 } elseif ($_REQUEST['action'] == 'show_list') {
 	show_list();
+} elseif ($_REQUEST['action'] == 'show_list_noneed') {
+	show_list_noneed();
 } elseif ($_REQUEST['action'] == 'show_evals') {
 	show_evals();
 } elseif ($_REQUEST['action'] == 'show_mine') {
