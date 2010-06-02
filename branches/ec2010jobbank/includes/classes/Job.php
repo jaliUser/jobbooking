@@ -12,6 +12,7 @@ class Job {
 	var $notes;
 	var $status;
 	var $priority;
+	var $type;
 	var $totalNeed; //not in DB
 	var $remainingNeed; //not in DB
 	var $totalHours; //not in DB
@@ -21,7 +22,7 @@ class Job {
 	var $updDate;
 	var $updUser;
 
-	function Job($id, $siteID, $areaID, $ownerID, $name, $description, $meetplace, $jobplace, $notes, $status, $priority) {
+	function Job($id, $siteID, $areaID, $ownerID, $name, $description, $meetplace, $jobplace, $notes, $status, $priority, $type) {
 		$this->id = $id;
 		$this->siteID = $siteID;
 		$this->areaID = $areaID;
@@ -33,6 +34,7 @@ class Job {
 		$this->notes = $notes;
 		$this->status = $status;
 		$this->priority = $priority;
+		$this->type = $type;
 	}
 
 	static function cast(Job $job) {
@@ -70,7 +72,16 @@ class Job {
 			case 'D':
 				return 'Slettet'; 
 		}
-	}	
+	}
+
+    static function jobType($type) {
+		switch($type) {
+			case 'NN': //No Need
+				return 'Underlejr (uden behov)';
+			case 'WN': //With Need
+				return 'Normal (med behov)';
+		}
+	}
 	
 }
 

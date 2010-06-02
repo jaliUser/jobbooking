@@ -4,6 +4,12 @@ include_once 'jc_init.php';
 //use reject_public_access() in individual functions
 
 $usePredefPlaces = true;
+$showOthersSignups = true;
+
+$notesExample = "F.eks. noget om:
+- drikkevarer
+- særlig beklædning
+- transport";
 
 function getPlaces() {
 	$places[] = "";
@@ -17,7 +23,7 @@ function getPlaces() {
 }
 
 function show_list() {
-	global $PHP_SELF, $login, $site_id, $site_name;
+	global $PHP_SELF, $login, $site_id, $site_name, $showOthersSignups;
 	$site_id = (!empty($_GET['site_id']) ? $_GET['site_id'] : $site_id);
 	html_top($site_name . " - Jobliste");
 	
@@ -54,14 +60,18 @@ function show_list() {
 
 		echo "<tr><td>";
 		if(user_is_arearesponsible() == false) {
-			echo "<a href='jc_signup.php?action=show_update&job_id=$job->id'>Tilmeld</a><br>";
+			echo "<a href='jc_signup.php?action=show_update".($job->type == "NN" ? '_noneed' : '')."&job_id=$job->id'>Tilmeld</a><br>";				
+		}
+		if(user_is_admin() || $job->ownerID == $login || ($showOthersSignups && user_is_employer())) {
+			echo "<a href='jc_signup.php?action=show_list".($job->type == "NN" ? '_noneed' : '')."&job_id=$job->id'>Vis&nbsp;tilmeldinger</a><br>";
 		}
 		if(user_is_admin() || $job->ownerID == $login) {
-			echo "<a href='jc_signup.php?action=show_list&job_id=$job->id'>Vis&nbsp;tilmeldinger</a><br>
-				<a href='$PHP_SELF?action=show_update&job_id=$job->id'>Redigér&nbsp;job</a><br>
-				<a href='jc_timeslot.php?action=show_update&job_id=$job->id'>Redigér&nbsp;behov</a><br>";
+			echo "<a href='$PHP_SELF?action=show_update&job_id=$job->id'>Redigér&nbsp;job</a><br>";
+			if ($job->type == "WN") {
+				echo "<a href='jc_timeslot.php?action=show_update&job_id=$job->id'>Redigér&nbsp;behov</a><br>";
+			}
 		}
-		if(user_is_admin()) {
+		if(user_is_admin() && $job->type == "WN") {
 			echo "<a href='jc_timeslot.php?action=show_assign&job_id=$job->id'>Tilknyt&nbsp;jobkonsulenter</a><br>
 				  <a href='jc_signup.php?action=show_evals&job_id=$job->id'>Redigér&nbsp;evalueringer</a>";
 		}
@@ -70,20 +80,21 @@ function show_list() {
 		}
 		echo "</td>
 				<td>$job->id</td>
-				<td><a href='$PHP_SELF?action=show_one&job_id=$job->id'>$job->name</a></td>
-				<td>";
-		if (strlen($job->description) > 200) {
-			echo nl2br(substr($job->description, 0, 200)) . "... <div align='right'><a href='$PHP_SELF?action=show_one&job_id=$job->id'>Læs mere</a></div>";
+				<td><a href='$PHP_SELF?action=show_one&job_id=$job->id'>$job->name</a></td>";
+		if (strlen($job->description) > 100) {
+			echo "<td title='$job->description'>".nl2br(substr($job->description, 0, 100)) . "... <div align='right'><a href='$PHP_SELF?action=show_one&job_id=$job->id'>Læs mere</a></div></td>";
 		} else {
-			echo nl2br($job->description);
+			echo "<td>".nl2br($job->description)."</td>";
 		}
-		
-		echo "</td>
-				<td><a href=\"jc_user.php?action=show_one&login=$job->ownerID\">".getUser($job->ownerID)->getFullName()."</a></td>
+		echo "<td><a href=\"jc_user.php?action=show_one&login=$job->ownerID\">".getUser($job->ownerID)->getFullName()."</a></td>
 				<td>$job->meetplace</td>
-				<td>$job->jobplace</td>
-				<td>$job->notes</td>
-				<td title='$area->description'>$area->name</td>
+				<td>$job->jobplace</td>";
+		if (strlen($job->notes) > 100) {
+			echo "<td title='$job->notes'>".nl2br(substr($job->notes, 0, 100)) . "... <div align='right'><a href='$PHP_SELF?action=show_one&job_id=$job->id'>Læs mere</a></div></td>";
+		} else {
+			echo "<td>".nl2br($job->notes)."</td>";
+		}
+		echo "<td title='$area->description'>$area->name</td>
 				<td title='Behov'>$job->totalNeed</td>
 				<td title='Rest'>$job->remainingNeed</td>
 				".(user_is_admin() || $_GET['user_id'] == $login ? "<td title='".$job->getLongStatus()."'>".$job->getShortStatus()."</td>":'')."
@@ -114,6 +125,57 @@ function show_list() {
 	menu_link();
 }
 
+function show_list_noneed() {
+	global $PHP_SELF, $login, $site_id, $site_name;
+	$site_id = (!empty($_GET['site_id']) ? $_GET['site_id'] : $site_id);
+	html_top($site_name . " - Underlejrjobs");
+	
+	$role = getRole($login);
+	$area = getAreaFromContact($login);
+	$jobs = listJobsNoNeed($site_id);
+	$title = "Underlejrjobs";
+	
+	echo '<h1>'.$title.'</h1>
+		<table align="center" class="border1" width="1000px">
+		<tr> <th><i>Handlinger</i></th> <th>ID</th> <th>Overskrift</th> <th>Beskrivelse</th> <th>Kontakt</th> <th>Mødested</th> <th>Jobsted</th> <th>Noter</th> <th>Område</th>'
+		.(user_is_admin() || $_GET['user_id'] == $login ?'<th title="Status">S</th>':'')
+		.(user_is_admin() ?'<th title="Prioritet">P</th>':'')
+		.'</tr>';
+	foreach ($jobs as $job) {
+		$job = Job::cast($job);
+		$area = Area::cast(getArea($job->id));
+
+		echo "<tr><td>";
+		echo "<a href='jc_signup.php?action=show_update_noneed&job_id=$job->id'>Tilmeld</a><br>";
+		if(user_is_admin() || user_is_consultant() || $job->ownerID == $login) {
+			echo "<a href='jc_signup.php?action=show_list_noneed&job_id=$job->id'>Vis&nbsp;tilmeldinger</a><br>
+				<a href='$PHP_SELF?action=show_update&job_id=$job->id'>Redigér&nbsp;job</a><br>";
+		}
+		echo "</td>
+				<td>$job->id</td>
+				<td><a href='$PHP_SELF?action=show_one&job_id=$job->id'>$job->name</a></td>
+				<td>";
+		if (strlen($job->description) > 200) {
+			echo nl2br(substr($job->description, 0, 200)) . "... <div align='right'><a href='$PHP_SELF?action=show_one&job_id=$job->id'>Læs mere</a></div>";
+		} else {
+			echo nl2br($job->description);
+		}
+		
+		echo "</td>
+				<td><a href=\"jc_user.php?action=show_one&login=$job->ownerID\">".getUser($job->ownerID)->getFullName()."</a></td>
+				<td>$job->meetplace</td>
+				<td>$job->jobplace</td>
+				<td>$job->notes</td>
+				<td title='$area->description'>$area->name</td>
+				".(user_is_admin() || $_GET['user_id'] == $login ? "<td title='".$job->getLongStatus()."'>".$job->getShortStatus()."</td>":'')."
+				".(user_is_admin() ?"<td>$job->priority</td>":'')."
+				</tr>";
+	}
+	
+	echo "</table>";	
+	menu_link();
+}
+
 function show_create() {
 	reject_public_access();
 	global $PHP_SELF, $login, $site_id, $site_name, $usePredefPlaces;
@@ -131,7 +193,12 @@ function show_create() {
 	//generate html for users with employer role
 	$ownerHTML = '<select name="owner_id">';
 	if (user_is_admin() || user_is_consultant()) {
-		$users = listUsers($site_id, 2);
+		$employers = listUsers($site_id, 2);
+		$consultants = listUsers($site_id, 4);
+		$admins = listUsers($site_id, 1);
+		$users = array_merge($employers, $consultants, $admins);
+		//sort(&$users);
+		
 		foreach ($users as $user) {
 			$user = User::cast($user);
 			$ownerHTML .= '<option value="'.$user->login.'">'.$user->getFullName().'</option>';
@@ -149,6 +216,11 @@ function show_create() {
 	$priorityHTML = '<select name="priority">
 					<option>1</option> <option>2</option> <option selected>3</option> <option>4</option> <option>5</option>
 					</select>';
+	
+	$typeHTML = '<select name="type">
+				<option value="WN">'.Job::jobType('WN').'</option>
+				<option value="NN">'.Job::jobType('NN').'</option>
+				</select>';
 	
 	if ($usePredefPlaces) {
 		$places = getPlaces();
@@ -175,12 +247,10 @@ function show_create() {
 		<tr><td>Beskrivelse af opgaven:</td><td><textarea name="description" cols="48" rows="5"></textarea> *</td></tr>
 		<tr><td>Mødested:</td><td>'.($usePredefPlaces ? $meetplacesHTML.' Hvis andet: ' : '').'<input type="text" name="meetplace" size="25" maxlength="25" /> *</td></tr>
 		<tr><td>Jobsted:</td><td>'.($usePredefPlaces ? $jobplacesHTML.' Hvis andet: ' : '').'<input type="text" name="jobplace" size="25" maxlength="25" /> <span class="help">Udfyldes kun hvis forskelligt fra mødested.</span></td></tr>
-		<tr><td>Bemærkninger:</td><td><textarea name="notes" cols="48" rows="5">F.eks. noget om:
-- drikkevarer
-- særlig beklædning
-- transport</textarea></td></tr>
+		<tr><td>Bemærkninger:</td><td><textarea name="notes" cols="48" rows="5">'.$notesExample.'</textarea></td></tr>
 		<tr><td>Status:</td><td>'.(true ? $statusHTML : 'Afventer <input type="hidden" name="status" value="W">').'</td></tr>
 		'.(user_is_admin() ? '<tr><td>Prioritet:</td><td>'.$priorityHTML.'</td></tr>' : '<input type="hidden" name="priority" value="3">').'
+		'.(user_is_admin() || user_is_consultant() ? '<tr><td>Type:</td><td>'.$typeHTML.'</td></tr>' : '<input type="hidden" name="type" value="WN">').'
 		<tr><td colspan="2" class="help">* markerer et obligatorisk felt</td></tr>
 
 		<tr><td colspan="2"><input type="submit" value="Opret"/></td></tr>
@@ -188,7 +258,6 @@ function show_create() {
 		
 		</table>
 		</form>';
-
 	
 	menu_link();
 }
@@ -211,7 +280,6 @@ function do_create() {
 		$jobplace = $_POST['jobplace'];
 	}
 	
-	//require_params(array($_REQUEST['area_id'], $_REQUEST['owner_id'], $_REQUEST['name'], $_REQUEST['meetplace'], $_REQUEST['status'], $_REQUEST['priority']));
 	$error = "";
 	if (empty($_POST['area_id'])) {
 		$error .= "Intet område valgt.<br>";
@@ -239,9 +307,14 @@ function do_create() {
 		exit;
 	}
 	
-	$job = new Job(null, $site_id, $_REQUEST['area_id'], $_REQUEST['owner_id'], $_REQUEST['name'], $_REQUEST['description'], $meetplace, $jobplace, $_REQUEST['notes'], $_REQUEST['status'], $_REQUEST['priority']);
+	//always create NoNeed jobs as approved (consultants cannot choose status)
+	if ($_POST['type'] == "NN" && $_POST['status'] = "W") {
+		$_POST['status'] = "A";
+	}
+	
+	$job = new Job(null, $site_id, $_POST['area_id'], $_POST['owner_id'], $_POST['name'], $_POST['description'], $meetplace, $jobplace, $_POST['notes'], $_POST['status'], $_POST['priority'], $_POST['type']);
 
-	createJob($job);
+	$jobID = createJob($job);
 	
 	if ($job->status == "W") {
 		$area = getAreaFromId($job->areaID);
@@ -258,6 +331,11 @@ function do_create() {
 					"\r\n".
 					"Logind og godkend jobbet, så hjælpere kan tilmelde sig det.\r\n";
 		notifyUser($contact->login, $subject, $message);
+	}
+	
+	if ($job->type == "NN") {
+		$ts = new Timeslot(null, 01012000, 0, 0, $jobID, 0, null);
+		createTimeslot($ts);
 	}
 	
 	do_redirect($PHP_SELF.'?action=show_list&user_id='.$_REQUEST['owner_id']);
@@ -334,11 +412,17 @@ function show_update() {
 		<tr><td>Bemærkninger:</td><td><textarea name="notes" cols="48" rows="5">'.$job->notes.'</textarea></td></tr>
 		<tr><td>Status:</td><td>'.(user_is_admin() ? $statusHTML : Job::jobStatus($job->status).'<input type="hidden" name="status" value="'.$job->status.'">' ).'</td></tr>
 		'.(user_is_admin() ? '<tr><td>Prioritet:</td><td>'.$priorityHTML.'</td></tr>' : '<input type="hidden" name="priority" value="'.$job->priority.'">').'
+		<tr><td>Type:</td><td>'.Job::jobType($job->type).'</td></tr> <input type="hidden" name="type" value="'.$job->type.'">
 		<tr><td colspan="2" class="help">* markerer et obligatorisk felt</td></tr>
 
-		<tr><td colspan="2"><input type="submit" value="Opdater"/></td></tr>
-		<tr><td colspan="2"><a href="jc_timeslot.php?action=show_update&job_id='.$job->id.'">Rediger behov</a></td></tr>
-		<input type="hidden" name="action" value="do_update">
+		<tr><td colspan="2"><input type="submit" value="Opdater"/></td></tr>';
+	
+	if ($job->type == "WN") {
+		echo '<tr><td colspan="2"><a href="jc_timeslot.php?action=show_update&job_id='.$job->id.'">Rediger behov</a></td></tr>';
+	}
+	
+	echo '<input type="hidden" name="action" value="do_update">
+		<input type="hidden" name="nextaction" value="'.referer_action().'">
 		'.($job->ownerID == $login ? '<input type="hidden" name="user_id" value="'.$login.'">' : '').'
 		<input type="hidden" name="job_id" value="'.$job->id.'">
 		</form>';
@@ -348,6 +432,7 @@ function show_update() {
 				<tr><td colspan="2"><br/><br/>Hvis du sletter jobbet, fjernes alle hjælpernes tilmeldinger til dette job!</td></tr>
 				<tr><td colspan="2"><input type="submit" value="Slet"/></td></tr>
 				<input type="hidden" name="action" value="do_delete">
+				<input type="hidden" name="nextaction" value="'.referer_action().'">
 				<input type="hidden" name="job_id" value="'.$job->id.'" />
 				</form>';
 		}
@@ -404,10 +489,10 @@ function do_update() {
 		exit;
 	}
 	
-	$job = new Job($_REQUEST['job_id'], $site_id, $_REQUEST['area_id'], $_REQUEST['owner_id'], $_REQUEST['name'], $_REQUEST['description'], $meetplace, $jobplace, $_REQUEST['notes'], $_REQUEST['status'], $_REQUEST['priority']);
+	$job = new Job($_REQUEST['job_id'], $site_id, $_REQUEST['area_id'], $_REQUEST['owner_id'], $_REQUEST['name'], $_REQUEST['description'], $meetplace, $jobplace, $_REQUEST['notes'], $_REQUEST['status'], $_REQUEST['priority'], $_REQUEST['type']);
 
 	updateJob($job);
-	do_redirect($PHP_SELF.'?action=show_list'.(!empty($_POST['user_id']) ? '&user_id='.$_POST['user_id'] : ''));
+	do_redirect($PHP_SELF.'?action='.$_POST['nextaction'].(!empty($_POST['user_id']) ? '&user_id='.$_POST['user_id'] : ''));
 }
 
 function do_approve() {
@@ -435,7 +520,7 @@ function do_delete() {
 	$job = getJob($_POST['job_id']);
 	if (user_is_admin() || $login == $job->ownerID) {
 		deleteJob($_POST['job_id']);
-		do_redirect($PHP_SELF.'?action=show_list');
+		do_redirect($PHP_SELF.'?action='.$_POST['nextaction']);
 	} else {
 		echo "Not authorized!";
 	}
@@ -483,6 +568,8 @@ if ($_REQUEST['action'] == 'show_create') {
 	do_delete();
 } elseif ($_REQUEST['action'] == 'show_list') {
 	show_list();
+} elseif ($_REQUEST['action'] == 'show_list_noneed') {
+	show_list_noneed();
 } elseif ($_REQUEST['action'] == 'show_one') {
 	show_one();
 } else {
