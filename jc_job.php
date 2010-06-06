@@ -84,6 +84,13 @@ function sortByPersonsRemaining(Job $jobA, Job $jobB) {
 	return ($jobA->remainingNeed < $jobB->remainingNeed) ? -1 : 1;
 }
 
+function sortByPersonsRemainingPercent(Job $jobA, Job $jobB) {
+	if ($jobA->remainingNeed/$jobA->totalNeed == $jobB->remainingNeed/$jobB->totalNeed) {
+		return 0;
+	}
+	return ($jobA->remainingNeed/$jobA->totalNeed < $jobB->remainingNeed/$jobB->totalNeed) ? -1 : 1;
+}
+
 function sortByHoursNeeded(Job $jobA, Job $jobB) {
 	if ($jobA->totalHours == $jobB->totalHours) {
 		return 0;
@@ -96,6 +103,13 @@ function sortByHoursRemaining(Job $jobA, Job $jobB) {
 		return 0;
 	}
 	return ($jobA->remainingHours < $jobB->remainingHours) ? -1 : 1;
+}
+
+function sortByHoursRemainingPercent(Job $jobA, Job $jobB) {
+	if ($jobA->remainingHours/$jobA->totalHours == $jobB->remainingHours/$jobB->totalHours) {
+		return 0;
+	}
+	return ($jobA->remainingHours/$jobA->totalHours < $jobB->remainingHours/$jobB->totalHours) ? -1 : 1;
 }
 
 function sortHeader($sort, $header) {
@@ -111,6 +125,10 @@ function show_list() {
 	global $PHP_SELF, $login, $site_id, $site_name, $showOthersSignups;
 	$site_id = (!empty($_GET['site_id']) ? $_GET['site_id'] : $site_id);
 	html_top($site_name . " - Jobliste");
+	
+	if (empty($_GET['sort'])) {
+		$_GET['sort'] = "name"; //SETTING DEFAULT SORT
+	}
 	
 	$role = getRole($login);
 	$area = getAreaFromContact($login);
@@ -144,13 +162,16 @@ function show_list() {
 			<th>Noter</th>
 			<th>'.sortHeader("area", "Område").'</th>
 			<th title="Person Behov">'.sortHeader("persons_needed", "B").'</th> 
-			<th title="Person Rest">'.sortHeader("persons_remaining", "R").'</th>'
+			<th title="Person Rest">'.sortHeader("persons_remaining", "R").'</th>
+			<th title="Person rest i procent">'.sortHeader("persons_remaining_percent", "R%").'</th>'
 		.(user_is_admin() || $_GET['user_id'] == $login ?'
 			<th title="Status">S</th>':'')
 		.(user_is_admin() ?'
 			<th title="Prioritet">'.sortHeader("priority", "P").'</th>
 			<th title="Time Behov">'.sortHeader("hours_needed", "TB").'</th>
-			<th title="Time Rest">'.sortHeader("hours_remaining", "TR").'</th>':'')
+			<th title="Time Rest">'.sortHeader("hours_remaining", "TR").'</th>
+			<th title="Time Rest i procent">'.sortHeader("hours_remaining_percent", "TR%").'</th>
+			':'')
 		.'</tr>';
 	
 	$jobs = listJobs($site_id, $_GET['status'], $_GET['user_id'], $_GET['filter']);
@@ -179,11 +200,17 @@ function show_list() {
 		case "persons_remaining":
 			usort($jobs, "sortByPersonsRemaining");
 			break;
+		case "persons_remaining_percent":
+			usort($jobs, "sortByPersonsRemainingPercent");
+			break;
 		case "hours_needed":
 			usort($jobs, "sortByHoursNeeded");
 			break;
 		case "hours_remaining":
 			usort($jobs, "sortByHoursRemaining");
+			break;
+		case "hours_remaining_percent":
+			usort($jobs, "sortByHoursRemainingPercent");
 			break;
 		default:
 			usort($jobs, "sortById");
@@ -193,7 +220,11 @@ function show_list() {
 	foreach ($jobs as $job) {
 		$job = Job::cast($job);
 		$area = Area::cast(getArea($job->id));
-
+		
+		if ($job->remainingNeed <= 0) {
+			continue;
+		}
+		
 		echo "<tr><td>";
 		if(user_is_arearesponsible() == false) {
 			echo "<a href='jc_signup.php?action=show_update".($job->type == "NN" ? '_noneed' : '')."&job_id=$job->id'>Tilmeld</a><br>";				
@@ -233,23 +264,27 @@ function show_list() {
 		echo "<td title='$area->description'>$area->name</td>
 				<td title='Behov'>$job->totalNeed</td>
 				<td title='Rest'>$job->remainingNeed</td>
+				<td title='Rest procent'>". round($job->remainingNeed/$job->totalNeed*100, 0) ."%</td>
 				".(user_is_admin() || $_GET['user_id'] == $login ? "<td title='".$job->getLongStatus()."'>".$job->getShortStatus()."</td>":'')."
-				".(user_is_admin() ?"<td>$job->priority</td><td>$job->totalHours</td><td>$job->remainingHours</td>":'')."
+				".(user_is_admin() ?"<td>$job->priority</td><td>$job->totalHours</td><td>$job->remainingHours</td><td>". round($job->remainingHours/$job->totalHours*100, 0) ."%</td>":'')."
 				</tr>";
 		
 		$sumNeedPers += $job->totalNeed;
-		$sumNeedHour += $job->remainingNeed;
-		$sumRestPers += $job->totalHours;
+		$sumRestPers += $job->remainingNeed;
+		$sumNeedHour += $job->totalHours;
 		$sumRestHour += $job->remainingHours;
 	}
 	
-	if(user_is_admin()) {
+	if(user_is_admin() && empty($_GET['filter'])) {
 		echo "<tr><td colspan='9'>Total</td>
 				<td>$sumNeedPers</td>
-				<td>$sumNeedHour</td>
-				<td colspan='2'></td>
 				<td>$sumRestPers</td>
-				<td>$sumRestHour</td></tr>";
+				<td>". round($sumRestPers/$sumNeedPers*100, 0) ."%</td>
+				<td colspan='2'></td>
+				<td>$sumNeedHour</td>
+				<td>$sumRestHour</td>
+				<td>". round($sumRestHour/$sumNeedHour*100, 0) ."%</td>
+				</tr>";
 	}
 	echo "</table>";
 	
