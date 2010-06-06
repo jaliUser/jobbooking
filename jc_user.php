@@ -559,17 +559,25 @@ function show_one() {
 		<tr><th align="left">Brugernavn:</th><td>'.$user->login.'</td></tr>
 		<tr><th align="left">Fornavn:</th><td>'.$user->firstname.'</td></tr>
 		<tr><th align="left">Efternavn:</th><td>'.$user->lastname.'</td></tr>
+		<!--
 		<tr><th align="left">Spejdernet-brugernavn:</th><td>'.$user->extLogin.'</td></tr>
+		-->
 		<tr><th align="left">E-mail:</th><td>'.$user->email.'</td></tr>
 		<tr><th align="left">Telefon:</th><td>'.$user->telephone.'</td></tr>
+		<!--
 		<tr><th align="left">Adresse/postnr/by:</th><td>'.$user->address.'</td></tr>
 		<tr><th align="left">Alder under lejren:</th><td>'.$user->ageRange.'</td></tr>
+		-->
 		<tr><th align="left">Antal:</th><td>'.$user->count.'</td></tr>
+		<!--
 		<tr><th align="left">Kvalifikationer:</th><td>'.$qualificationHTML.'</td></tr>
 		<tr><th align="left">Specielle kvalifikationer:</th><td>'.$user->qualifications.'</td></tr>
-		<tr><th align="left">Klan/holdnavn/pladsnr:</th><td>'.$user->title.'</td></tr>
-		<tr><th align="left">Gruppe:</th><td>'.getGroup($user->groupID)->name.'</td></tr>
+		-->
+		<tr><th align="left">Teamnavn:</th><td>'.$user->title.'</td></tr>
+		<tr><th align="left">Afdeling:</th><td>'.getGroup($user->groupID)->name.'</td></tr>
+		<!--
 		<tr><th align="left">Underlejr:</th><td>'.getSubcampForUser($user->login)->name.'</td></tr>
+		-->
 		<tr><th align="left">Rolle:</th><td>'.$role->name.'</td></tr>
 		<tr><th align="left">Foretrukne jobkategorier:</th><td>'.$jobcategoryHTML.'</td></tr>
 		<tr><th align="left">Noter:</th><td>'.$user->notes.'</td></tr>
