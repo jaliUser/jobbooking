@@ -124,21 +124,35 @@ function updateUserPasswd(User $u) {
 
 function deleteUser($login) {
 //	global $site_id;
+//
+//	$jobsText = "Nedenstående jobs var dine og er også blevet slettet:";
+//	$jobs = listJobs($site_id, null, $login);
+//	foreach ($jobs as $job) {
+//		$jobsText .= "Job $job->id: $job->name\r\n";
+//	}
+//	$jobsText .= "\r\n";
+//
+//	$signupsText = "Nedenstående tilmeldinger var dine og er også blevet slettet:";
+//	$signups = listUserSignups($login, false);
+//	foreach ($signups as $signup) {
+//		$ts = getTimeslot($signup->timeslotID);
+//		$job = getJob($ts->jobID);
+//		$signupsText .= "$job->name ".getTimeText($job, $ts)."\r\n";
+//	}
+//	$signupsText .= "\r\n";
+//	
 //	$user = getUser($login);
 //	$subject = "Sletning af bruger";
 //	$message = "Hej ".$user->getFullNameAndLogin()."\r\n".
 //				"\r\n".
 //				"Din bruger i jobdatabasen er nu slettet.\r\n";
-//
 //				"\r\n".
-//				"\r\n".
-//				"\r\n";
-//	
-//	//webcal_entry_user - own jobs and associated signups
-//	$jobs = listJobs($site_id, null, $login);
-//	
+//				$jobsText.
+//				$signupsText;
 //	
 //	notifyUser($login, $subject, $message);
+	
+	//TODO: notify other users of their deleted signups!
 	
 	//START DELETE
 	//webcal_entry_user - associated signups to own jobs
@@ -149,7 +163,7 @@ function deleteUser($login) {
 	dbi_execute($sql, array($login));
 	
 	//webcal_entry_user - own signups
-	$sql = 'DELETE FROM webcal_entry_user WHERE cal_login=?)';
+	$sql = 'DELETE FROM webcal_entry_user WHERE cal_login=?';
 	dbi_execute($sql, array($login));
 	
 	//webcal_entry

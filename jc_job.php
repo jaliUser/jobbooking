@@ -21,6 +21,92 @@ function getPlaces() {
 	return $places;
 }
 
+function sortById(Job $jobA, Job $jobB) {
+	if ($jobA->id == $jobB->id) {
+		return 0;
+	}
+	return ($jobA->id < $jobB->id) ? -1 : 1;
+}
+
+function sortByName(Job $jobA, Job $jobB) {
+	if ($jobA->name == $jobB->name) {
+		return 0;
+	}
+	return ($jobA->name < $jobB->name) ? -1 : 1;
+}
+
+function sortByOwner(Job $jobA, Job $jobB) {
+	if ($jobA->ownerID == $jobB->ownerID) {
+		return 0;
+	}
+	return ($jobA->ownerID < $jobB->ownerID) ? -1 : 1;
+}
+
+function sortByMeetplace(Job $jobA, Job $jobB) {
+	if ($jobA->meetplace == $jobB->meetplace) {
+		return 0;
+	}
+	return ($jobA->meetplace < $jobB->meetplace) ? -1 : 1;
+}
+
+function sortByJobplace(Job $jobA, Job $jobB) {
+	if ($jobA->jobplace == $jobB->jobplace) {
+		return 0;
+	}
+	return ($jobA->jobplace < $jobB->jobplace) ? -1 : 1;
+}
+
+function sortByArea(Job $jobA, Job $jobB) {
+	if ($jobA->areaID == $jobB->areaID) {
+		return 0;
+	}
+	return ($jobA->areaID < $jobB->areaID) ? -1 : 1;
+}
+
+function sortByPriority(Job $jobA, Job $jobB) {
+	if ($jobA->priority == $jobB->priority) {
+		return 0;
+	}
+	return ($jobA->priority < $jobB->priority) ? -1 : 1;
+}
+
+function sortByPersonsNeeded(Job $jobA, Job $jobB) {
+	if ($jobA->totalNeed == $jobB->totalNeed) {
+		return 0;
+	}
+	return ($jobA->totalNeed < $jobB->totalNeed) ? -1 : 1;
+}
+
+function sortByPersonsRemaining(Job $jobA, Job $jobB) {
+	if ($jobA->remainingNeed == $jobB->remainingNeed) {
+		return 0;
+	}
+	return ($jobA->remainingNeed < $jobB->remainingNeed) ? -1 : 1;
+}
+
+function sortByHoursNeeded(Job $jobA, Job $jobB) {
+	if ($jobA->totalHours == $jobB->totalHours) {
+		return 0;
+	}
+	return ($jobA->totalHours < $jobB->totalHours) ? -1 : 1;
+}
+
+function sortByHoursRemaining(Job $jobA, Job $jobB) {
+	if ($jobA->remainingHours == $jobB->remainingHours) {
+		return 0;
+	}
+	return ($jobA->remainingHours < $jobB->remainingHours) ? -1 : 1;
+}
+
+function sortHeader($sort, $header) {
+	$url = $_SERVER['REQUEST_URI'];
+	//TODO: strip old sort
+	if ($_GET['sort'] == $sort) {
+		$header = "<span class='redalert'>$header</span>";
+	}
+	return "<a href=\"$url&sort=$sort\">$header</a>";
+}
+
 function show_list() {
 	global $PHP_SELF, $login, $site_id, $site_name, $showOthersSignups;
 	$site_id = (!empty($_GET['site_id']) ? $_GET['site_id'] : $site_id);
@@ -33,7 +119,6 @@ function show_list() {
 	$sumRestPers = 0;
 	$sumRestHour = 0;
 	
-	$jobs = listJobs($site_id, $_GET['status'], $_GET['user_id'], $_GET['filter']);
 	if (!empty($_GET['user_id']) && !empty($_GET['status'])) {
 		$title = "Jobs under <i>$area->description</i> der afventer godkendelse";
 	} else if (!empty($_GET['user_id'])) {
@@ -45,14 +130,66 @@ function show_list() {
 	} else {
 		$title = "Alle godkendte jobs";
 	}
-	echo '<h1>'.$title.'</h1>
-		<table align="center" class="border1" width="1000px">
-		<tr> <th><i>Handlinger</i></th> <th>ID</th> <th>Overskrift</th> <th>Beskrivelse</th> <th>Kontakt</th> <th>Mødested</th> <th>Jobsted</th> <th>Noter</th> <th>Område</th>  
-		<th title="Behov">B</th> 
-		<th title="Rest">R</th>'
-		.(user_is_admin() || $_GET['user_id'] == $login ?'<th title="Status">S</th>':'')
-		.(user_is_admin() ?'<th title="Prioritet">P</th><th title="TimeBehov">TB</th> <th title="TimeRest">TR</th>':'')
+	echo '<h1>'.$title.'</h1>';
+	echo "<p align='center' class='help'>TIP: Klik på kolonnenavnene for at sortere.</p>";
+	echo '<table align="center" class="border1" width="1000px">
+		<tr>
+			<th><i>Handlinger</i></th>
+			<th>'.sortHeader("id", "ID").'</th>
+			<th>'.sortHeader("name", "Overskrift").'</th>
+			<th>Beskrivelse</th>
+			<th>'.sortHeader("owner", "Kontakt").'</th>
+			<th>'.sortHeader("meetplace", "Mødested").'</th>
+			<th>'.sortHeader("jobplace", "Jobsted").'</th>
+			<th>Noter</th>
+			<th>'.sortHeader("area", "Område").'</th>
+			<th title="Person Behov">'.sortHeader("persons_needed", "B").'</th> 
+			<th title="Person Rest">'.sortHeader("persons_remaining", "R").'</th>'
+		.(user_is_admin() || $_GET['user_id'] == $login ?'
+			<th title="Status">S</th>':'')
+		.(user_is_admin() ?'
+			<th title="Prioritet">'.sortHeader("priority", "P").'</th>
+			<th title="Time Behov">'.sortHeader("hours_needed", "TB").'</th>
+			<th title="Time Rest">'.sortHeader("hours_remaining", "TR").'</th>':'')
 		.'</tr>';
+	
+	$jobs = listJobs($site_id, $_GET['status'], $_GET['user_id'], $_GET['filter']);
+	switch ($_GET['sort']) {
+		case "name":
+			usort($jobs, "sortByName");
+			break;
+		case "owner":
+			usort($jobs, "sortByOwner");
+			break;
+		case "meetplace":
+			usort($jobs, "sortByMeetplace");
+			break;
+		case "jobplace":
+			usort($jobs, "sortByJobplace");
+			break;
+		case "area":
+			usort($jobs, "sortByArea");
+			break;
+		case "priority":
+			usort($jobs, "sortByPriority");
+			break;
+		case "persons_needed":
+			usort($jobs, "sortByPersonsNeeded");
+			break;
+		case "persons_remaining":
+			usort($jobs, "sortByPersonsRemaining");
+			break;
+		case "hours_needed":
+			usort($jobs, "sortByHoursNeeded");
+			break;
+		case "hours_remaining":
+			usort($jobs, "sortByHoursRemaining");
+			break;
+		default:
+			usort($jobs, "sortById");
+			break;
+	}
+	
 	foreach ($jobs as $job) {
 		$job = Job::cast($job);
 		$area = Area::cast(getArea($job->id));
