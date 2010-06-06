@@ -32,6 +32,7 @@ class Timeslot {
 		return gmdate("His", $startTS + $this->duration*60);
 	}
 	
+	//why not just return $duration ???
 	static function getDuration($date, $startTime, $endTime) {
 		return (get_cal_unixtime($date, $endTime) - get_cal_unixtime($date, $startTime))/60;
 	}
@@ -73,7 +74,7 @@ class Timeslot {
 	}
 	
 	function getStartTS() {
-		$hour = ($this->startTime == 0) ? 0 : substr($this->startTime,0,-4);
+		$hour = ($this->startTime == 0 || strlen($this->startTime) <= 4) ? 0 : substr($this->startTime,0,-4);
 		$min = ($this->startTime == 0) ? 0 : substr($this->startTime,-4,-2);
 		$sec = ($this->startTime == 0) ? 0 : substr($this->startTime,-2);
 		$month = substr($this->date,4,2);
@@ -84,7 +85,7 @@ class Timeslot {
 	
 	function getEndTS() {
 		$endTime = $this->getEndTime();
-		$hour = ($endTime == 0) ? 0 : substr($endTime,0,-4);
+		$hour = ($endTime == 0 || strlen($endTime) <= 4) ? 0 : substr($endTime,0,-4);
 		$min = ($endTime == 0) ? 0 : substr($endTime,-4,-2);
 		$sec = ($endTime == 0) ? 0 : substr($endTime,-2);
 		$month = substr($this->date,4,2);
