@@ -358,70 +358,111 @@ function show_list() {
 	//reject_public_access();
 	global $PHP_SELF, $login, $site_id, $site_name;
 	require_params(array($_GET['job_id'], $site_id));
-	html_top($site_name . " - Tilmeldinger til job");
 	
 	$job = getJob($_GET['job_id']);
 	$job = Job::cast($job);
+	html_top($site_name . " - Tilmeldinger til $job->name");
 		
 	echo "<h1>Tilmeldinger til <i><a href=\"jc_job.php?action=show_one&job_id=$job->id\">$job->name</a></i></h1>";
+	echo "<p align='center' class='help'>TIP: Print denne side som vagtplan, inden dit job begynder!</p>";
 	if (!user_is_admin() && $login != $job->ownerID) {
 		echo "<p align='center' class='redalert'>Du står ikke som kontaktperson på dette job, og kan derfor kun se tilmeldingerne, men ikke rette i dem!</p>";
 	}
 	//generate rows for existing timeslots
-	echo '<table name="outer" width="1000" align="center" border="0">';
+	echo '<table name="outer" width="800" align="center" border="0">';
 
 	$days = listDays($site_id);
 	//$signups = listJobSignups($job->id);
 	$timeslots = listTimeslotsByDate($job->id);
 	$groupedTimeslots = groupTimeslotsByDate($timeslots);
+	$emails = "";
 	foreach ($days as $key => $day) {
 		$day = Day::cast($day);
 		$distinctDateArr = array();
 		$distinctDateArr = ($groupedTimeslots[$key] != null ? $groupedTimeslots[$key] : array());
+		//Avoid printing days with no need (empty timeslots may exist)
+		$dayHasPersonNeed = false;
+		foreach ($distinctDateArr as $timeslot) {
+			$timeslot = Timeslot::cast($timeslot);
+			if (!empty($timeslot->personNeed)) {
+				$dayHasPersonNeed = true;
+			}
+		}
+		if (!$dayHasPersonNeed) {
+			continue;
+		}
 		
 		echo '<tr><td><table align="center" class="border1" width="100%">
 			<tr>
-				<th width="2%"></th>
-				<th width="18%">'.strftime("%a %d/%m", $day->getDateTS()).'</th>
+				<th width="5%"></th>
+				<th width="30%">'.strftime("%a %d/%m", $day->getDateTS()).'</th>
 				<th width="5%">Behov</th>
 				<th width="5%">Rest</th>
-				<th width="15%">Jobkonsulent</th>
+				<!--
+				<th width="10%">Jobkonsulent</th>
+				-->
+				<th width="10%">Telefon</th>
 				<th width="15%">Teamnavn</th>
-				<th width="3%">Antal</th>
-				<th width="22%">Tilmeldt</th>
+				<th width="5%">Antal</th>
+				<th width="25%">Tilmeldt</th>
 			</tr>';
 		
 		foreach ($distinctDateArr as $timeslot) {
 			$timeslot = Timeslot::cast($timeslot);
-			if ($timeslot->personNeed != "" && (empty($_GET['filter']) || $timeslot->remainingNeed > 0)) {
+			if (!empty($timeslot->personNeed)) {
 				$contact = User::cast(getUser($timeslot->contactID));
 				echo '<tr class="subth">
 					<td></td>
 					<td>'.strftime("%H:%M", $timeslot->getStartTS()).strftime("-%H:%M", $timeslot->getEndTS()).'</td>
 					<td>'.$timeslot->personNeed.'</td>
 					<td '.($timeslot->remainingNeed > 0 ? 'class="redalert"':'').'>'.$timeslot->remainingNeed.'</td>
+					<!--
 					<td>'.$contact->firstname.'</td>
-					<td colspan="3"></td>
+					-->
+					<td colspan="4"></td>
 			  	  </tr>';
 
 				$signups = listTimeslotSignups($timeslot->id);
 				foreach ($signups as $signup) {
 					$signup = Signup::cast($signup);
 					$user = getUser($signup->userID);
+					if (!empty($user->email) && false === strpos($emails, $user->email)) {
+						$emails .= "$user->email, ";
+					}
+					$defUserLink = "";
+					if ($signup->defUser != $user->login) {
+						$defUser = getUser($signup->defUser); 
+						$defUserLink = "<br/>(<a href='jc_user.php?action=show_one&login=$defUser->login'>".$defUser->getFullName()."</a>)";
+					}
 					echo "<tr><td>";
 					if (user_is_admin() || $job->ownerID == $login) {
 						echo "<a href='jc_signup.php?action=show_update&job_id=$job->id&user_id=$user->login'>Ret</a>";
 					}
-					echo "</td><td colspan=\"4\"><a href=\"jc_user.php?action=show_one&login=$user->login\">".$user->getFullName()."</a></td>
+					echo "</td><td colspan=\"3\"><a href=\"jc_user.php?action=show_one&login=$user->login\">".$user->getFullName()."</a></td>
+							<td>$user->telephone</td>
 							<td>$user->title</td>
 							<td>$signup->count</td>
-							<td>$signup->defDate <span class='help'>(<a href='jc_user.php?action=show_one&login=$signup->defUser'>$signup->defUser</a>)</span></td>
+							<td>$signup->defDate <span class='help'>$defUserLink</span></td>
 						</tr>";
 				}
 			}
 		}
 		echo '</table></td></tr><tr><td>&nbsp;</td></tr>';	
 	}
+	
+	if (!empty($_POST['show_emails'])) {
+		if (!empty($emails)) {
+			$emailsCS = trim(trim($emails), ",");
+			$emailsSS = str_replace(",", ";", $emailsCS);
+			echo "<tr><td>
+					<p><b>Hjælper-emails komma-separeret:</b><br/>$emailsCS</p>
+					<p><b>Hjælper-emails semikolon-separeret:</b><br/>$emailsSS</p>
+				</td></tr>";
+		}
+	} else {
+		echo "<tr><td><form action='".$_SERVER['REQUEST_URI']."' method='POST'><input type='submit' name='show_emails' value='Vis hjælper-emails' /></form></td></tr>";
+	}
+	
 	echo '</table>';
 	menu_link();
 }
@@ -528,8 +569,21 @@ function show_mine() {
 	$signups = empty($_GET['show_block'])? listUserSignups($user->login) : listUserSignups($user->login, true);	
 	
 	echo "<h1>".(empty($_GET['show_block'])? "Jobtilmeldinger" : "Blokeringer")." for <i><a href=\"jc_user.php?action=show_one&login=$user->login\">".$user->getFullName()."</a></i></h1>";
+	echo "<p align='center' class='help'>TIP: Print denne side til at tage med, inden du skal på job!<br/>Klik også ind på hvert job og se evt. bemærkninger.</p>";
 	echo '<table align="center" class="border1">
-			<tr><th>Dato</th><th>Tid</th><th>Personer</th>'.(empty($_GET['show_block'])? "<th>Job</th><th></th><th><i>Handling</i></th>" : "").'</tr>';
+			<tr>
+				<th>Dato</th>
+				<th>Tid</th>
+				<th>Personer</th>';
+	if (empty($_GET['show_block'])) {
+		echo   "<th>Job</th>
+				<th>Mødested</th>
+				<th>Kontakt</th>
+				<th>Kontakt tlf</th>
+				<th></th>
+				<th><i>Handling</i></th>";
+	}
+	echo "</tr>";
 	
 	foreach ($signups as $signup) {
 		$signup = Signup::cast($signup);
@@ -540,7 +594,11 @@ function show_mine() {
 				  <td>'.strftime("%H:%M", $timeslot->getStartTS()).strftime("-%H:%M", $timeslot->getEndTS()).'</td>
 				  <td>'.$signup->count.'</td>';
 		if (empty($_GET['show_block'])) {
+			$owner = getUser($job->ownerID);
 			echo '<td><a href="jc_job.php?action=show_one&job_id='.$job->id.'">'.$job->name.'</a></td>
+				<td>'.$job->meetplace.'</td>
+				<td><a href="jc_user.php?action=show_one&login='.$owner->login.'">'.$owner->getFullName().'</a></td>
+				<td>'.$owner->telephone.'</td>
 				<td></td>
 				<td><a href="jc_signup.php?action=show_update'.($job->type == "NN" ? '_noneed' : '').'&job_id='.$job->id.'&user_id='.$user->login.'">Redigér</a></td>';
 		}

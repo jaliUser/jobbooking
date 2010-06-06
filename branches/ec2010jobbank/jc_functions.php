@@ -168,7 +168,7 @@ function user_is_arearesponsible() {
 }
 
 function get_cal_unixtime($cal_date, $cal_time) {
-	$hour = ($cal_time == 0) ? 0 : substr($cal_time,0,-4);
+	$hour = ($cal_time == 0 || strlen($cal_time) <= 4) ? 0 : substr($cal_time,0,-4);
 	$min = ($cal_time == 0) ? 0 : substr($cal_time,-4,-2);
 	$sec = ($cal_time == 0) ? 0 : substr($cal_time,-2);
 	$month = substr($cal_date,4,2);
