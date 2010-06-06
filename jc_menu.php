@@ -53,6 +53,7 @@ echo '
 	<tr><td><a href="jc_subcamp.php?action=show_list">Vis jobkonsulenter i underlejrene</a></td><td class="help"></td></tr>
 	-->
 	'.(!user_is_helper() ? '<tr><td><a href="jc_area.php?action=show_list">Vis områdeansvarlige</a></td><td class="help"></td></tr>' :'').'
+	'.(user_is_admin() ? '<tr><td><a href="jc_area.php?action=show_update">Redigér områder</a></td><td class="help"></td></tr>' :'').'
 	
 	<tr><td colspan="2">-</td></tr>
 	<!-- <tr><td><a href="month.php">Kalendervisning</a></td><td class="help"></td></tr> --><!-- goto users startview, e.g. week.php or chosen view -->
