@@ -63,6 +63,22 @@ class Job {
 		}
 	}
 	
+	function getRemainingPersonsPercent() {
+		if ($this->totalNeed > 0) {
+			return round($this->remainingNeed/$this->totalNeed*100, 0);
+		} else {
+			return 0;
+		}
+	}
+	
+	function getRemainingHoursPercent() {
+		if ($this->totalHours > 0) {
+			return round($this->remainingHours/$this->totalHours*100, 0);
+		} else {
+			return 0;
+		}
+	}
+	
 	static function jobStatus($status) {
 		switch($status) {
 			case 'A':
