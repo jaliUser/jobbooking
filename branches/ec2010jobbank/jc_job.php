@@ -86,10 +86,10 @@ function sortByPersonsRemaining(Job $jobA, Job $jobB) {
 }
 
 function sortByPersonsRemainingPercent(Job $jobA, Job $jobB) {
-	if ($jobA->remainingNeed/$jobA->totalNeed == $jobB->remainingNeed/$jobB->totalNeed) {
+	if ($jobA->getRemainingPersonsPercent() == $jobB->getRemainingPersonsPercent()) {
 		return 0;
 	}
-	return ($jobA->remainingNeed/$jobA->totalNeed < $jobB->remainingNeed/$jobB->totalNeed) ? -1 : 1;
+	return ($jobA->getRemainingPersonsPercent() < $jobB->getRemainingPersonsPercent()) ? -1 : 1;
 }
 
 function sortByHoursNeeded(Job $jobA, Job $jobB) {
@@ -107,10 +107,10 @@ function sortByHoursRemaining(Job $jobA, Job $jobB) {
 }
 
 function sortByHoursRemainingPercent(Job $jobA, Job $jobB) {
-	if ($jobA->remainingHours/$jobA->totalHours == $jobB->remainingHours/$jobB->totalHours) {
+	if ($jobA->getRemainingHoursPercent() == $jobB->getRemainingHoursPercent()) {
 		return 0;
 	}
-	return ($jobA->remainingHours/$jobA->totalHours < $jobB->remainingHours/$jobB->totalHours) ? -1 : 1;
+	return ($jobA->getRemainingHoursPercent() < $jobB->getRemainingHoursPercent()) ? -1 : 1;
 }
 
 function sortHeader($sort, $header) {
@@ -222,7 +222,8 @@ function show_list() {
 		$job = Job::cast($job);
 		$area = Area::cast(getArea($job->id));
 		
-		if ($job->remainingNeed <= 0) {
+		//In vacant jobs list, filter those without need - implement in SQL instead
+		if (!empty($_GET['filter']) && $job->remainingNeed <= 0) {
 			continue;
 		}
 		
@@ -265,9 +266,9 @@ function show_list() {
 		echo "<td title='$area->description'>$area->name</td>
 				<td title='Behov'>$job->totalNeed</td>
 				<td title='Rest'>$job->remainingNeed</td>
-				<td title='Rest procent'>". round($job->remainingNeed/$job->totalNeed*100, 0) ."%</td>
+				<td title='Rest procent'>".$job->getRemainingPersonsPercent()."%</td>
 				".(user_is_admin() || $_GET['user_id'] == $login ? "<td title='".$job->getLongStatus()."'>".$job->getShortStatus()."</td>":'')."
-				".(user_is_admin() ?"<td>$job->priority</td><td>$job->totalHours</td><td>$job->remainingHours</td><td>". round($job->remainingHours/$job->totalHours*100, 0) ."%</td>":'')."
+				".(user_is_admin() ?"<td>$job->priority</td><td>$job->totalHours</td><td>$job->remainingHours</td><td>".$job->getRemainingHoursPercent()."%</td>":'')."
 				</tr>";
 		
 		$sumNeedPers += $job->totalNeed;
@@ -280,11 +281,11 @@ function show_list() {
 		echo "<tr><td colspan='9'>Total</td>
 				<td>$sumNeedPers</td>
 				<td>$sumRestPers</td>
-				<td>". round($sumRestPers/$sumNeedPers*100, 0) ."%</td>
+				<td>". ($sumNeedPers > 0 ? round($sumRestPers/$sumNeedPers*100, 0) : 0) ."%</td>
 				<td colspan='2'></td>
 				<td>$sumNeedHour</td>
 				<td>$sumRestHour</td>
-				<td>". round($sumRestHour/$sumNeedHour*100, 0) ."%</td>
+				<td>". ($sumNeedHour > 0 ? round($sumRestHour/$sumNeedHour*100, 0) : 0) ."%</td>
 				</tr>";
 	}
 	echo "</table>";
