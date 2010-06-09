@@ -287,7 +287,7 @@ function do_create() {
 	$end_hour = $_POST['end_hour'];
 	$end_min = $_POST['end_min'];
 	if (!valid_time($start_hour, $start_min) || !valid_time($end_hour, $end_min) || 
-		($start_hour == 00 && $start_min == 00 && $start_min == 00 && $start_min== 00 )) {
+		($start_hour == 00 && $start_min == 00 && $end_hour == 00 && $end_min == 00 )) {
 		echo print_error("Ugyldig tidsperiode!");
 		exit;
 	}
