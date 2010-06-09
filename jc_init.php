@@ -3,6 +3,7 @@ include_once 'includes/functions.php';
 include_once 'includes/dbi4php.php';
 
 include_once 'jc_functions.php';
+include_once 'jc_sms_func.php';
 
 include_once 'jc_area_func.php';
 include_once 'jc_day_func.php';

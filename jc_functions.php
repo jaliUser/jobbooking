@@ -117,6 +117,14 @@ if ((is_numeric($hour) && $hour >= 0 && $hour <= 23) &&
 	}
 }
 
+function getTimeText($job, $ts) {
+	if ($job->type == "WN") {
+		return " i tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->get_DD_MM_YYYY();
+	} else {
+		return "";
+	}
+}
+
 function get_caltime($hour, $min) {
 	if (strlen($min) != 2) {
 		$min = "0".$min;

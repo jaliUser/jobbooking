@@ -101,14 +101,6 @@ function deleteSignup(Signup $s) {
 	notifyUser($s->userID, $subject, $message);
 }
 
-function getTimeText($job, $ts) {
-	if ($job->type == "WN") {
-		return " i tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->get_DD_MM_YYYY();
-	} else {
-		return "";
-	}
-}
-
 function signupsContainsTimeslot($signups, $timeslotID) {
 	foreach ($signups as $signup) {
 		$signup = Signup::cast($signup);
