@@ -112,15 +112,6 @@ function sortByHoursRemainingPercent(Job $jobA, Job $jobB) {
 	return ($jobA->getRemainingHoursPercent() < $jobB->getRemainingHoursPercent()) ? -1 : 1;
 }
 
-function sortHeader($sort, $header) {
-	$url = $_SERVER['REQUEST_URI'];
-	//TODO: strip old sort
-	if ($_GET['sort'] == $sort) {
-		$header = "<span class='redalert'>$header</span>";
-	}
-	return "<a href=\"$url&sort=$sort\">$header</a>";
-}
-
 function show_list() {
 	global $PHP_SELF, $login, $site_id, $site_name, $showOthersSignups;
 	$site_id = (!empty($_GET['site_id']) ? $_GET['site_id'] : $site_id);

@@ -76,25 +76,47 @@ function show_helpers_limit() {
 	global $PHP_SELF, $login, $site_id, $site_name;
 	html_top("$site_name - Hjælpere over/under grænse");
 
+	if (empty($_GET['sort'])) {
+		$_GET['sort'] = "firstname"; //SETTING DEFAULT SORT
+	}
+	
 	$hourLimit = 7;
 	$usersWithSignups = listHelpersOverLimit($site_id);
 	$users = listUsers($site_id, 3);
+	
+	switch ($_GET['sort']) {
+		case "login":
+			usort($users, "User::sortByLogin");
+			break;
+		case "firstname":
+			usort($users, "User::sortByFirstname");
+			break;
+		case "count":
+			usort($users, "User::sortByCount");
+			break;
+		case "signups":
+			usort($users, "User::sortBySignups");
+			break;
+		case "signupsDuration":
+			usort($users, "User::sortBySignupsDuration");
+			break;
+	}
 	
 	echo '<h1>Hjælpere over/under grænse</h1>
 		<table align="center" class="border1">
 		<tr> 
 			<th>Handlinger</th>
-			<th>Brugernavn</th>
-			<th>Fuldt navn<br/><span class="help">Vis bruger</span></th>
+			<th>'.sortHeader("login", "Brugernavn").'</th>
+			<th>'.sortHeader("firstname", "Fuldt navn").'<br/><span class="help">Vis bruger</span></th>
 			<th>Klan/Pladsnr</th>
 			<th>E-mail</th>
 			<th>Telefon</th>
-			<th>Antal</th>
+			<th>'.sortHeader("count", "Antal").'</th>
 			<th>Noter (fuld tekst i ToolTip)</th>
-			<th title="Tilmeldinger">Tilme.</th>
-			<th>Timer</th>
+			<th title="Tilmeldinger">'.sortHeader("signups", "Tilme.").'</th>
+			<th>'.sortHeader("signupsDuration", "Timer").'</th>
 			<th title="Timer/person">T/p</th>
-			<th>Foretrukne</th>
+			<!-- <th>Foretrukne</th> -->
 			<th title="Ingen email">IM</th>
 			<th title="Er kontaktet">EK</th>
 		</tr>';
@@ -120,12 +142,12 @@ function show_helpers_limit() {
 			$countUnder++;
 		}
 		
-		$catString = "";
-		$categories = listUserJobCategories($user->login);
-		foreach ($categories as $cat) {
-			$cat = JobCategory::cast($cat);
-			$catString .= $cat->name . ", ";
-		}
+//		$catString = "";
+//		$categories = listUserJobCategories($user->login);
+//		foreach ($categories as $cat) {
+//			$cat = JobCategory::cast($cat);
+//			$catString .= $cat->name . ", ";
+//		}
 				
 		echo "<tr> 
 			<td><a href=\"jc_signup.php?action=show_mine&user_id=$user->login\">Tilmeldinger</a><br/>
@@ -140,13 +162,13 @@ function show_helpers_limit() {
 			<td>$user->signups</td>
 			<td>$user->signupsDuration</td>
 			<td>$user->signupsDurationEach</td>
-			<td>$catString</td>
+			<!-- <td>$catString</td>-->
 			<td>".one2x($user->noEmail)."</td>
 			<td>".one2x($user->isContacted)."</td>
 			</tr>";		
 	}
 
-	echo "<tr><td colspan='14'>
+	echo "<tr><td colspan='13'>
 			Antal <i>over $hourLimit</i>: $countOver<br/>
 			<b>Alle <i>over $hourLimit</i> kommasepareret:</b> $emailSumOver<br/><br/>
 			<b>Alle <i>over $hourLimit</i> semikolonsepareret:</b> ".str_replace(",",";",$emailSumOver)."
