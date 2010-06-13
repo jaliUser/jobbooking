@@ -75,6 +75,40 @@ class User {
 			return true;
 		}
 	}
-}
 
+	static function sortByFirstname(User $userA, User $userB) {
+		if ($userA->firstname == $userB->firstname) {
+			return 0;
+		}
+		return ($userA->firstname < $userB->firstname) ? -1 : 1;
+	}
+
+	static function sortByLogin(User $userA, User $userB) {
+		if ($userA->login == $userB->login) {
+			return 0;
+		}
+		return ($userA->login < $userB->login) ? -1 : 1;
+	}
+	
+	static function sortByCount(User $userA, User $userB) {
+		if ($userA->count == $userB->count) {
+			return 0;
+		}
+		return ($userA->count < $userB->count) ? -1 : 1;
+	}
+	
+	static function sortBySignups(User $userA, User $userB) {
+		if ($userA->signups == $userB->signups) {
+			return 0;
+		}
+		return ($userA->signups < $userB->signups) ? -1 : 1;
+	}
+	
+	static function sortBySignupsDuration(User $userA, User $userB) {
+		if ($userA->signupsDuration == $userB->signupsDuration) {
+			return 0;
+		}
+		return ($userA->signupsDuration < $userB->signupsDuration) ? -1 : 1;
+	}
+}
 ?>
