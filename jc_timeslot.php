@@ -394,6 +394,7 @@ function show_unassigned() {
 	global $PHP_SELF, $login, $site_id, $site_name;
 	html_top($site_name . " - Ikke-tildelte tidsperioder");
 	
+	$minutesInPast = 30;
 	$timeslots = listTimeslotsUnassigned($site_id);
 	
 	echo "<h1>Ikke-tildelte tidsperioder</h1>";
@@ -401,6 +402,10 @@ function show_unassigned() {
 			<th>Dato</th> <th>Tid</th> <th>Job</th> <th>Behov</th> <th>Rest</th> <th></th>';
 	
 	foreach ($timeslots as $timeslot) {
+		if ($timeslot->remainingNeed == 0 || $timeslot->getStartTS() < time()-60*$minutesInPast) {
+			continue;
+		}
+		
 		$timeslot = Timeslot::cast($timeslot);
 		$job = getJob($timeslot->jobID);
 		echo '<tr>
@@ -410,6 +415,46 @@ function show_unassigned() {
 				<td>'.$timeslot->personNeed.'</td>
 				<td '.($timeslot->remainingNeed > 0 ? 'class="redalert"':'').'>'.$timeslot->remainingNeed.'</td>
 				<td><a href="jc_timeslot.php?action=show_assign&job_id='.$timeslot->jobID.'">Tildel</a></td>';
+		echo '</tr>';
+	}		
+	echo '</table>';
+		
+	menu_link();
+}
+
+function show_list() {
+	global $PHP_SELF, $login, $site_id, $site_name;
+	$minutesInPast = 30;
+	
+	if (!empty($_GET['filter'])) {
+		html_top($site_name . " - Ledige tidsperioder");
+		echo "<h1>Ledige tidsperioder</h1>";
+	} else {
+		html_top($site_name . " - Alle tidsperioder");
+		echo "<h1>Alle tidsperioder</h1>";
+	}
+	
+	echo '<table align="center" class="border1">
+			<th>Dato</th> <th>Tid</th> <th>Job</th> <th>Behov</th> <th>Rest</th> <th></th>';
+	
+	$timeslots = listTimeslotsSite($site_id);
+	foreach ($timeslots as $timeslot) {
+		if (!empty($_GET['filter']) && ($timeslot->remainingNeed == 0 || $timeslot->getStartTS() < time()-60*$minutesInPast)) {
+			continue;
+		}
+		
+		$timeslot = Timeslot::cast($timeslot);
+		$job = getJob($timeslot->jobID);
+		echo '<tr>
+				<td>'.date("d/m", $timeslot->getStartTS()).'</td>
+				<td>'.date("H:i", $timeslot->getStartTS()).date(" - H:i", $timeslot->getEndTS()).'</td>
+				<td><a href="jc_job.php?action=show_one&job_id='.$timeslot->jobID.'">'.$job->name.'</a></td>
+				<td>'.$timeslot->personNeed.'</td>
+				<td '.($timeslot->remainingNeed > 0 ? 'class="redalert"':'').'>'.$timeslot->remainingNeed.'</td>
+				<td>
+					<a href="jc_signup.php?action=show_update&job_id='.$timeslot->jobID.'">Tilmeld</a><br/>
+					'.(user_is_admin() ? '<a href="jc_signup.php?action=show_list&job_id='.$timeslot->jobID.'">Vis tilmeldinger</a><br/>' : '').'
+					</td>';
 		echo '</tr>';
 	}		
 	echo '</table>';
@@ -431,6 +476,8 @@ if ($_REQUEST['action'] == 'show_update') {
 	show_mine();
 } elseif ($_REQUEST['action'] == 'show_unassigned') {
 	show_unassigned();
+} elseif ($_REQUEST['action'] == 'show_list') {
+	show_list();
 } else {
 	echo 'Error: Page parameter missing!';
 }

@@ -160,6 +160,29 @@ function listTimeslotsUnassigned($site_id) {
 	return $tsArr;
 }
 
+function listTimeslotsSite($site_id) {
+	$sql = 'SELECT we.cal_id, cal_date, cal_time, cal_duration, job_id, person_need, contact_id, SUM(count)
+			FROM webcal_entry we
+			LEFT JOIN webcal_entry_user weu ON we.cal_id=weu.cal_id
+			LEFT JOIN job j ON we.job_id=j.id 
+			WHERE person_need IS NOT NULL AND j.id=we.job_id AND j.site_id=?  
+			GROUP BY we.cal_id
+			ORDER BY cal_date, cal_time, cal_id';
+	$rows = dbi_get_cached_rows($sql, array($site_id));
+		
+	$tsArr = array();
+	for ($i=0; $i<count($rows); $i++) { 
+		$row = $rows[$i];		
+		$t = new Timeslot($row[0], $row[1], $row[2], $row[3], $row[4], $row[5], $row[6]);
+		if ($row[5] != 0) {
+			 $t->remainingNeed = $row[5] - $row[7];
+		}
+		$tsArr[] = $t;
+	}
+		
+	return $tsArr;
+}
+
 function listTimeslotWishes($user_id) {
 	$sql = 'SELECT we.cal_id, we.cal_date, we.cal_time, we.cal_duration, we.job_id, we.person_need, we.contact_id
 			FROM webcal_entry we
