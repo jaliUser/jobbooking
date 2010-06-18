@@ -125,6 +125,14 @@ function getTimeText($job, $ts) {
 	}
 }
 
+function getTimeTextShort($job, $ts) {
+	if ($job->type == "WN") {
+		return " kl ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->get_DD_MM_YYYY();
+	} else {
+		return "";
+	}
+}
+
 function get_caltime($hour, $min) {
 	if (strlen($min) != 2) {
 		$min = "0".$min;
