@@ -225,33 +225,47 @@ function listUsers($site_id, $role_id=null) {
 	for ($i=0; $i<count($rows); $i++) { 
 		$row = $rows[$i];
 		$u = new User($row[0], $row[1], $row[2], $row[3], $row[4], $row[5], $row[6], $row[7], $row[8], $row[9], $row[10], $row[11], $row[12], $row[13], $row[14], $row[15], $row[16], $row[17], $row[18], $row[19], $row[20], $row[21]);
-		$users[] = $u;
+		$users[$row[0]] = $u;
 	}
 	
 	return $users;
 }
 
-function listHelpersOverLimit($site_id) {
-	$sql = 'SELECT u.cal_login, u.cal_passwd, u.cal_lastname, u.cal_firstname, u.cal_is_admin, u.cal_email, u.cal_enabled, u.cal_telephone, u.cal_address, u.cal_title, u.cal_birthday, u.cal_last_login, u.role_id, u.site_id, u.group_id, u.count, u.age_range, u.qualifications, u.notes, u.ext_login, u.no_email, u.is_contacted, 
-			SUM(weu.count),
-			SUM(we.cal_duration*weu.count/60), 
-			SUM(we.cal_duration*weu.count/60)/u.count
-			FROM webcal_user u 
-			LEFT JOIN webcal_entry_user weu on weu.cal_login=u.cal_login
-			LEFT JOIN webcal_entry we on we.cal_id=weu.cal_id
-			WHERE site_id=? AND role_id=3 AND we.job_id >= 0
-			GROUP BY cal_login
-			ORDER BY cal_firstname';
-	$rows = dbi_get_cached_rows($sql, array($site_id));	
+function listUsersWithSignupInfo($site_id, $role_id = null) {
+	$users = listUsers($site_id, $role_id);
 	
-	$users = array(); 
+	if(!empty($role_id)) {
+		$sql = 'SELECT u.cal_login, 
+				SUM(weu.count),
+				SUM(we.cal_duration*weu.count/60), 
+				SUM(we.cal_duration*weu.count/60)/u.count
+				FROM webcal_user u 
+				LEFT JOIN webcal_entry_user weu on weu.cal_login=u.cal_login
+				LEFT JOIN webcal_entry we on we.cal_id=weu.cal_id
+				WHERE site_id=? AND role_id=? AND job_id > 0
+				GROUP BY cal_login';
+		$rows = dbi_get_cached_rows($sql, array($site_id, $role_id));
+	} else {
+		$sql = 'SELECT u.cal_login, 
+				SUM(weu.count),
+				SUM(we.cal_duration*weu.count/60), 
+				SUM(we.cal_duration*weu.count/60)/u.count
+				FROM webcal_user u 
+				LEFT JOIN webcal_entry_user weu on weu.cal_login=u.cal_login
+				LEFT JOIN webcal_entry we on we.cal_id=weu.cal_id
+				WHERE site_id=? AND job_id > 0
+				GROUP BY cal_login';
+		$rows = dbi_get_cached_rows($sql, array($site_id));
+	}
+	
+	//attach signup info to each user having signups (for jobs with id > 0)
 	for ($i=0; $i<count($rows); $i++) { 
-		$row = $rows[$i];
-		$u = new User($row[0], $row[1], $row[2], $row[3], $row[4], $row[5], $row[6], $row[7], $row[8], $row[9], $row[10], $row[11], $row[12], $row[13], $row[14], $row[15], $row[16], $row[17], $row[18], $row[19], $row[20], $row[21]);
-		$u->signups = $row[22];
-		$u->signupsDuration = round($row[23], 1);
-		$u->signupsDurationEach = round($row[24], 1);
-		$users[$row[0]] = $u;
+		$row = $rows[$i];		
+		if ($users[$row[0]] != null) {
+			$users[$row[0]]->signups = $row[1];
+			$users[$row[0]]->signupsDuration = round($row[2], 1);
+			$users[$row[0]]->signupsDurationEach = round($row[3], 1);
+		}
 	}
 	
 	return $users;

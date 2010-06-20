@@ -447,7 +447,7 @@ function show_list() {
 	
 	$timeslots = listTimeslotsSite($site_id);
 	foreach ($timeslots as $timeslot) {
-		if (!empty($_GET['filter']) && $timeslot->remainingNeed == 0 || $timeslot->getStartTS() < time()-30*60) {
+		if (!empty($_GET['filter']) && ($timeslot->remainingNeed == 0 || $timeslot->getStartTS() < time()-30*60)) {
 			continue;
 		}
 		
