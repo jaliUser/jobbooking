@@ -7,6 +7,8 @@ function show_update() {
 	global $PHP_SELF, $login, $site_id, $site_name;
 	html_top($site_name . " - Rediger behov");
 
+	$minutesBeforeUpdateFreeze = 120;
+	
 	$job = getJob($_GET['job_id']);
 	$job = Job::cast($job);
 	
@@ -64,9 +66,14 @@ function show_update() {
 
 		for ($dayNo=0; $dayNo<count($days); $dayNo++) {
 			$timeslot = Timeslot::cast($distinctTimeArr[$dayNo]);
-			echo '<td align="center">
-				<input type="text" name="timeslot-'.$timeslot->id.'" value="'.$timeslot->personNeed.'" size="1" maxlength="3"/>
-				</td>';
+			echo '<td align="center">';
+			if (time()+$minutesBeforeUpdateFreeze*60 > $timeslot->getStartTS() && !user_is_admin()) {
+				echo '<input type="text" value="'.$timeslot->personNeed.'" size="1" disabled class="disabled"/>
+					  <input type="hidden" name="timeslot-'.$timeslot->id.'" value="'.$timeslot->personNeed.'"/>';
+			} else {
+				echo '<input type="text" name="timeslot-'.$timeslot->id.'" value="'.$timeslot->personNeed.'" size="1" maxlength="3"/>';
+			}
+			echo '</td>';
 		}
 		echo '</tr>';
 	}
@@ -180,6 +187,7 @@ function do_update() {
 		$days = listDays($site_id);
 		$firstDay = Day::cast($days[0]);
 		$lastDay = Day::cast($days[count($days)-1]);
+		$job = getJob($_POST['job_id']);
 		$timeslots = listTimeslots($_POST['job_id']);
 		// no validation, just remove person_need if non-numeric or negative
 		foreach ($timeslots as $ts) {
@@ -196,10 +204,11 @@ function do_update() {
 				echo print_error('Sluttidspunktet for '.$ts->date.' '.$ts->getEndHour().':'.$ts->getEndMin().' ligger efter det senest mulige.');
 				exit;
 			}
-			updateTimeslotNeed($ts->id, $_POST['timeslot-'.$ts->id]);
+			
+			if ($ts->personNeed != $_POST['timeslot-'.$ts->id]) {
+				updateTimeslotNeed($ts, $job, $_POST['timeslot-'.$ts->id]);
+			}
 		}
-		
-		notifyAdminUnnecessaryNeeds($ts->jobID);
 	}
 	
 	do_redirect($PHP_SELF.'?action=show_update&job_id='.$_POST['job_id']);

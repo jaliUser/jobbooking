@@ -282,6 +282,14 @@ function sqlNULL($obj) {
 	return "NULL";
 }
 
+function DBint($val) {
+	if (is_numeric($val)) {
+		return $val;
+	} else {
+		return null;
+	}
+}
+
 function vname(&$var, $scope=false, $prefix='unique', $suffix='value') {
     if($scope) $vals = $scope;
     else      $vals = $GLOBALS;

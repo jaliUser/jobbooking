@@ -26,7 +26,7 @@ echo '
 	<tr><td><a href="jc_timeslot.php?action=show_list&filter=vacant">Vis ledige tidsperioder</a></td><td class="help"></td></tr>
 	'.(user_is_admin() ? '<tr><td><a href="jc_timeslot.php?action=show_list">Vis alle tidsperioder</a></td><td class="help"></td></tr>' :'').'
 	
-	'.(user_is_admin() || user_is_helper() ? '<tr><td colspan="2">-</td></tr>
+	'.(!user_is_arearesponsible() ? '<tr><td colspan="2">-</td></tr>
 	<!--
 	<tr><td><a href="jc_wishes.php?action=show_update">Vis/redigér mine ledighedsperioder</a></td><td class="help">Perioder hvor du/I stiller dig/Jer til rådighed.</td></tr>
 	<tr><td><a href="jc_signup.php?action=show_blockings">Redigér mine blokeringer</a></td><td class="help">Perioder hvor du/I ikke kan blive tildelt arbejde.</td></tr>
