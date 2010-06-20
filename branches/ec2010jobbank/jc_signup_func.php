@@ -7,7 +7,7 @@ function createSignup(Signup $s) {
 	//cal_id + cal_login is primary key
 	$sql = "INSERT INTO webcal_entry_user (cal_id, cal_login, cal_status, cal_category, cal_percent, count, notes, def_date, def_user, upd_user) 
 			VALUES (?,?,?,?,?,?,?,now(),'$login','$login')";
-	dbi_execute($sql, array($s->timeslotID, $s->userID, $s->status, $s->category, $s->percent, $s->count, $s->notes));
+	dbi_execute($sql, array($s->timeslotID, $s->userID, $s->status, $s->category, intval($s->percent), $s->count, $s->notes));
 
 	dbi_clear_cache();
 	
@@ -31,17 +31,23 @@ function createSignup(Signup $s) {
 	$user = getUser($s->userID);
 	$message = "Hej ".$user->getFullNameAndLogin()."\r\n".
 				"\r\n".
-				"Du er nu tilmeldt job '".$job->name."'".getTimeText($job, $ts)." med ".$s->count." personer.\r\n";	
+				"Du er nu tilmeldt job '".$job->name."'".getTimeText($job, $ts)." med ".$s->count." personer.\r\n";
+	if ($login != $s->userID) {
+		$editUser = getUser($login);
+		$message .= "\r\nTilmeldingen er foretaget af: ".$editUser->getFullName().".\r\n";
+	}
 
 	notifyUser($s->userID, $subject, $message);
 }
 
 function updateSignup(Signup $s) {
 	global $login;
+	$oldSignup = getSignup($s->timeslotID, $s->userID);
+	
 	//cal_id + cal_login is primary key
 	$sql = "UPDATE webcal_entry_user SET cal_status=?, cal_category=?, cal_percent=?, count=?, notes=?, upd_user='$login' 
 			WHERE cal_id=? AND cal_login=?";
-	dbi_execute($sql, array($s->status, $s->category, $s->percent, $s->count, $s->notes, $s->timeslotID, $s->userID));
+	dbi_execute($sql, array($s->status, $s->category, DBint($s->percent), $s->count, $s->notes, $s->timeslotID, $s->userID));
 
 	dbi_clear_cache();
 	
@@ -65,12 +71,19 @@ function updateSignup(Signup $s) {
 	$user = getUser($s->userID);
 	$message = "Hej ".$user->getFullNameAndLogin()."\r\n".
 				"\r\n".
-				"Din tilmelding til job '".$job->name."'".getTimeText($job, $ts)." er nu opdateret med ".$s->count." personer.\r\n";	
+				"Din tilmelding til job '".$job->name."'".getTimeText($job, $ts)." er nu ændret fra $oldSignup->count til ".$s->count." personer.\r\n";
+	if ($login != $s->userID) {
+		$editUser = getUser($login);
+		$message .= "\r\nOpdateringen er foretaget af: ".$editUser->getFullName().".\r\n";
+	}
 
 	notifyUser($s->userID, $subject, $message);
 }
 
 function deleteSignup(Signup $s) {
+	global $login;
+	$oldSignup = getSignup($s->timeslotID, $s->userID);
+	
 	$sql = 'DELETE FROM webcal_entry_user WHERE cal_id=? AND cal_login=?';
 	dbi_execute($sql, array($s->timeslotID, $s->userID));
 
@@ -96,9 +109,25 @@ function deleteSignup(Signup $s) {
 	$user = getUser($s->userID);
 	$message = "Hej ".$user->getFullNameAndLogin()."\r\n".
 				"\r\n".
-				"Din tilmelding til job '".$job->name."'".getTimeText($job, $ts)." er nu slettet.\r\n";	
+				"Din tilmelding til job '".$job->name."'".getTimeText($job, $ts)." med $oldSignup->count personer er nu slettet.\r\n";
+	if ($login != $s->userID) {
+		$editUser = getUser($login);
+		$message .= "\r\nSletningen er foretaget af: ".$editUser->getFullName().".\r\n";
+	}
 
 	notifyUser($s->userID, $subject, $message);
+}
+
+function updateEval(Signup $s) {
+	global $login;
+	
+	//use old updDate to maintain date for actual signup, instead of overwriting with date for eval
+	//cal_id + cal_login is primary key
+	$sql = "UPDATE webcal_entry_user SET cal_percent=?, notes=?, upd_date=? 
+			WHERE cal_id=? AND cal_login=?";
+	dbi_execute($sql, array(DBint($s->percent), $s->notes, $s->updDate, $s->timeslotID, $s->userID));
+
+	dbi_clear_cache();
 }
 
 function signupsContainsTimeslot($signups, $timeslotID) {

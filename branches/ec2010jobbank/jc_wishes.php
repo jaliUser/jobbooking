@@ -191,7 +191,7 @@ function do_update() {
 			echo print_error('Sluttidspunktet for '.$ts->date.' '.$ts->getEndHour().':'.$ts->getEndMin().' ligger efter det senest mulige.');
 			exit;
 		}
-		updateTimeslotNeed($ts->id, $_POST['timeslot-'.$ts->id]);
+		updateTimeslotWishes($ts->id, $_POST['timeslot-'.$ts->id]);
 	}
 	do_redirect($PHP_SELF.'?action=show_update&user_id='.$_POST['user_id']);
 }

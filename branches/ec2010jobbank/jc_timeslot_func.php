@@ -23,7 +23,52 @@ function createTimeslot(Timeslot $t) {
 	return $id;
 }
 
-function updateTimeslotNeed($timeslot_id, $person_need) {
+function updateTimeslotNeed(Timeslot $ts, Job $job, $person_need) {
+	global $login;
+	if (is_numeric($person_need) && intval($person_need) > 0) {
+		//update existing person_need
+		$sql = "UPDATE webcal_entry SET person_need=?, upd_user='$login' WHERE cal_id=?";
+		dbi_execute($sql, array($person_need, $ts->id));
+		
+		$diffNeed = $person_need - $ts->personNeed;
+		$newRemainingNeed = $ts->remainingNeed + $diffNeed;
+		if ($newRemainingNeed < 0) {
+			$subject = "Behov nedjusteret: JobID $job->id overbemandet med ".-1*$newRemainingNeed;
+			$message = "Behovet".getTimeText($job, $ts)." for job '".$job->name."'\r\n".
+						"er netop blevet nedjusteret fra $ts->personNeed til $person_need personer,\r\n".
+						"så der nu er overbemanding med ".-1*$newRemainingNeed." personer.\r\n".
+						"TODO: Find nye jobs/tidsperioder til de overskydende!\r\n";
+			
+			notifyAdmin($subject, $message);
+		}
+	} else {
+		//clear previous person_need
+		$sql = "UPDATE webcal_entry SET person_need=NULL, upd_user='$login' WHERE cal_id=?";
+		dbi_execute($sql, array($ts->id));
+		
+		$deletedSignupUsernames = "";
+		$signups = listTimeslotSignups($ts->id);
+		foreach ($signups as $signup) {
+			//delete signup and notify user
+			deleteSignup($signup);
+			$deletedSignupUsernames .= "$signup->userID, ";
+		}
+		
+		if (count($signups) > 0) {
+			$subject = "Behov på tidsperiode er slettet";
+			$message = "Behovet".getTimeText($job, $ts)." for job '".$job->name."' er netop blevet slettet.\r\n".
+						"Følgende brugernavne var tilmeldt og deres tilmeldinger er blevet slettet.\r\n".
+						"TODO: Find nye jobs/tidsperioder til disse personer!\r\n\r\n".
+						"Brugernavne: $deletedSignupUsernames\r\n";
+			
+			notifyAdmin($subject, $message);
+		}
+	}
+
+	dbi_clear_cache();
+}
+
+function updateTimeslotWished($timeslot_id, $person_need) {
 	global $login;
 	if (is_numeric($person_need) && intval($person_need) > 0) {
 		$sql = "UPDATE webcal_entry SET person_need=?, upd_user='$login' WHERE cal_id=?";
@@ -363,21 +408,6 @@ function notifyOrUnsignupTimeslotAttendees(Timeslot $t, Timeslot $oldTS) {
 		}
 		
 		notifyUser($contact->login, $subject, $message);
-	}
-}
-
-function notifyAdminUnnecessaryNeeds($job_id) {
-	$timeslots = listTimeslots($job_id);
-	foreach ($timeslots as $ts) {
-		$ts = Timeslot::cast($ts);
-		if ($ts->remainingNeed < 0) {
-			//NOTE: this can also be triggered without need being reduced - too many people signed up and needs just updated with same values
-			$subject = "JobID $job_id overbemandet med ".-1*$ts->remainingNeed." (TidsperiodeID ".$ts->id.")";
-			$message = "Tidsperiode ".$ts->id." under job $job_id er blevet endjusteret med behov, \r\n".
-						"så der nu er overbemanding med ".-1*$ts->remainingNeed." personer - DO SOMETHING!";
-			
-			notifyAdmin($subject, $message);
-		}
 	}
 }
 
