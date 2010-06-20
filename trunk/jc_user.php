@@ -81,8 +81,7 @@ function show_helpers_limit() {
 	}
 	
 	$hourLimit = 7;
-	$usersWithSignups = listHelpersOverLimit($site_id);
-	$users = listUsers($site_id, 3);
+	$users = listUsersWithSignupInfo($site_id, 3);
 	
 	switch ($_GET['sort']) {
 		case "login":
@@ -100,6 +99,9 @@ function show_helpers_limit() {
 		case "signupsDuration":
 			usort($users, "User::sortBySignupsDuration");
 			break;
+		case "signupsDurationEach":
+			usort($users, "User::sortBySignupsDurationEach");
+			break;
 	}
 	
 	echo '<h1>Hjælpere over/under grænse</h1>
@@ -115,7 +117,7 @@ function show_helpers_limit() {
 			<th>Noter (fuld tekst i ToolTip)</th>
 			<th title="Tilmeldinger">'.sortHeader("signups", "Tilme.").'</th>
 			<th>'.sortHeader("signupsDuration", "Timer").'</th>
-			<th title="Timer/person">T/p</th>
+			<th title="Timer/person">'.sortHeader("signupsDurationEach", "T/p").'</th>
 			<!-- <th>Foretrukne</th> -->
 			<th title="Ingen email">IM</th>
 			<th title="Er kontaktet">EK</th>
@@ -125,9 +127,6 @@ function show_helpers_limit() {
 	$countOver = 0;
 	$countUnder = 0;
 	foreach ($users as $user) {
-		if ($usersWithSignups[$user->login] != null) {
-			$user = $usersWithSignups[$user->login];
-		}
 		$user = User::cast($user);
 		
 		if ($user->signupsDurationEach >= $hourLimit) {
