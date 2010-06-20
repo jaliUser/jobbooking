@@ -36,6 +36,15 @@ function one2x($char) {
 	}
 }
 
+function sortHeader($sort, $header) {
+	$url = $_SERVER['REQUEST_URI'];
+	//TODO: strip old sort
+	if ($_GET['sort'] == $sort) {
+		$header = "<span class='redalert'>$header</span>";
+	}
+	return "<a href=\"$url&sort=$sort\">$header</a>";
+}
+
 function referer_action() {
 	$actionStart = strpos($_SERVER['HTTP_REFERER'], "action=") + 7;
 	$actionEnd = strpos($_SERVER['HTTP_REFERER'], "&", $actionStart);
@@ -271,6 +280,14 @@ function sqlNULL($obj) {
 		return $obj;
 	}
 	return "NULL";
+}
+
+function DBint($val) {
+	if (is_numeric($val)) {
+		return $val;
+	} else {
+		return null;
+	}
 }
 
 function vname(&$var, $scope=false, $prefix='unique', $suffix='value') {

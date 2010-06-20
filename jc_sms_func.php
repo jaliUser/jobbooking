@@ -30,7 +30,7 @@ function smsPhoneList($phoneArray, $message) {
 			$numberList .= $number.$numberSeparator;
 		} else {
 			//log invalid number
-			notifyUser("tho", "Invalid phone number: $number", "");
+			notifyAdmin("Ugyldigt nummer: $number", "", $siteConfig);
 		}
 	}
 	$numberList = trim($numberList, $numberSeparator);
@@ -39,12 +39,9 @@ function smsPhoneList($phoneArray, $message) {
 		$headers = get_mail_headers($siteConfig, true); //true=NoAdminCC
 		$sent = mail($smsEmail, $numberList, $message, $headers);
 		if ($sent == true) {
-//			notifyAdmin("SMS afsendelse succes", "$numberList\r\n\r\n$message\r\n", $siteConfig);
-			//notifyUser("tho", "SMS afsendelse succes", date("H:i:s Y-m-d", mktime())."\r\n\r\n$numberList\r\n\r\n$message\r\n", $siteConfig);
-			mail("tho@thodata.dk", "SMS afsendelse succes", date("H:i:s Y-m-d", mktime())."\r\n\r\n$numberList\r\n\r\n$message\r\n");
+			notifyAdmin("SMS afsendelse succes", date("H:i:s Y-m-d", mktime())."\r\n\r\n $numberList \r\n\r\n $message \r\n", $siteConfig);
 		} else {
-//			notifyAdmin("SMS afsendelse fejlet", "$numberList\r\n\r\n$message\r\n", $siteConfig);
-			notifyUser("tho", "SMS afsendelse fejlet", date("H:i:s Y-m-d", mktime())."\r\n\r\n$numberList\r\n\r\n$message\r\n", $siteConfig);
+			notifyAdmin("SMS afsendelse fejlet", date("H:i:s Y-m-d", mktime())."\r\n\r\n $numberList \r\n\r\n $message \r\n", $siteConfig);
 		}
 	}
 }
