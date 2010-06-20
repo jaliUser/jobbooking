@@ -110,5 +110,12 @@ class User {
 		}
 		return ($userA->signupsDuration < $userB->signupsDuration) ? -1 : 1;
 	}
+	
+	static function sortBySignupsDurationEach(User $userA, User $userB) {
+		if ($userA->signupsDurationEach == $userB->signupsDurationEach) {
+			return 0;
+		}
+		return ($userA->signupsDurationEach < $userB->signupsDurationEach) ? -1 : 1;
+	}
 }
 ?>
