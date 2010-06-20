@@ -227,12 +227,12 @@ function show_list() {
 		if(user_is_admin() || $job->ownerID == $login) {
 			echo "<a href='$PHP_SELF?action=show_update&job_id=$job->id'>Redigér&nbsp;job</a><br>";
 			if ($job->type == "WN") {
-				echo "<a href='jc_timeslot.php?action=show_update&job_id=$job->id'>Redigér&nbsp;behov</a><br>";
+				echo "<a href='jc_timeslot.php?action=show_update&job_id=$job->id'>Redigér&nbsp;behov</a><br>
+					  <a href='jc_signup.php?action=show_evals&job_id=$job->id'>Redigér&nbsp;tilbagemeldinger</a><br>";
 			}
 		}
 		if(user_is_admin() && $job->type == "WN") {
-			echo "<a href='jc_timeslot.php?action=show_assign&job_id=$job->id'>Tilknyt&nbsp;jobkonsulenter</a><br>
-				  <a href='jc_signup.php?action=show_evals&job_id=$job->id'>Redigér&nbsp;evalueringer</a>";
+			echo "<a href='jc_timeslot.php?action=show_assign&job_id=$job->id'>Tilknyt&nbsp;jobkonsulenter</a>";
 		}
 		if(user_is_arearesponsible() && !empty($_GET['user_id']) && !empty($_GET['status'])) {
 			echo "<a href='$PHP_SELF?action=do_approve&job_id=$job->id'>Godkend</a>";

@@ -7,7 +7,7 @@ function createSignup(Signup $s) {
 	//cal_id + cal_login is primary key
 	$sql = "INSERT INTO webcal_entry_user (cal_id, cal_login, cal_status, cal_category, cal_percent, count, notes, def_date, def_user, upd_user) 
 			VALUES (?,?,?,?,?,?,?,now(),'$login','$login')";
-	dbi_execute($sql, array($s->timeslotID, $s->userID, $s->status, $s->category, $s->percent, $s->count, $s->notes));
+	dbi_execute($sql, array($s->timeslotID, $s->userID, $s->status, $s->category, intval($s->percent), $s->count, $s->notes));
 
 	dbi_clear_cache();
 	
@@ -47,7 +47,7 @@ function updateSignup(Signup $s) {
 	//cal_id + cal_login is primary key
 	$sql = "UPDATE webcal_entry_user SET cal_status=?, cal_category=?, cal_percent=?, count=?, notes=?, upd_user='$login' 
 			WHERE cal_id=? AND cal_login=?";
-	dbi_execute($sql, array($s->status, $s->category, $s->percent, $s->count, $s->notes, $s->timeslotID, $s->userID));
+	dbi_execute($sql, array($s->status, $s->category, DBint($s->percent), $s->count, $s->notes, $s->timeslotID, $s->userID));
 
 	dbi_clear_cache();
 	
@@ -116,6 +116,18 @@ function deleteSignup(Signup $s) {
 	}
 
 	notifyUser($s->userID, $subject, $message);
+}
+
+function updateEval(Signup $s) {
+	global $login;
+	
+	//use old updDate to maintain date for actual signup, instead of overwriting with date for eval
+	//cal_id + cal_login is primary key
+	$sql = "UPDATE webcal_entry_user SET cal_percent=?, notes=?, upd_date=? 
+			WHERE cal_id=? AND cal_login=?";
+	dbi_execute($sql, array(DBint($s->percent), $s->notes, $s->updDate, $s->timeslotID, $s->userID));
+
+	dbi_clear_cache();
 }
 
 function signupsContainsTimeslot($signups, $timeslotID) {

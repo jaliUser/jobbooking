@@ -87,6 +87,8 @@ function show_update() {
 	global $PHP_SELF, $login, $site_id, $site_name;
 	html_top($site_name . " - Tilmelding til job");
 	
+	$minutesBeforeUpdateFreeze = 120;
+	
 	$job = getJob($_GET['job_id']);
 	$job = Job::cast($job);
 	
@@ -136,9 +138,17 @@ function show_update() {
 			$timeslot = Timeslot::cast($distinctTimeArr[$dayNo]);
 			$signup = $signups[$timeslot->id];
 			echo '<td align="center">
-				<input type="text" name="required-'.$timeslot->id.'" value="'.$timeslot->remainingNeed.'" size="1" maxlength="3" disabled class="disabled"/>
-				<input type="text" name="signup-'.$timeslot->id.'" value="'.$signup->count.'" size="1" maxlength="3" '.($timeslot->remainingNeed > 0 || $signup->count > 0 ? '':'disabled').'/>
-				<input type="hidden" name="notes-'.$timeslot->id.'" value="'.$signup->notes.'"/>
+				<input type="text" value="'.$timeslot->remainingNeed.'" size="1" disabled class="disabled"/>';
+
+			if (time()+$minutesBeforeUpdateFreeze*60 > $timeslot->getStartTS() && !user_is_admin()) {
+				echo '<input type="text" value="'.$signup->count.'" size="1" disabled class="disabled"/>
+					  <input type="hidden" name="signup-'.$timeslot->id.'" value="'.$signup->count.'"/>';
+			} else {
+				echo '<input type="text" name="signup-'.$timeslot->id.'" value="'.$signup->count.'" size="1" maxlength="3" '.($timeslot->remainingNeed > 0 || $signup->count > 0 ? '':'disabled').'/>';
+			}
+			
+			echo '<input type="hidden" name="notes-'.$timeslot->id.'" value="'.$signup->notes.'"/>
+				  <input type="hidden" name="percent-'.$timeslot->id.'" value="'.$signup->percent.'"/>
 				</td>';
 		}
 		echo '</tr>';
@@ -210,7 +220,7 @@ function do_update() {
 			exit;
 		}
 
-		$signup = new Signup($ts->id, $_POST['user_id'], 'A', null, 0, $_POST['signup-'.$ts->id], $_POST['notes-'.$ts->id]);
+		$signup = new Signup($ts->id, $_POST['user_id'], 'A', null, $_POST['percent-'.$ts->id], $_POST['signup-'.$ts->id], $_POST['notes-'.$ts->id]);
 		
 		//check user has not more than X blockings
 		$userBlockSignups = listJobUserSignups(-1, $_POST['user_id']);
@@ -504,17 +514,22 @@ function show_list_noneed() {
 function show_evals() {
 	reject_public_access();
 	global $PHP_SELF, $login, $site_id, $site_name;
-	html_top($site_name . " - Evaluering af job");
+	html_top($site_name . " - Tilbagemeldinger på job");
 	
 	$job = Job::cast(getJob($_GET['job_id']));
 	$user = User::cast(getUser($login));
 
 	$days = listDays($site_id);
-	$signups = listJobSignups($job->id);	
+	$signups = listJobSignups($job->id);
 	$timeslots = listTimeslotsByDate($job->id);
 	$groupedTimeslots = groupTimeslotsByDate($timeslots);
 	
-	echo "<h1>Evaluering af <i> $job->name</i></h1>";
+	echo "<h1>Tilbagemeldinger på <i>$job->name</i></h1>";
+	
+	if (!empty($_GET['submit'])) {
+		echo '<p align="center" class="redalert">Din tilbagemelding er nu opdateret.</p>';
+	}
+	
 	echo '<table align="center" class="border1" >
 			<form action="'.$PHP_SELF.'" method="POST">';
 	
@@ -532,22 +547,59 @@ function show_evals() {
 				$signup = Signup::cast($signup);
 				if ($signup->timeslotID == $timeslot->id) {
 					$user = getUser($signup->userID);
-					echo '<tr>'."<td><a href=\"jc_user.php?action=show_one&login=$user->login\">".$user->getFullName()."</a></td>".'
-							  <td><input type="text" name="notes-'.$signup->timeslotID.'~'.$signup->userID.'" value="" size="100" maxlength="255" /></td>
-							  <td align="center">'.$signup->count.'</td>
-							  <td align="center"><input type="text" name="percent-'.$signup->timeslotID.'~'.$signup->userID.'" size="1" maxlength="3"/></td></tr>';
+					echo "<tr><td><a href='jc_user.php?action=show_one&login=$user->login'>".$user->getFullName()."</a></td>
+							  <td><input type='text' name='notes-$signup->timeslotID--$signup->userID' value='$signup->notes' size='100' maxlength='255' /></td>
+							  <td align='center'>$signup->count</td>
+							  <td align='center'><input type='text' name='percent-$signup->timeslotID--$signup->userID' value='$signup->percent' size='1' maxlength='3'/></td></tr>";
 				}
 			}
 		}
 	}
 	
 	echo '<tr><td colspan="4"><input type="submit" value="Opdatér"/></td></tr>
-		<input type="hidden" name="action" value="do_evals">
+		<input type="hidden" name="action" value="update_evals">
 		<input type="hidden" name="job_id" value="'.$job->id.'">
 		</form>';
 	echo '</table>';
 	
 	menu_link();
+}
+
+function update_evals() {
+	reject_public_access();
+	global $PHP_SELF;
+	
+	$timeslots = listTimeslots($_POST['job_id']);
+	$signups = listJobSignups($_POST['job_id']);
+	
+	$error = "";
+	if (empty($_POST['job_id'])) {
+		$error .= "JobID mangler.<br>";
+	}
+	foreach ($timeslots as $timeslot) {
+		if (!empty($_POST["percent-$timeslot->id"]) && !is_numeric($_POST["percent-$timeslot->id"])) {
+			$error .= "Ugyldigt antal.<br>";
+		}
+	}
+	if (!empty($error)) {
+		echo print_error($error);
+		exit;
+	}
+	
+	foreach ($timeslots as $timeslot) {
+		//TODO: use dictionery
+		foreach ($signups as $signup) {
+			if ($signup->timeslotID == $timeslot->id) {
+				if ($_POST["percent-$signup->timeslotID--$signup->userID"] != $signup->percent || $_POST["notes-$signup->timeslotID--$signup->userID"] != $signup->notes) {
+					$signup->percent = $_POST["percent-$signup->timeslotID--$signup->userID"];
+					$signup->notes = $_POST["notes-$signup->timeslotID--$signup->userID"];
+					updateEval($signup);
+				}
+			}
+		}
+	}
+	
+	do_redirect($PHP_SELF.'?action=show_evals&job_id='.$_POST['job_id'].'&submit=1');
 }
 
 function show_mine() {
@@ -626,6 +678,8 @@ if ($_REQUEST['action'] == 'show_update') {
 	show_list_noneed();
 } elseif ($_REQUEST['action'] == 'show_evals') {
 	show_evals();
+} elseif ($_REQUEST['action'] == 'update_evals') {
+	update_evals();
 } elseif ($_REQUEST['action'] == 'show_mine') {
 	show_mine();
 } else {
