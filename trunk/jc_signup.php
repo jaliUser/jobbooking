@@ -123,8 +123,10 @@ function show_update() {
 	foreach ($days as $day) {
 		echo '<td><table class="border0" width="100%"><tr><td align="center">'.vertical("Behov").'</td><td align="center">'.vertical("Tilmeld").'</td></tr></table></td>';
 	}
-	echo '</tr>';
-	
+	echo "</tr>\r\n";
+
+	$hiddenPercent = "";
+	$hiddenNotes = "";
 	$signups = listJobUserSignups($job->id, $user->login);
 	$timeslots = listTimeslots($job->id);
 	$groupedTimeslots = groupTimeslotsByTime($timeslots);
@@ -137,29 +139,32 @@ function show_update() {
 		for ($dayNo=0; $dayNo<count($days); $dayNo++) {
 			$timeslot = Timeslot::cast($distinctTimeArr[$dayNo]);
 			$signup = $signups[$timeslot->id];
-			echo '<td align="center">
-				<input type="text" value="'.$timeslot->remainingNeed.'" size="1" disabled class="disabled"/>';
 
-			if (time()+$minutesBeforeUpdateFreeze*60 > $timeslot->getStartTS() && !user_is_admin()) {
-				echo '<input type="text" value="'.$signup->count.'" size="1" disabled class="disabled"/>
-					  <input type="hidden" name="signup-'.$timeslot->id.'" value="'.$signup->count.'"/>';
-			} else {
-				echo '<input type="text" name="signup-'.$timeslot->id.'" value="'.$signup->count.'" size="1" maxlength="3" '.($timeslot->remainingNeed > 0 || $signup->count > 0 ? '':'disabled').'/>';
+			echo '<td align="center">'.$timeslot->remainingNeed.'&nbsp;&nbsp;';
+			if ($timeslot->remainingNeed > 0 || $signup->count > 0) {
+				if (time()+$minutesBeforeUpdateFreeze*60 > $timeslot->getStartTS() && !user_is_admin()) {
+					echo $signup->count;
+				} else {
+					echo '<input type="text" name="signup-'.$timeslot->id.'" value="'.$signup->count.'" size="1" maxlength="3"/>';
+					$hiddenPercent .= "$timeslot->id=$signup->percent;";
+					$hiddenNotes .= "$timeslot->id=$signup->notes;";
+				}
 			}
-			
-			echo '<input type="hidden" name="notes-'.$timeslot->id.'" value="'.$signup->notes.'"/>
-				  <input type="hidden" name="percent-'.$timeslot->id.'" value="'.$signup->percent.'"/>
-				</td>';
+			echo "</td>\r\n";
 		}
-		echo '</tr>';
+		echo "</tr>\r\n";
 	}
 	if ($_GET['job_id'] > 0) {
 		echo '<tr><td colspan="'.(count($days)+1).'"><input type="checkbox" name="override_double_booking"/>Gennemtving tilmelding på trods af dobbeltbookning (overlappende tidsperioder)</td></tr>';
 	}
-	echo '<tr><td colspan="'.(count($days)+1).'"><input type="submit" value="Opdatér"/></td></tr>
-		<input type="hidden" name="action" value="do_update">
-		<input type="hidden" name="job_id" value="'.$job->id.'">
-		<input type="hidden" name="user_id" value="'.$user->login.'">
+	
+	echo '<tr><td colspan="'.(count($days)+1).'">
+		<input type="hidden" name="action" value="do_update"/>
+		<input type="hidden" name="job_id" value="'.$job->id.'"/>
+		<input type="hidden" name="user_id" value="'.$user->login.'"/>
+		<input type="hidden" name="percent" value="'.$hiddenPercent.'"/>
+		<input type="hidden" name="notes" value="'.$hiddenNotes.'"/>
+		<input type="submit" value="Opdatér"/></td></tr>
 		</form>';
 	echo '</table>';
 	
@@ -198,7 +203,7 @@ function show_update() {
 
 function do_update() {
 	reject_public_access();
-	global $PHP_SELF;
+	global $PHP_SELF, $login;
 	//require_params($_POST['job_id'], $_POST['user_id']);
 	$error = "";
 	if (empty($_POST['job_id'])) {
@@ -212,15 +217,33 @@ function do_update() {
 		exit;
 	}
 	
+	$notesArray = array();
+	$notesPairs = explode(";", $_POST['notes']);
+	foreach ($notesPairs as $pair) {
+		$idAndValue = explode("=", $pair);
+		$notesArray[$idAndValue[0]] = $idAndValue[1]; 
+	}
+	
+	$percentArray = array();
+	$percentPairs = explode(";", $_POST['percent']);
+	foreach ($percentPairs as $pair) {
+		$idAndValue = explode("=", $pair);
+		$percentArray[$idAndValue[0]] = $idAndValue[1]; 
+	}
+	
 	$timeslots = listTimeslots($_POST['job_id']);
 	foreach ($timeslots as $ts) {
 		$ts = Timeslot::cast($ts);
+		if (!isset($_POST['signup-'.$ts->id])) {
+			continue;
+		}
+		
 		if (!Signup::isValidCount($_POST['signup-'.$ts->id])) {
 			echo print_error("Ugyldigt antal for ".date("d/m H:i", $ts->getStartTS()).date(" - H:i", $ts->getEndTS()));
 			exit;
 		}
 
-		$signup = new Signup($ts->id, $_POST['user_id'], 'A', null, $_POST['percent-'.$ts->id], $_POST['signup-'.$ts->id], $_POST['notes-'.$ts->id]);
+		$signup = new Signup($ts->id, $_POST['user_id'], 'A', null, $percentArray[$ts->id], $_POST['signup-'.$ts->id], $notesArray[$ts->id]);
 		
 		//check user has not more than X blockings
 		$userBlockSignups = listJobUserSignups(-1, $_POST['user_id']);

@@ -7,7 +7,7 @@ function createSignup(Signup $s) {
 	//cal_id + cal_login is primary key
 	$sql = "INSERT INTO webcal_entry_user (cal_id, cal_login, cal_status, cal_category, cal_percent, count, notes, def_date, def_user, upd_user) 
 			VALUES (?,?,?,?,?,?,?,now(),'$login','$login')";
-	dbi_execute($sql, array($s->timeslotID, $s->userID, $s->status, $s->category, intval($s->percent), $s->count, $s->notes));
+	dbi_execute($sql, array($s->timeslotID, $s->userID, $s->status, $s->category, DBint($s->percent), $s->count, $s->notes));
 
 	dbi_clear_cache();
 	
