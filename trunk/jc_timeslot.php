@@ -444,7 +444,14 @@ function show_list() {
 	}
 	
 	echo '<table align="center" class="border1">
-			<th>Dato</th> <th>Tid</th> <th>Job</th> <th>Behov</th> <th>Rest</th> <th></th>';
+			<th>Dato</th>
+			<th>Tid</th>
+			<th>ID</th>
+			<th>Job navn</th>
+			<th>Behov</th>
+			<th>Rest</th>
+			<th>Rest%</th>
+			<th></th>';
 	
 	$timeslots = listTimeslotsSite($site_id);
 	foreach ($timeslots as $timeslot) {
@@ -457,9 +464,11 @@ function show_list() {
 		echo '<tr>
 				<td>'.date("d/m", $timeslot->getStartTS()).'</td>
 				<td>'.date("H:i", $timeslot->getStartTS()).date(" - H:i", $timeslot->getEndTS()).'</td>
+				<td>'.$timeslot->jobID.'</td>
 				<td><a href="jc_job.php?action=show_one&job_id='.$timeslot->jobID.'">'.$job->name.'</a></td>
 				<td>'.$timeslot->personNeed.'</td>
 				<td '.($timeslot->remainingNeed > 0 ? 'class="redalert"':'').'>'.$timeslot->remainingNeed.'</td>
+				<td>'.round($timeslot->remainingNeed/$timeslot->personNeed*100, 1).'%</td>
 				<td>
 					<a href="jc_signup.php?action=show_update&job_id='.$timeslot->jobID.'">Tilmeld</a><br/>
 					'.(user_is_admin() ? '<a href="jc_signup.php?action=show_list&job_id='.$timeslot->jobID.'">Vis tilmeldinger</a><br/>' : '').'
