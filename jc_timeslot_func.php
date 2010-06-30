@@ -33,8 +33,8 @@ function updateTimeslotNeed(Timeslot $ts, Job $job, $person_need) {
 		$diffNeed = $person_need - $ts->personNeed;
 		$newRemainingNeed = $ts->remainingNeed + $diffNeed;
 		if ($newRemainingNeed < 0) {
-			$subject = "Behov nedjusteret: JobID $job->id overbemandet med ".-1*$newRemainingNeed;
-			$message = "Behovet".getTimeText($job, $ts)." for job '".$job->name."'\r\n".
+			$subject = "Behov nedjusteret: Job $job->id overbemandet med ".-1*$newRemainingNeed;
+			$message = "Behovet".getTimeText($job, $ts)." for jobID $job->id '$job->name'\r\n".
 						"er netop blevet nedjusteret fra $ts->personNeed til $person_need personer,\r\n".
 						"så der nu er overbemanding med ".-1*$newRemainingNeed." personer.\r\n".
 						"TODO: Find nye jobs/tidsperioder til de overskydende!\r\n";
@@ -55,9 +55,9 @@ function updateTimeslotNeed(Timeslot $ts, Job $job, $person_need) {
 		}
 		
 		if (count($signups) > 0) {
-			$subject = "Behov på tidsperiode er slettet";
-			$message = "Behovet".getTimeText($job, $ts)." for job '".$job->name."' er netop blevet slettet.\r\n".
-						"Følgende brugernavne var tilmeldt og deres tilmeldinger er blevet slettet.\r\n".
+			$subject = "Behov på tidsperiode er slettet for job $job->id";
+			$message = "Behovet".getTimeText($job, $ts)." for jobID $job->id '$job->name' er netop blevet slettet.\r\n".
+						"Følgende brugernavne var tilmeldt og deres tilmeldinger er blevet slettet (de har fået mail om sletningen).\r\n".
 						"TODO: Find nye jobs/tidsperioder til disse personer!\r\n\r\n".
 						"Brugernavne: $deletedSignupUsernames\r\n";
 			
