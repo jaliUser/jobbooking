@@ -130,12 +130,12 @@ function show_helpers_limit() {
 		$user = User::cast($user);
 		
 		if ($user->signupsDurationEach >= $hourLimit) {
-			if ($user->email != "" && !$user->noEmail) {
+			if (!empty($_POST['show_emails']) && $user->email != "" && !$user->noEmail) {
 				$emailSumOver .= "$user->email, ";
 			}
 			$countOver++;
 		} else {
-			if ($user->email != "" && !$user->noEmail) {
+			if (!empty($_POST['show_emails']) && $user->email != "" && !$user->noEmail) {
 				$emailSumUnder .= "$user->email, ";
 			}
 			$countUnder++;
@@ -166,18 +166,23 @@ function show_helpers_limit() {
 			<td>".one2x($user->isContacted)."</td>
 			</tr>";		
 	}
-
+	
 	echo "<tr><td colspan='13'>
 			Antal <i>over $hourLimit</i>: $countOver<br/>
-			<b>Alle <i>over $hourLimit</i> kommasepareret:</b> $emailSumOver<br/><br/>
+			Antal <i>under $hourLimit</i>: $countUnder<br/><br/>";
+	
+	if (!empty($_POST['show_emails']) && !empty($emailSumOver)) {
+	  echo "<b>Alle <i>over $hourLimit</i> kommasepareret:</b> $emailSumOver<br/><br/>
 			<b>Alle <i>over $hourLimit</i> semikolonsepareret:</b> ".str_replace(",",";",$emailSumOver)."
 			<br/><br/>
-			Antal <i>under $hourLimit</i>: $countUnder<br/>
 			<b>Alle <i>under $hourLimit</i> kommasepareret:</b> $emailSumUnder<br/><br/>
-			<b>Alle <i>under $hourLimit</i> semikolonsepareret:</b> ".str_replace(",",";",$emailSumUnder)."
-			</td></tr>";
+			<b>Alle <i>under $hourLimit</i> semikolonsepareret:</b> ".str_replace(",",";",$emailSumUnder);
+	} else {
+		echo "<form action='".$_SERVER['REQUEST_URI']."' method='POST'><input type='submit' name='show_emails' value='Vis emails' /></form>";
+	}	
 
-	echo '</table>';
+	echo '</td></tr>
+		</table>';
 	menu_link();
 }
 
@@ -448,6 +453,7 @@ function show_update() {
 		<tr><td colspan="2"><input type="submit" value="Opdater"/></td></tr>
 		<input type="hidden" name="action" value="do_update">
 		<input type="hidden" name="nextaction" value="'.referer_action().'">
+		<input type="hidden" name="nextsort" value="'.referer_sort().'">
 		<input type="hidden" name="role_id" value="'.$user->roleID.'" />
 		</form>
 
@@ -456,6 +462,7 @@ function show_update() {
 		<tr><td colspan="2"><input type="submit" value="Slet"/></td></tr>
 		<input type="hidden" name="action" value="do_delete">
 		<input type="hidden" name="nextaction" value="'.referer_action().'">
+		<input type="hidden" name="nextsort" value="'.referer_sort().'">
 		<input type="hidden" name="login" value="'.$user->login.'" />
 		</form>
 		</table>';
@@ -515,7 +522,7 @@ function do_update() {
 	if($login == $user->login) {
 		do_redirect('jc_menu.php');
 	} else {		
-		do_redirect($PHP_SELF.'?action='.$_POST['nextaction']);
+		do_redirect($PHP_SELF.'?action='.$_POST['nextaction'].'&sort='.$_POST['nextsort']);
 	}
 }
 
@@ -538,7 +545,7 @@ function do_delete() {
 	if($login == $user->login) {
 		do_redirect('login.php?action=logout&site_id='.$site_id);
 	} else {		
-		do_redirect($PHP_SELF.'?action='.$_POST['nextaction']);
+		do_redirect($PHP_SELF.'?action='.$_POST['nextaction'].'&sort='.$_POST['nextsort']);
 	}
 }
 

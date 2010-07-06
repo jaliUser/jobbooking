@@ -398,7 +398,7 @@ function show_list() {
 		
 	echo "<h1>Tilmeldinger til <i><a href=\"jc_job.php?action=show_one&job_id=$job->id\">$job->name</a></i></h1>";
 	echo "<p align='center' class='help'>TIP: Print denne side som vagtplan, inden dit job begynder!</p>";
-	if (!user_is_admin() && $login != $job->ownerID) {
+	if (! (user_is_admin() || user_is_consultant() || $login == $job->ownerID)) {
 		echo "<p align='center' class='redalert'>Du står ikke som kontaktperson på dette job, og kan derfor kun se tilmeldingerne, men ikke rette i dem!</p>";
 	}
 	//generate rows for existing timeslots
@@ -464,7 +464,7 @@ function show_list() {
 						$defUserLink = "<br/>(<a href='jc_user.php?action=show_one&login=$defUser->login'>".$defUser->getFullName()."</a>)";
 					}
 					echo "<tr><td>";
-					if (user_is_admin() || $job->ownerID == $login) {
+					if (user_is_admin() || user_is_consultant() || $job->ownerID == $login) {
 						echo "<a href='jc_signup.php?action=show_update&job_id=$job->id&user_id=$user->login'>Ret</a>";
 					}
 					echo "</td><td colspan=\"4\"><a href=\"jc_user.php?action=show_one&login=$user->login\">".$user->getFullName()."</a></td>
