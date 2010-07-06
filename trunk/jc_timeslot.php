@@ -453,6 +453,10 @@ function show_list() {
 			<th>Rest%</th>
 			<th></th>';
 	
+	$admins = listUsers($site_id, 1);
+	$consultants = listUsers($site_id, 4);
+	$users = array_merge($admins, $consultants);
+	
 	$timeslots = listTimeslotsSite($site_id);
 	foreach ($timeslots as $timeslot) {
 		if (!empty($_GET['filter']) && ($timeslot->remainingNeed == 0 || $timeslot->getStartTS() < time()-60*$minutesInPast)) {
@@ -470,10 +474,18 @@ function show_list() {
 				<td '.($timeslot->remainingNeed > 0 ? 'class="redalert"':'').'>'.$timeslot->remainingNeed.'</td>
 				<td>'.round($timeslot->remainingNeed/$timeslot->personNeed*100, 1).'%</td>
 				<td>
-					<a href="jc_signup.php?action=show_update&job_id='.$timeslot->jobID.'">Tilmeld</a><br/>
-					'.(user_is_admin() ? '<a href="jc_signup.php?action=show_list&job_id='.$timeslot->jobID.'">Vis tilmeldinger</a><br/>' : '').'
-					</td>';
-		echo '</tr>';
+					<a href="jc_signup.php?action=show_update&job_id='.$timeslot->jobID.'">Tilmeld</a><br/>';
+		
+		if (user_is_admin() || user_is_consultant()) {
+			echo "<a href='jc_signup.php?action=show_list&job_id=$timeslot->jobID'>Vis tilmeldinger</a><br/>
+				  <a href='jc_timeslot.php?action=show_assign&job_id=$timeslot->jobID'>Tildel</a>";
+			if (!empty($timeslot->contactID)) {
+				$contact = User::cast($users[$timeslot->contactID]);
+				echo " (".$contact->firstname.")";
+			}
+		}
+		echo '</td>
+			</tr>';
 	}		
 	echo '</table>';
 		

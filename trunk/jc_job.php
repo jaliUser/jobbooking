@@ -221,7 +221,7 @@ function show_list() {
 		if(user_is_arearesponsible() == false) {
 			echo "<a href='jc_signup.php?action=show_update".($job->type == "NN" ? '_noneed' : '')."&job_id=$job->id'>Tilmeld</a><br>";				
 		}
-		if(user_is_admin() || $job->ownerID == $login || ($showOthersSignups && user_is_employer())) {
+		if(user_is_admin() || user_is_consultant() || $job->ownerID == $login || ($showOthersSignups && user_is_employer())) {
 			echo "<a href='jc_signup.php?action=show_list".($job->type == "NN" ? '_noneed' : '')."&job_id=$job->id'>Vis&nbsp;tilmeldinger</a><br>";
 		}
 		if(user_is_admin() || $job->ownerID == $login) {

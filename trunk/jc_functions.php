@@ -56,6 +56,20 @@ function referer_action() {
 	}
 }
 
+function referer_sort() {
+	$sortExists = strpos($_SERVER['HTTP_REFERER'], "sort=") !== false;
+	$sortStart = strpos($_SERVER['HTTP_REFERER'], "sort=") + 5;
+	$sortEnd = strpos($_SERVER['HTTP_REFERER'], "&", $sortStart);
+	if (!$sortExists) {
+		return "";
+	} else if ($sortEnd === false) {
+		return substr($_SERVER['HTTP_REFERER'], $sortStart);
+	} else {
+		$length = $sortEnd - $sortStart;
+		return substr($_SERVER['HTTP_REFERER'], $sortStart, $length);
+	}
+}
+
 function show_user_table($headertext, $link, $users) {
 	global $site_id; 
 	echo '<hr/><h3>'.$headertext.':</h3>
