@@ -406,6 +406,30 @@ function do_update_noneed() {
 	do_redirect($PHP_SELF.'?action=show_update_noneed&job_id='.$_POST['job_id'].'&user_id='.$_POST['user_id'].'&submit=1');
 }
 
+function do_send_sms() {
+	reject_public_access();
+	global $PHP_SELF;
+	$error = "";
+	if (empty($_POST['numbers'])) {
+		$error .= "Ingen numre indtastat.<br>";
+	}
+	if (empty($_POST['sms_text'])) {
+		$error .= "Ingen SMS-tekst indtastet.";
+	}
+	if (!empty($error)) {
+		echo print_error($error);
+		exit;
+	}
+	
+	$trimmedNumbers = trim($_POST['numbers']); //trim spaces
+	$trimmedNumbers = trim($trimmedNumbers, ","); //trim comma
+	$phoneArray = explode(",", $trimmedNumbers);
+
+	smsPhoneList($phoneArray, $_POST['sms_text']);
+
+	do_redirect($PHP_SELF.'?action=show_list&job_id='.$_POST['job_id'].'&sms_sent=1');
+}
+
 function show_list() {
 	//reject_public_access();
 	global $PHP_SELF, $login, $site_id, $site_name;
@@ -428,6 +452,7 @@ function show_list() {
 	$timeslots = listTimeslotsByDate($job->id);
 	$groupedTimeslots = groupTimeslotsByDate($timeslots);
 	$emails = "";
+	$phoneNumbers = "";
 	foreach ($days as $key => $day) {
 		$day = Day::cast($day);
 		$distinctDateArr = array();
@@ -477,6 +502,10 @@ function show_list() {
 					if (!empty($user->email) && false === strpos($emails, $user->email)) {
 						$emails .= "$user->email, ";
 					}
+					if (!empty($user->telephone) && false === strpos($phoneNumbers, $user->telephone)) {
+						$phoneNumbers .= "$user->telephone, ";
+					}
+					
 					$defUserLink = "";
 					if ($signup->defUser != $user->login) {
 						$defUser = getUser($signup->defUser); 
@@ -498,6 +527,24 @@ function show_list() {
 		echo '</table></td></tr><tr><td>&nbsp;</td></tr>';	
 	}
 	
+	//show sms box
+	echo "<tr><td><h3>Send SMS til hjælperne</h3></td></tr>";
+	if (!empty($_GET['sms_sent'])) {
+		echo "<tr><td align='center' class='redalert'>SMSer afsendt</td></tr>";
+	}
+	echo "<tr><td>
+			<form action='$PHP_SELF' method='post'>
+				<table border='0' align='center' class='border1'>
+					<tr><td>Mobilnumre: </td><td><input type='text' name='numbers' value='$phoneNumbers' size='160' /> (flere numre adskilles af komma)</td></tr>
+					<tr><td>SMS-tekst: </td><td><input type='text' name='sms_text' size='160' maxlength='160' /> (maks. 160 tegn)</td></tr>
+					<tr><td colspan='2'><input type='submit' name='sms_sent' value='Send SMSer' /></td></tr>
+				</table>
+				<input type='hidden' name='action' value='do_send_sms' />
+				<input type='hidden' name='job_id' value='$job->id' />
+			</form>
+		</td></tr><tr><td>&nbsp;</td></tr>";
+	
+	//show emails
 	if (!empty($_POST['show_emails'])) {
 		if (!empty($emails)) {
 			$emailsCS = trim(trim($emails), ",");
@@ -724,6 +771,8 @@ if ($_REQUEST['action'] == 'show_update') {
 	update_evals();
 } elseif ($_REQUEST['action'] == 'show_mine') {
 	show_mine();
+} elseif ($_REQUEST['action'] == 'do_send_sms') {
+	do_send_sms();
 } else {
 	echo 'Error: Page parameter missing!';
 }
