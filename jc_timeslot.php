@@ -4,21 +4,29 @@ include_once 'jc_init.php';
 reject_public_access();
 
 function show_update() {
-	global $PHP_SELF, $login, $site_id, $site_name;
+	global $PHP_SELF, $login, $site_id, $site_name, $siteConfig;
 	html_top($site_name . " - Rediger behov");
 
-	$minutesBeforeUpdateFreeze = 120;
+	$minutesBeforeUpdateFreeze = 60*24*14; //14 days
 	
 	$job = getJob($_GET['job_id']);
 	$job = Job::cast($job);
+	$days = listDays($site_id);
 	
 	echo "<h1>Redigér behov for <i> $job->name</i></h1>
 		  <p class='help'>Tidsperioder bør ikke vare mere end 4 timer!</p>";
+	
+	$firstDay = $days[0];
+	if (time() + $minutesBeforeUpdateFreeze*60 > $firstDay->getDateTS()) {
+		echo "<p align='center' class='redalert'><b>Bemærk:</b> Tidsgrænsen for ændringer i behov og tidsperioder er nået!<br/>
+			Felter hvor tidsgrænsen er overskredet er låste og grå herunder, ligeledes er alle tidsperioder.<br/>
+			Hvis du vil ændre et behov eller en tidsperiode, kontakt <a href='mailto:".$siteConfig->config[SiteConfig::$EMAIL]."'>$site_name</a>.</p>";
+	}
+	
 	//generate rows for existing timeslots
 	echo '<table align="center" class="border1">
 		<form action="'.$PHP_SELF.'" method="POST">
 		<tr><th width="250">Tid</th>';
-	$days = listDays($site_id);
 	
 	//generate header with days
 	foreach ($days as $day) {
@@ -48,6 +56,7 @@ function show_update() {
 //		$groupedTimeslots = groupTimeslotsByTime($timeslots);
 //	}
 	
+	$disabled = (time() + $minutesBeforeUpdateFreeze*60 > $firstDay->getDateTS() && !user_is_admin() ? ' disabled' : '');
 	$disTScnt = 0;
 	foreach ($groupedTimeslots as $distinctTimeArr) {		
 		//build time-row from first TS in distinctTimeArr
@@ -59,8 +68,8 @@ function show_update() {
 		}
 		
 		$firstTS = $distinctTimeArr[0];
-		echo '<tr><td><input type="text" name="start_hour-'.$disTScnt.'" size="1" maxlength="2" value="'.$firstTS->getStartHour().'" />:<input type="text" name="start_min-'.$disTScnt.'" size="1" maxlength="2" value="'.$firstTS->getStartMin().'" />
-			        - <input type="text" name="end_hour-'.$disTScnt.'" size="1" maxlength="2" value="'.$firstTS->getEndHour().'"     />:<input type="text" name="end_min-'.$disTScnt.'" size="1" maxlength="2" value="'.$firstTS->getEndMin().'" />
+		echo '<tr><td><input type="text" name="start_hour-'.$disTScnt.'" size="1" maxlength="2" value="'.$firstTS->getStartHour().'" '.$disabled.'/>:<input type="text" name="start_min-'.$disTScnt.'" size="1" maxlength="2" value="'.$firstTS->getStartMin().'" '.$disabled.'/>
+			        - <input type="text" name="end_hour-'.$disTScnt.'" size="1" maxlength="2" value="'.$firstTS->getEndHour().'"     '.$disabled.'/>:<input type="text" name="end_min-'.$disTScnt.'" size="1" maxlength="2" value="'.$firstTS->getEndMin().'" '.$disabled.'/>
 				'.($firstTS->duration > 4*60 ? '<span class="redalert">OBS: > 4 t.</span>':'').'</td>
 			<input type="hidden" name="TSids-'.$disTScnt.'" value="'.$TSids.'">';
 
@@ -77,9 +86,11 @@ function show_update() {
 		}
 		echo '</tr>';
 	}
+	
+	$disabled = (time() + $minutesBeforeUpdateFreeze*60 > $firstDay->getDateTS() && !user_is_admin() ? ' disabled' : '');
 	echo '<tr>
 		<td>
-			<input type="submit" name="send" value="Opdatér tidspunkter"/>
+			<input type="submit" name="send" value="Opdatér tidspunkter" '.$disabled.'/>
 			<span class="help">
 				<br/><br/><b>Vigtigt: Brug denne funktion med omtanke!</b>
 				<br/>Når du ændrer en tidsperiode, vil systemet kontrollere for alle hjælpere tilmeldt jobbet, 
@@ -98,15 +109,20 @@ function show_update() {
 		<input type="hidden" name="job_id" value="'.$job->id.'">
 		<input type="hidden" name="disTScnt" value="'.$disTScnt.'">
 		</form>';
+
 	
 	//show form for creating new timeslot
 	echo '<tr><th colspan="'.(count($days)+1).'">Opret ny tidsperiode: Angiv starttid & sluttid, samt behov på de enkelte dage.</th></tr>';
 	echo '<form action="'.$PHP_SELF.'" method="POST">
 		<tr><td><input type="text" name="start_hour" size="1" maxlength="2" value="00" />:<input type="text" name="start_min" size="1" maxlength="2" value="00" />
 		 - <input type="text" name="end_hour" size="1" maxlength="2" value="00" />:<input type="text" name="end_min" size="1" maxlength="2" value="00" /></td>';
+	
 	for ($i=0; $i<count($days); $i++) {
-		echo '<td align="center"><input type="text" name="person_need-'.$i.'" size="1" maxlength="3" />	</td>';
+		$day = $days[$i];
+		$disabled = (time() + $minutesBeforeUpdateFreeze*60 > $day->getDateTS() && !user_is_admin() ? ' disabled' : ''); 
+		echo '<td align="center"><input type="text" name="person_need-'.$i.'" size="1" maxlength="3" '.$disabled.'/>	</td>';
 	}	
+	
 	echo '</tr>
 		<tr><td colspan="'.(count($days)+1).'"><input type="submit" value="Indsæt"/></td></tr>
 		<input type="hidden" name="action" value="do_create">

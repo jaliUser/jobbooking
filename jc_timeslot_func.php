@@ -87,7 +87,7 @@ function updateContact($timeslot_id, $contact_id) {
 	
 	if ($oldTS->contactID != $contact_id) {		
 		$job = getJob($oldTS->jobID);
-		$user = getUser($contact_id);
+		$newUser = getUser($contact_id);
 		
 		if (!empty($contact_id)) {
 			$sql = "UPDATE webcal_entry SET contact_id=?, upd_user='$login' WHERE cal_id=?";
@@ -95,7 +95,7 @@ function updateContact($timeslot_id, $contact_id) {
 			dbi_clear_cache();
 			
 			$subject = "Ny tildeling af tidsperiode";
-			$message = "Hej ".$user->getFullNameAndLogin()."\r\n".
+			$message = "Hej ".$newUser->getFullNameAndLogin()."\r\n".
 						"\r\n".
 						"Du er netop for job '".$job->name."' blevet tildelt tidsperioden ".$oldTS->getStartHour().":".$oldTS->getStartMin()."-".$oldTS->getEndHour().":".$oldTS->getEndMin()." ".$oldTS->get_DD_MM_YYYY().",\r\n".
 						"hvor der er et resterende behov på ".$oldTS->remainingNeed." personer.\r\n".
@@ -109,8 +109,10 @@ function updateContact($timeslot_id, $contact_id) {
 		}
 		
 		if (!empty($oldTS->contactID)) {
+			$oldUser = getUser($oldTS->contactID);
+			
 			$subject = "Slettet tildeling af tidsperiode";
-			$message = "Hej ".$user->getFullNameAndLogin()."\r\n".
+			$message = "Hej ".$oldUser->getFullNameAndLogin()."\r\n".
 						"\r\n".
 						"Din tildeling af tidsperioden ".$oldTS->getStartHour().":".$oldTS->getStartMin()."-".$oldTS->getEndHour().":".$oldTS->getEndMin()." ".$oldTS->get_DD_MM_YYYY()." for job '".$job->name."' er netop blevet slettet.\r\n".
 						"Der var et resterende behov på ".$oldTS->remainingNeed." personer.\r\n".
