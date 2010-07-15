@@ -84,13 +84,14 @@ function show_blockings() {
 
 function show_update() {
 	reject_public_access();
-	global $PHP_SELF, $login, $site_id, $site_name;
+	global $PHP_SELF, $login, $site_id, $site_name, $siteConfig;
 	html_top($site_name . " - Tilmelding til job");
 	
-	$minutesBeforeUpdateFreeze = 120;
+	$minutesBeforeUpdateFreeze = 60*24*21; //21 days
 	
 	$job = getJob($_GET['job_id']);
 	$job = Job::cast($job);
+	$days = listDays($site_id);
 	
 	if (!empty($_GET['user_id'])) {
 		$user = User::cast(getUser($_GET['user_id']));
@@ -100,6 +101,14 @@ function show_update() {
 	
 	echo "<h1>Tilmelding til <i><a href=\"jc_job.php?action=show_one&job_id=$job->id\">$job->name</a></i> for <i><a href=\"jc_user.php?action=show_one&login=$user->login\">".$user->getFullName()."</a></i> (".$user->count." pers.)</h1>".
 		'<p class="help">I kolonnerne <i>Behov</i> kan du se det aktuelle behov for personer til de forskellige tidsperioder. Hvis du eller dit hold ønsker at hjælpe med dette job, udfyld det antal personer du/I kan stille med, for en given tidsperiode. Efter du har klikket på <i>Opdatér</i>, vil du se behovet blive reduceret med det antal personer du har tilmeldt.</p>';
+	
+	$firstDay = $days[0];
+	if (time() + $minutesBeforeUpdateFreeze*60 > $firstDay->getDateTS()) {
+		echo "<p align='center' class='redalert'><b>Bemærk:</b> Tidsgrænsen for ændringer i eksisterende tilmeldinger er overskredet!<br/>
+			Felter med eksisterende tilmeldinger er derfor låste og grå herunder.<br/>
+			Du kan stadig godt lave nye tilmeldinger, men ikke ændre i dem efterfølgende.<br/>
+			Hvis du vil ændre en låst tilmelding, kontakt <a href='mailto:".$siteConfig->config[SiteConfig::$EMAIL]."'>$site_name</a>.</p>";
+	}
 	
 	if (!empty($_GET['submit'])) {
 		echo '<p align="center" class="redalert">Din tilmelding er nu opdateret.<br/>
@@ -111,7 +120,6 @@ function show_update() {
 	echo '<table align="center" class="border1">
 		<form action="'.$PHP_SELF.'" method="POST">
 		<tr><th>Tid</th>';
-	$days = listDays($site_id);
 	
 	//generate header with days
 	foreach ($days as $day) {
@@ -141,15 +149,26 @@ function show_update() {
 			$signup = $signups[$timeslot->id];
 
 			echo '<td align="center">'.$timeslot->remainingNeed.'&nbsp;&nbsp;';
-			if ($timeslot->remainingNeed > 0 || $signup->count > 0) {
-				if (time()+$minutesBeforeUpdateFreeze*60 > $timeslot->getStartTS() && !user_is_admin()) {
-					echo $signup->count;
+			
+			//if signup exist
+			if ($signup->count > 0) {
+				//if now + minutesBeforeUpdateFreeze is past timeslot time, lock field
+				if (time() + $minutesBeforeUpdateFreeze*60 > $timeslot->getStartTS() && !(user_is_admin() || user_is_consultant())) {
+					echo '<input type="text" value="'.$signup->count.'" size="1" maxlength="3" disabled/>';
+				//else allow editing existing signup
 				} else {
 					echo '<input type="text" name="signup-'.$timeslot->id.'" value="'.$signup->count.'" size="1" maxlength="3"/>';
 					$hiddenPercent .= "$timeslot->id=$signup->percent;";
 					$hiddenNotes .= "$timeslot->id=$signup->notes;";
 				}
+			//if no signup, make field for creating new signup, unless timeslot time is past now and user is not admin
+			} else if ($timeslot->remainingNeed > 0 && (time() < $timeslot->getStartTS() || user_is_admin())) {
+				echo '<input type="text" name="signup-'.$timeslot->id.'" size="1" maxlength="3"/>';
+			//empty spaces just to align columns
+			} else {
+				echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
 			}
+			
 			echo "</td>\r\n";
 		}
 		echo "</tr>\r\n";
