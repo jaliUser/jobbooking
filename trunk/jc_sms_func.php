@@ -85,9 +85,9 @@ function smsPhoneList($phoneArray, $message) {
 			
 			$sent = mail($phoneEmail, "SMS fra SEE2010 Jobcenter", $fixedMessage, $headers);
 			if ($sent == true) {
-				notifyAdmin("SMS afsendelse succes", date("H:i:s Y-m-d", mktime())."\r\n\r\n$phoneEmail\r\n\r\n$fixedMessage\r\n", $siteConfig);
+				notifyAdmin("SMS afsendelse succes", "$number\r\n\r\n$message\r\n", $siteConfig);
 			} else {
-				notifyAdmin("SMS afsendelse fejlet", date("H:i:s Y-m-d", mktime())."\r\n\r\n$phoneEmail\r\n\r\n$fixedMessage\r\n", $siteConfig);
+				notifyAdmin("SMS afsendelse fejlet", "$number\r\n\r\n$message\r\n", $siteConfig);
 			}
 		}
 	}

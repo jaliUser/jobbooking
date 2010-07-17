@@ -464,15 +464,21 @@ function show_list() {
 			<th>Tid</th>
 			<th>ID</th>
 			<th>Job navn</th>
-			<th>Behov</th>
-			<th>Rest</th>
-			<th>Rest%</th>
+			<th title="Person Behov">B</th> 
+			<th title="Person Rest">R</th>
+			<th title="Person rest i procent">R%</th>
+			<th title="Prioritet">P</th>
+			<th title="Time Behov">TB</th>
+			<th title="Time Rest">TR</th>
 			<th></th>';
 	
 	$admins = listUsers($site_id, 1);
 	$consultants = listUsers($site_id, 4);
 	$users = array_merge($admins, $consultants);
 	
+	$lastDate = null;
+	$dateSumRemaining = 0;
+	$dateSumRemainingHours = 0;
 	$timeslots = listTimeslotsSite($site_id);
 	foreach ($timeslots as $timeslot) {
 		if (!empty($_GET['filter']) && ($timeslot->remainingNeed == 0 || $timeslot->getStartTS() < time()-60*$minutesInPast)) {
@@ -480,6 +486,16 @@ function show_list() {
 		}
 		
 		$timeslot = Timeslot::cast($timeslot);
+				
+		if ($lastDate != null & $lastDate != $timeslot->date) {
+			print_date_sum($dateSumRemaining, $dateSumRemainingHours);
+			$dateSumRemaining = 0;
+			$dateSumRemainingHours = 0;
+		}
+		$dateSumRemaining += $timeslot->remainingNeed;
+		$dateSumRemainingHours += $timeslot->remainingNeed * $timeslot->duration / 60;
+		$lastDate = $timeslot->date;
+		
 		$job = getJob($timeslot->jobID);
 		echo '<tr>
 				<td>'.date("d/m", $timeslot->getStartTS()).'</td>
@@ -489,6 +505,9 @@ function show_list() {
 				<td>'.$timeslot->personNeed.'</td>
 				<td '.($timeslot->remainingNeed > 0 ? 'class="redalert"':'').'>'.$timeslot->remainingNeed.'</td>
 				<td>'.round($timeslot->remainingNeed/$timeslot->personNeed*100, 1).'%</td>
+				<td>'.$job->priority.'</td>
+				<td>'.round($timeslot->personNeed * $timeslot->duration / 60, 1).'</td>
+				<td '.($timeslot->remainingNeed > 0 ? 'class="redalert"':'').'>'.round($timeslot->remainingNeed * $timeslot->duration / 60, 1).'</td>
 				<td>
 					<a href="jc_signup.php?action=show_update&job_id='.$timeslot->jobID.'">Tilmeld</a><br/>';
 		
@@ -502,10 +521,22 @@ function show_list() {
 		}
 		echo '</td>
 			</tr>';
-	}		
+	}
+	print_date_sum($dateSumRemaining, $dateSumRemainingHours);
 	echo '</table>';
 		
 	menu_link();
+}
+
+function print_date_sum($dateSumRemaining, $dateSumRemainingHours) {
+	echo '<tr>
+			<td colspan="5">Total</td>
+			<td>'.$dateSumRemaining.'</td>
+			<td colspan="3">&nbsp;</td>
+			<td>'.round($dateSumRemainingHours, 1).'</td>
+			<td>&nbsp;</td>
+		</tr>
+		<tr><td colspan="11">&nbsp;</td></tr>';
 }
 
 if ($_REQUEST['action'] == 'show_update') {
