@@ -25,6 +25,7 @@ echo '
 	<tr><td colspan="2">-</td></tr>
 	<tr><td><a href="jc_timeslot.php?action=show_list&filter=vacant">Vis ledige tidsperioder</a></td><td class="help"></td></tr>
 	'.(user_is_admin() ? '<tr><td><a href="jc_timeslot.php?action=show_list">Vis alle tidsperioder</a></td><td class="help"></td></tr>' :'').'
+	'.(user_is_admin() || user_is_consultant() ? '<tr><td><a href="jc_timeslot.php?action=show_list&user_id='.$login.'">Vis mine tildelte tidsperioder</a></td><td class="help"></td></tr>' :'').'
 	
 	'.(!user_is_arearesponsible() ? '<tr><td colspan="2">-</td></tr>
 	<!--
@@ -41,13 +42,8 @@ echo '
 	<tr><td><a href="jc_wishes.php?action=show_list">Vis ledige hjælpere</a></td><td class="help"></td></tr>':'').'
 	-->
 	
-	'.(user_is_admin() || user_is_consultant() ? '<tr><td colspan="2">-</td></tr>
-	<tr><td><a href="jc_timeslot.php?action=show_mine&user_id='.$login.'">Vis mine tildelte tidsperioder</a></td><td class="help"></td></tr>
-	<tr><td><a href="jc_timeslot.php?action=show_unassigned">Vis ikke-tildelte tidsperioder</a></td><td class="help"></td></tr>
-	' :'').'
-	
-	'.(user_is_admin() ? '<tr><td colspan="2">-</td></tr>' :'').'
-	'.(user_is_admin() ? '<tr><td><a href="jc_user.php?action=show_create">Opret bruger</a></td><td class="help"></td></tr>' :'').'
+	'.(user_is_admin() || user_is_consultant() ? '<tr><td colspan="2">-</td></tr>' :'').'
+	'.(user_is_admin() || user_is_consultant() ? '<tr><td><a href="jc_user.php?action=show_create">Opret bruger</a></td><td class="help"></td></tr>' :'').'
 	'.(user_is_admin() ? '<tr><td><a href="jc_user.php?action=show_list">Vis brugere</a></td><td class="help"></td></tr>' :'').'
 	'.(user_is_admin() ? '<tr><td><a href="jc_user.php?action=show_helpers_limit">Vis brugere < 8 timer</a></td><td class="help"></td></tr>' :'').'
 	

@@ -45,13 +45,14 @@ include_once 'includes/dbi4php.php';
 //}
 
 //Computopic
-function smsPhoneList($phoneArray, $message) {
+function smsPhoneList($phoneArray, $message, $adminEmailCopy = true) {
 	global $siteConfig;
 	$smsEmail = "@smsgw.computopic.dk";
 	$numberPrefix = "45";
 	$limit160 = true;
 	$securityCode = "[SEE2010:42de9b8313162c94]";
 	
+	$message = trim($message);
 	if ($limit160) {
 		$length = strlen($message);
 		if ($length > 160) {
@@ -79,16 +80,26 @@ function smsPhoneList($phoneArray, $message) {
 		$headers =  "From: SEE2010 Jobcenter (THO) <tho@thodata.dk>\r\n" .
 					"X-Mailer: PHP/" . phpversion();
 		
+		$succesNumbers = "";
+		$failureNumbers = "";
 		foreach ($fixedPhoneArray as $number) {
 			$phoneEmail = $number . $smsEmail;
 			$fixedMessage = $message . " " . $securityCode;
 			
 			$sent = mail($phoneEmail, "SMS fra SEE2010 Jobcenter", $fixedMessage, $headers);
 			if ($sent == true) {
-				notifyAdmin("SMS afsendelse succes", "$number\r\n\r\n$message\r\n", $siteConfig);
+				$succesNumbers .= "$number, ";
 			} else {
-				notifyAdmin("SMS afsendelse fejlet", "$number\r\n\r\n$message\r\n", $siteConfig);
-			}
+				$failureNumbers .= "$number, ";
+			}	
+			
+			//debug
+//			echo "$number: $message<br>\r\n";
+		}
+		
+		if ($adminEmailCopy) {
+			$emailText = "Afsendt: $succesNumbers\r\n\r\nFejl: $failureNumbers\r\n\r\nBesked: $message\r\n";
+			notifyAdmin("SMS afsendelse", $emailText, $siteConfig);
 		}
 	}
 }
@@ -120,7 +131,7 @@ function sendReminders($sms=true, $mail=false) {
 			$signups = listTimeslotSignups($row[2]);
 			foreach ($signups as $signup) {
 				$user = getUser($signup->userID);
-				if (!empty($user->telephone)) {
+				if (!empty($user->telephone) && $user->noEmail != 1) {
 					$phoneArray[$numIdx] = $user->telephone;
 					$numIdx++;
 				}
@@ -135,6 +146,34 @@ function sendReminders($sms=true, $mail=false) {
 			}
 		}
 	}
+}
+
+//will be called periodically
+function sendNextdayStatus($sms=true, $mail=false) {
+	$site_id = 1; //TODO
+	$siteConfig = getSiteConfig($site_id);
+	
+	$timeslots = listTimeslotsSite($site_id);
+	$dateTomorrow = date("Ymd", time() + 60*60*24);
+	$adminEmailText = "";
+	
+	foreach ($timeslots as $ts) {
+		if ($ts->date == $dateTomorrow) {
+			$job = getJob($ts->jobID);
+			$user = getUser($job->ownerID);
+			
+			if ($sms && !empty($user->telephone) && $user->noEmail != 1) {
+				$smsText = "Jobstatus: #$job->id $job->name," . getTimeTextShort($job, $ts) . ": Behov $ts->personNeed, tilmeldt $ts->remainingNeed. Mvh $siteConfig->siteName";
+				$adminEmailText .= "$user->telephone: $smsText\r\n";
+				$phoneArray = array();
+				$phoneArray[] = $user->telephone;
+				
+				smsPhoneList($phoneArray, $smsText, false); //false=noAdminCopy, send bulk below
+			}
+		}
+	}
+	
+	notifyAdmin("Job status i morgen", $adminEmailText, $siteConfig);
 }
 
 ?>

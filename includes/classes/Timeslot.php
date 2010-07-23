@@ -95,8 +95,7 @@ class Timeslot {
 	}
 	
 	function get_DD_MM_YYYY() {
-		$startTS = get_cal_unixtime($this->date, $this->startTime); 
-		return gmdate("d/m-Y", $startTS + $this->duration*60);
+		return date("d/m-Y", $this->getStartTS());
 	}
 		
 	static function isValidPersonNeed($personNeed) {

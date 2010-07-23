@@ -13,7 +13,7 @@ function show_update() {
 	$job = Job::cast($job);
 	$days = listDays($site_id);
 	
-	echo "<h1>Redigér behov for <i> $job->name</i></h1>
+	echo "<h1>Redigér behov for <i>$job->name</i> (ID $job->id)</h1>
 		  <p class='help'>Tidsperioder bør ikke vare mere end 4 timer!</p>";
 	
 	$firstDay = $days[0];
@@ -237,7 +237,7 @@ function show_assign() {
 	$job = getJob($_GET['job_id']);
 	$job = Job::cast($job);
 	
-	echo "<h1>Tilknyt jobkonsulenter for <i> $job->name</i></h1>";
+	echo "<h1>Tilknyt jobkonsulenter for <i>$job->name</i> (ID $job->id)</h1>";
 	//generate rows for existing timeslots
 	echo '<table align="center" class="border1">
 		<form action="'.$PHP_SELF.'" method="POST">
@@ -374,84 +374,14 @@ function do_create() {
 	do_redirect($PHP_SELF.'?action=show_update&job_id='.$_POST['job_id']);
 }
 
-function show_mine() {
-	global $PHP_SELF, $login, $site_id, $site_name;
-	html_top($site_name . " - Mine tidsperioder");
-	
-	$contact = getUser($_GET['user_id']);
-	if ($contact->login == null) {
-		echo print_error("Brugernavn <i>".$_GET['user_id']."</i> eksisterer ikke!");
-		exit();
-	}
-	$timeslots = listTimeslotsForContact($contact->login);
-	
-	echo "<h1>Tidsperioder tildelt <i>".$contact->getFullName()."</i></h1>";
-	echo '<table align="center" class="border1">
-			<th>Dato</th> <th>Tid</th> <th>Job</th> <th>Behov</th> <th>Rest</th> <th>Handlinger</th> ';
-	
-	foreach ($timeslots as $timeslot) {
-		$timeslot = Timeslot::cast($timeslot);
-		$job = getJob($timeslot->jobID);
-		echo '<tr>
-				<td>'.date("d/m", $timeslot->getStartTS()).'</td>
-				<td>'.date("H:i", $timeslot->getStartTS()).date(" - H:i", $timeslot->getEndTS()).'</td>
-				<td><a href="jc_job.php?action=show_one&job_id='.$job->id.'">'.$job->name.'</a></td>
-				<td>'.$timeslot->personNeed.'</td>
-				<td '.($timeslot->remainingNeed > 0 ? 'class="redalert"':'').'>'.$timeslot->remainingNeed.'</td>
-				<td>
-					<a href="jc_signup.php?action=show_list&job_id='.$job->id.'">Vis tildelinger</a><br/>
-					<a href="jc_signup.php?action=show_update&job_id='.$job->id.'">Tilmeld hjælpere</a><br/>
-					<a href="jc_timeslot.php?action=show_assign&job_id='.$job->id.'">Videregiv tildeling<br/>
-				</td>';
-		echo '</tr>';
-	}
-	echo '</table>';
-	
-	// show user list for admins
-	if (user_is_admin() || user_is_consultant()) {
-		show_user_table("Vælg bruger at se tildelte tidsperioder for", "$PHP_SELF?action=show_mine", listUsers($site_id, 4));
-	}
-	
-	menu_link();
-}
-
-function show_unassigned() {
-	global $PHP_SELF, $login, $site_id, $site_name;
-	html_top($site_name . " - Ikke-tildelte tidsperioder");
-	
-	$minutesInPast = 30;
-	$timeslots = listTimeslotsUnassigned($site_id);
-	
-	echo "<h1>Ikke-tildelte tidsperioder</h1>";
-	echo '<table align="center" class="border1">
-			<th>Dato</th> <th>Tid</th> <th>Job</th> <th>Behov</th> <th>Rest</th> <th></th>';
-	
-	foreach ($timeslots as $timeslot) {
-		if ($timeslot->remainingNeed == 0 || $timeslot->getStartTS() < time()-60*$minutesInPast) {
-			continue;
-		}
-		
-		$timeslot = Timeslot::cast($timeslot);
-		$job = getJob($timeslot->jobID);
-		echo '<tr>
-				<td>'.date("d/m", $timeslot->getStartTS()).'</td>
-				<td>'.date("H:i", $timeslot->getStartTS()).date(" - H:i", $timeslot->getEndTS()).'</td>
-				<td><a href="jc_job.php?action=show_one&job_id='.$timeslot->jobID.'">'.$job->name.'</a></td>
-				<td>'.$timeslot->personNeed.'</td>
-				<td '.($timeslot->remainingNeed > 0 ? 'class="redalert"':'').'>'.$timeslot->remainingNeed.'</td>
-				<td><a href="jc_timeslot.php?action=show_assign&job_id='.$timeslot->jobID.'">Tildel</a></td>';
-		echo '</tr>';
-	}		
-	echo '</table>';
-		
-	menu_link();
-}
-
 function show_list() {
 	global $PHP_SELF, $login, $site_id, $site_name;
 	$minutesInPast = 30;
-	
-	if (!empty($_GET['filter'])) {
+	if (!empty($_GET['user_id'])) {
+		html_top($site_name . " - Mine tidsperioder");
+		$user = getUser($_GET['user_id']);
+		echo "<h1>Tidsperioder tildelt <i>".$user->getFullName()."</i></h1>";
+	} else if (!empty($_GET['filter'])) {
 		html_top($site_name . " - Ledige tidsperioder");
 		echo "<h1>Ledige tidsperioder</h1>";
 	} else {
@@ -460,17 +390,18 @@ function show_list() {
 	}
 	
 	echo '<table align="center" class="border1">
+			<th><i>Handlinger</i></th>
 			<th>Dato</th>
 			<th>Tid</th>
 			<th>ID</th>
 			<th>Job navn</th>
+			<th>Kontakt</th>
 			<th title="Person Behov">B</th> 
 			<th title="Person Rest">R</th>
 			<th title="Person rest i procent">R%</th>
 			<th title="Prioritet">P</th>
 			<th title="Time Behov">TB</th>
-			<th title="Time Rest">TR</th>
-			<th></th>';
+			<th title="Time Rest">TR</th>';
 	
 	$admins = listUsers($site_id, 1);
 	$consultants = listUsers($site_id, 4);
@@ -479,9 +410,17 @@ function show_list() {
 	$lastDate = null;
 	$dateSumRemaining = 0;
 	$dateSumRemainingHours = 0;
-	$timeslots = listTimeslotsSite($site_id);
+	$timeslots = array();
+	if (!empty($_GET['user_id'])) {
+		$timeslots = listTimeslotsForContact($_GET['user_id']);
+	} else {
+		$timeslots = listTimeslotsSite($site_id);
+	}
+	
 	foreach ($timeslots as $timeslot) {
-		if (!empty($_GET['filter']) && ($timeslot->remainingNeed == 0 || $timeslot->getStartTS() < time()-60*$minutesInPast)) {
+		//if showing vacant OR assigned  AND  remaining=0 OR starttime is passed 
+		if ((!empty($_GET['filter']) || !empty($_GET['user_id'])) && 
+			($timeslot->remainingNeed == 0 || $timeslot->getStartTS() < time()-60*$minutesInPast)) {
 			continue;
 		}
 		
@@ -497,20 +436,10 @@ function show_list() {
 		$lastDate = $timeslot->date;
 		
 		$job = getJob($timeslot->jobID);
-		echo '<tr>
-				<td>'.strftime("%a %d/%m", $timeslot->getStartTS()).'</td>
-				<td>'.date("H:i", $timeslot->getStartTS()).date(" - H:i", $timeslot->getEndTS()).'</td>
-				<td>'.$timeslot->jobID.'</td>
-				<td><a href="jc_job.php?action=show_one&job_id='.$timeslot->jobID.'">'.$job->name.'</a></td>
-				<td>'.$timeslot->personNeed.'</td>
-				<td '.($timeslot->remainingNeed > 0 ? 'class="redalert"':'').'>'.$timeslot->remainingNeed.'</td>
-				<td>'.round($timeslot->remainingNeed/$timeslot->personNeed*100, 1).'%</td>
-				<td>'.$job->priority.'</td>
-				<td>'.round($timeslot->personNeed * $timeslot->duration / 60, 1).'</td>
-				<td '.($timeslot->remainingNeed > 0 ? 'class="redalert"':'').'>'.round($timeslot->remainingNeed * $timeslot->duration / 60, 1).'</td>
-				<td>
-					<a href="jc_signup.php?action=show_update&job_id='.$timeslot->jobID.'">Tilmeld</a><br/>';
+		$owner = getUser($job->ownerID);
 		
+		echo '<tr><td>
+				<a href="jc_signup.php?action=show_update&job_id='.$timeslot->jobID.'">Tilmeld</a><br/>';
 		if (user_is_admin() || user_is_consultant()) {
 			echo "<a href='jc_signup.php?action=show_list&job_id=$timeslot->jobID'>Vis tilmeldinger</a><br/>
 				  <a href='jc_timeslot.php?action=show_assign&job_id=$timeslot->jobID'>Tildel</a>";
@@ -519,24 +448,39 @@ function show_list() {
 				echo " (".$contact->firstname.")";
 			}
 		}
-		echo '</td>
+		
+		echo   '</td>
+				<td>'.strftime("%a %d/%m", $timeslot->getStartTS()).'</td>
+				<td>'.date("H:i", $timeslot->getStartTS()).date(" - H:i", $timeslot->getEndTS()).'</td>
+				<td>'.$timeslot->jobID.'</td>
+				<td><a href="jc_job.php?action=show_one&job_id='.$timeslot->jobID.'">'.$job->name.'</a></td>
+				<td><a href="jc_user.php?action=show_one&login='.$job->ownerID.'">'.$owner->getFullName().'</a><br/>('.$owner->telephone.')</td>
+				<td>'.$timeslot->personNeed.'</td>
+				<td '.($timeslot->remainingNeed > 0 ? 'class="redalert"':'').'>'.$timeslot->remainingNeed.'</td>
+				<td>'.round($timeslot->remainingNeed/$timeslot->personNeed*100, 1).'%</td>
+				<td>'.$job->priority.'</td>
+				<td>'.round($timeslot->personNeed * $timeslot->duration / 60, 1).'</td>
+				<td '.($timeslot->remainingNeed > 0 ? 'class="redalert"':'').'>'.round($timeslot->remainingNeed * $timeslot->duration / 60, 1).'</td>
 			</tr>';
 	}
 	print_date_sum($dateSumRemaining, $dateSumRemainingHours);
 	echo '</table>';
+	
+	if (!empty($_GET['user_id'])) {
+		show_user_table("Vælg bruger at se tildelte tidsperioder for", "$PHP_SELF?action=show_list", listUsers($site_id, 4));
+	}
 		
 	menu_link();
 }
 
 function print_date_sum($dateSumRemaining, $dateSumRemainingHours) {
 	echo '<tr>
-			<td colspan="5">Total</td>
+			<td colspan="7">Total</td>
 			<td>'.$dateSumRemaining.'</td>
 			<td colspan="3">&nbsp;</td>
 			<td>'.round($dateSumRemainingHours, 1).'</td>
-			<td>&nbsp;</td>
 		</tr>
-		<tr><td colspan="11">&nbsp;</td></tr>';
+		<tr><th colspan="12">&nbsp;</th></tr>';
 }
 
 if ($_REQUEST['action'] == 'show_update') {
