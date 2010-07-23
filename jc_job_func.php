@@ -58,7 +58,7 @@ function updateJobStatus($job_id, $status) {
 function listJobs($site_id, $status=null, $owner_id=null, $filter=null) {
 	if(!empty($status) && !empty($owner_id)) {
 		//arearesponsible's nonapproved
-		$sql = "SELECT j.id, j.site_id, j.area_id, j.owner_id, j.name, j.description, j.meetplace, j.jobplace, j.notes, j.status, j.priority, j.type, SUM(we.person_need), SUM(we.cal_duration * we.person_need)
+		$sql = "SELECT j.id, j.site_id, j.area_id, j.owner_id, j.name, j.description, j.meetplace, j.jobplace, j.notes, j.status, j.priority, j.type, SUM(we.person_need), SUM(we.cal_duration * we.person_need), j.def_date, j.def_user, j.upd_date, j.upd_user
 				FROM job j 
 				LEFT JOIN webcal_entry we ON we.job_id=j.id
 				LEFT JOIN area a on j.area_id=a.id
@@ -68,7 +68,7 @@ function listJobs($site_id, $status=null, $owner_id=null, $filter=null) {
 	}
 	elseif(!empty($status)) {
 		//not approved
-		$sql = "SELECT j.id, j.site_id, j.area_id, j.owner_id, j.name, j.description, j.meetplace, j.jobplace, j.notes, j.status, j.priority, j.type, SUM(we.person_need), SUM(we.cal_duration * we.person_need)
+		$sql = "SELECT j.id, j.site_id, j.area_id, j.owner_id, j.name, j.description, j.meetplace, j.jobplace, j.notes, j.status, j.priority, j.type, SUM(we.person_need), SUM(we.cal_duration * we.person_need), j.def_date, j.def_user, j.upd_date, j.upd_user
 				FROM job j 
 				LEFT JOIN webcal_entry we ON we.job_id=j.id
 				WHERE j.type='WN' AND j.site_id=? AND j.id>0 AND j.status=?
@@ -77,7 +77,7 @@ function listJobs($site_id, $status=null, $owner_id=null, $filter=null) {
 	}
 	elseif (!empty($owner_id)) {
 		//user X's jobs - no WHERE on j.type
-		$sql = "SELECT j.id, j.site_id, j.area_id, j.owner_id, j.name, j.description, j.meetplace, j.jobplace, j.notes, j.status, j.priority, j.type, SUM(we.person_need), SUM(we.cal_duration * we.person_need)
+		$sql = "SELECT j.id, j.site_id, j.area_id, j.owner_id, j.name, j.description, j.meetplace, j.jobplace, j.notes, j.status, j.priority, j.type, SUM(we.person_need), SUM(we.cal_duration * we.person_need), j.def_date, j.def_user, j.upd_date, j.upd_user
 				FROM job j 
 				LEFT JOIN webcal_entry we ON we.job_id=j.id
 				WHERE j.site_id=? AND j.id>0 AND j.owner_id=?
@@ -86,7 +86,7 @@ function listJobs($site_id, $status=null, $owner_id=null, $filter=null) {
 	}
 	elseif (!empty($filter)) {
 		//filter vacant
-		$sql = "SELECT j.id, j.site_id, j.area_id, j.owner_id, j.name, j.description, j.meetplace, j.jobplace, j.notes, j.status, j.priority, j.type, SUM(we.person_need) AS need, SUM(we.cal_duration * we.person_need)
+		$sql = "SELECT j.id, j.site_id, j.area_id, j.owner_id, j.name, j.description, j.meetplace, j.jobplace, j.notes, j.status, j.priority, j.type, SUM(we.person_need) AS need, SUM(we.cal_duration * we.person_need), j.def_date, j.def_user, j.upd_date, j.upd_user
 				FROM job j 
 				LEFT JOIN webcal_entry we ON we.job_id=j.id
 				WHERE j.type='WN' AND j.site_id=? AND j.id>0 AND j.status='A'
@@ -96,7 +96,7 @@ function listJobs($site_id, $status=null, $owner_id=null, $filter=null) {
 	}
 	else {
 		//all approved
-		$sql = "SELECT j.id, j.site_id, j.area_id, j.owner_id, j.name, j.description, j.meetplace, j.jobplace, j.notes, j.status, j.priority, j.type, SUM(we.person_need), SUM(we.cal_duration * we.person_need)  
+		$sql = "SELECT j.id, j.site_id, j.area_id, j.owner_id, j.name, j.description, j.meetplace, j.jobplace, j.notes, j.status, j.priority, j.type, SUM(we.person_need), SUM(we.cal_duration * we.person_need), j.def_date, j.def_user, j.upd_date, j.upd_user  
 				FROM job j 
 				LEFT JOIN webcal_entry we ON we.job_id=j.id
 				WHERE j.type='WN' AND j.site_id=? AND j.id>0 AND j.status='A'
@@ -126,6 +126,10 @@ function listJobs($site_id, $status=null, $owner_id=null, $filter=null) {
 		$j->remainingNeed = $row[12] - $signups[$row[0]][1];
 		$j->totalHours = round($row[13] / 60, 1);
 		$j->remainingHours = round(($row[13] - $signups[$row[0]][2]) / 60, 1);
+		$j->defDate = $row[14];
+		$j->defUser = $row[15];
+		$j->updDate = $row[16];
+		$j->updUser = $row[17];
 		$jobs[] = $j;
 	}
 	
@@ -180,6 +184,25 @@ function getJob($job_id) {
 	}
 	
 	return $job;
+}
+
+function print_job_details(Job $job, $showCreatedUpdatedBy = true) {
+	echo '<h1>Vis job <i>'.$job->name.' (ID '.$job->id.')</i></h1>
+		<table align="center" class="border1">
+		<tr><th align="left">Ansvarlig:</th><td><a href="jc_user.php?action=show_one&login='.$job->ownerID.'">'.getUser($job->ownerID)->getFullName().'</a></td></tr>
+		<tr><th align="left">Område:</th><td>'.getArea($job->id)->description.' ('.getArea($job->id)->name.')</td></tr>
+		<tr><th align="left">Beskrivelse af opgaven:</th><td>'.nl2br($job->description).'</td></tr>
+		<tr><th align="left">Mødested:</th><td>'.$job->meetplace.'</td></tr>
+		<tr><th align="left">Jobsted:</th><td>'.$job->jobplace.'</td></tr>
+		<tr><th align="left">Bemærkninger:</th><td>'.$job->notes.'</td></tr>
+		<tr><th align="left">Status:</th><td>'.$job->getLongStatus().'</td></tr>';
+	if (user_is_admin() && $showCreatedUpdatedBy) {
+		echo "
+		<tr><th align='left'>Oprettet:</th><td>$job->defDate (<a href='jc_user.php?action=show_one&login=$job->defUser'>".getUser($job->defUser)->getFullName()."</a>)</td></tr>
+		<tr><th align='left'>Opdateret:</th><td>$job->updDate (<a href='jc_user.php?action=show_one&login=$job->updUser'>".getUser($job->updUser)->getFullName()."</a>)</td></tr>
+		";
+	}
+	echo '</table>';
 }
 
 ?>

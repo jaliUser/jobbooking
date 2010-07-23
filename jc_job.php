@@ -696,26 +696,10 @@ function show_one() {
 
 	$job = getJob($_GET['job_id']);
 	$job = Job::cast($job);
+	print_job_details($job);
 	
-	echo '<h1>Vis job <i>'.$job->name.'</i></h1>
-		<table align="center" class="border1">
-		<tr><th align="left">Ansvarlig:</th><td><a href="jc_user.php?action=show_one&login='.$job->ownerID.'">'.getUser($job->ownerID)->getFullName().'</a></td></tr>
-		<tr><th align="left">Område:</th><td>'.getArea($job->id)->description.' ('.getArea($job->id)->name.')</td></tr>
-		<tr><th align="left">Beskrivelse af opgaven:</th><td>'.nl2br($job->description).'</td></tr>
-		<tr><th align="left">Mødested:</th><td>'.$job->meetplace.'</td></tr>
-		<tr><th align="left">Jobsted:</th><td>'.$job->jobplace.'</td></tr>
-		<tr><th align="left">Bemærkninger:</th><td>'.$job->notes.'</td></tr>
-		<tr><th align="left">Status:</th><td>'.$job->getLongStatus().'</td></tr>';
-	if (user_is_admin()) {
-		echo "
-		<tr><th align='left'>Oprettet:</th><td>$job->defDate (<a href='jc_user.php?action=show_one&login=$job->defUser'>$job->defUser</a>)</td></tr>
-		<tr><th align='left'>Opdateret:</th><td>$job->updDate (<a href='jc_user.php?action=show_one&login=$job->updUser'>$job->updUser</a>)</td></tr>
-		";
-	}
-	echo '</table>';
 	menu_link();
 }
-
 
 if ($_REQUEST['action'] == 'show_create') {
 	show_create();

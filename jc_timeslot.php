@@ -498,7 +498,7 @@ function show_list() {
 		
 		$job = getJob($timeslot->jobID);
 		echo '<tr>
-				<td>'.date("d/m", $timeslot->getStartTS()).'</td>
+				<td>'.strftime("%a %d/%m", $timeslot->getStartTS()).'</td>
 				<td>'.date("H:i", $timeslot->getStartTS()).date(" - H:i", $timeslot->getEndTS()).'</td>
 				<td>'.$timeslot->jobID.'</td>
 				<td><a href="jc_job.php?action=show_one&job_id='.$timeslot->jobID.'">'.$job->name.'</a></td>

@@ -214,7 +214,7 @@ function show_update() {
 	
 	// show user list for admins
 	if (user_is_admin() || user_is_consultant()) {
-		show_user_table("Vælg bruger der skal tilmeldes for", "$PHP_SELF?action=show_update&job_id=$job->id", listUsers($site_id, 3));
+		show_user_table("Vælg bruger der skal tilmeldes for", "$PHP_SELF?action=show_update&job_id=$job->id", listUsers($site_id));
 	}
 	
 	menu_link();
@@ -371,7 +371,7 @@ function show_update_noneed() {
 	
 	// show user list for admins
 	if (user_is_admin() || user_is_consultant()) {
-		show_user_table("Vælg bruger der skal tilmeldes for", "$PHP_SELF?action=show_update&job_id=$job->id", listUsers($site_id, 3));
+		show_user_table("Vælg bruger der skal tilmeldes for", "$PHP_SELF?action=show_update&job_id=$job->id", listUsers($site_id));
 	}
 	
 	menu_link();
@@ -435,24 +435,88 @@ function show_list() {
 	global $PHP_SELF, $login, $site_id, $site_name;
 	require_params(array($_GET['job_id'], $site_id));
 	
+	$users = listUsers($site_id);
+	$days = listDays($site_id);
 	$job = getJob($_GET['job_id']);
 	$job = Job::cast($job);
 	html_top($site_name . " - Tilmeldinger til $job->name");
-		
-	echo "<h1>Tilmeldinger til <i><a href=\"jc_job.php?action=show_one&job_id=$job->id\">$job->name</a></i></h1>";
-	echo "<p align='center' class='help'>TIP: Print denne side som vagtplan, inden dit job begynder!</p>";
-	if (! (user_is_admin() || user_is_consultant() || $login == $job->ownerID)) {
-		echo "<p align='center' class='redalert'>Du står ikke som kontaktperson på dette job, og kan derfor kun se tilmeldingerne, men ikke rette i dem!</p>";
-	}
+
 	//generate rows for existing timeslots
 	echo '<table name="outer" width="1000" align="center" border="0">';
 
+	$emails = "";
+	$phoneNumbers = "";
+	print_job_signups($job, $users, $days, $emails, $phoneNumbers);
+	
+	//show sms box
+	echo "<tr><td><h3>Send SMS til hjælperne</h3></td></tr>";
+	if (!empty($_GET['sms_sent'])) {
+		echo "<tr><td align='center' class='redalert'>SMSer afsendt</td></tr>";
+	}
+	echo "<tr><td>
+			<form action='$PHP_SELF' method='post'>
+				<table border='0' align='center' class='border1'>
+					<tr><td>Mobilnumre: </td><td><input type='text' name='numbers' value='$phoneNumbers' size='160' /> (flere numre adskilles af komma)</td></tr>
+					<tr><td>SMS-tekst: </td><td><input type='text' name='sms_text' size='160' maxlength='160' /> (maks. 160 tegn)</td></tr>
+					<tr><td colspan='2'><input type='submit' name='sms_sent' value='Send SMSer' /></td></tr>
+				</table>
+				<input type='hidden' name='action' value='do_send_sms' />
+				<input type='hidden' name='job_id' value='$job->id' />
+			</form>
+		</td></tr><tr><td>&nbsp;</td></tr>";
+	
+	//show emails
+	if (!empty($_POST['show_emails'])) {
+		if (!empty($emails)) {
+			$emailsCS = trim(trim($emails), ",");
+			$emailsSS = str_replace(",", ";", $emailsCS);
+			echo "<tr><td>
+					<p><b>Hjælper-emails komma-separeret:</b><br/>$emailsCS</p>
+					<p><b>Hjælper-emails semikolon-separeret:</b><br/>$emailsSS</p>
+				</td></tr>";
+		}
+	} else {
+		echo "<tr><td><form action='".$_SERVER['REQUEST_URI']."' method='POST'><input type='submit' name='show_emails' value='Vis hjælper-emails' /></form></td></tr>";
+	}
+	
+	echo '</table>';
+	menu_link();
+}
+
+function show_list_print() {
+	//reject_public_access();
+	global $PHP_SELF, $login, $site_id, $site_name;
+	require_params(array($site_id));
+	html_top($site_name . " - Tilmeldinger for alle jobs - " . date("d/m-Y, H:i"));
+
+	$jobs = listJobs($site_id);
+	$users = listUsers($site_id);
 	$days = listDays($site_id);
+	
+	foreach ($jobs as $job) {
+		print_job_details($job);
+		print_job_signups($job, $users, $days);
+		echo '<div style="page-break-after:always"></div>';
+	}
+	
+	menu_link();
+}
+
+function print_job_signups(Job $job, $users, $days, &$emails = null, &$phoneNumbers = null) {
+	$emails = "";
+	$phoneNumbers = "";
+	
+	echo "<tr><td>
+			<h1>Tilmeldinger til <i><a href=\"jc_job.php?action=show_one&job_id=$job->id\">$job->name</a></i></h1>
+			<p align='center' class='help'>TIP: Print denne side som vagtplan, inden dit job begynder!</p>";
+	if (! (user_is_admin() || user_is_consultant() || $login == $job->ownerID)) {
+		echo "<p align='center' class='redalert'>Du står ikke som kontaktperson på dette job, og kan derfor kun se tilmeldingerne, men ikke rette i dem!</p>";
+	}
+	echo "</td></tr>";
+
 	//$signups = listJobSignups($job->id);
 	$timeslots = listTimeslotsByDate($job->id);
 	$groupedTimeslots = groupTimeslotsByDate($timeslots);
-	$emails = "";
-	$phoneNumbers = "";
 	foreach ($days as $key => $day) {
 		$day = Day::cast($day);
 		$distinctDateArr = array();
@@ -498,7 +562,7 @@ function show_list() {
 				$signups = listTimeslotSignups($timeslot->id);
 				foreach ($signups as $signup) {
 					$signup = Signup::cast($signup);
-					$user = getUser($signup->userID);
+					$user = $users[$signup->userID];
 					if (!empty($user->email) && false === strpos($emails, $user->email)) {
 						$emails .= "$user->email, ";
 					}
@@ -526,40 +590,6 @@ function show_list() {
 		}
 		echo '</table></td></tr><tr><td>&nbsp;</td></tr>';	
 	}
-	
-	//show sms box
-	echo "<tr><td><h3>Send SMS til hjælperne</h3></td></tr>";
-	if (!empty($_GET['sms_sent'])) {
-		echo "<tr><td align='center' class='redalert'>SMSer afsendt</td></tr>";
-	}
-	echo "<tr><td>
-			<form action='$PHP_SELF' method='post'>
-				<table border='0' align='center' class='border1'>
-					<tr><td>Mobilnumre: </td><td><input type='text' name='numbers' value='$phoneNumbers' size='160' /> (flere numre adskilles af komma)</td></tr>
-					<tr><td>SMS-tekst: </td><td><input type='text' name='sms_text' size='160' maxlength='160' /> (maks. 160 tegn)</td></tr>
-					<tr><td colspan='2'><input type='submit' name='sms_sent' value='Send SMSer' /></td></tr>
-				</table>
-				<input type='hidden' name='action' value='do_send_sms' />
-				<input type='hidden' name='job_id' value='$job->id' />
-			</form>
-		</td></tr><tr><td>&nbsp;</td></tr>";
-	
-	//show emails
-	if (!empty($_POST['show_emails'])) {
-		if (!empty($emails)) {
-			$emailsCS = trim(trim($emails), ",");
-			$emailsSS = str_replace(",", ";", $emailsCS);
-			echo "<tr><td>
-					<p><b>Hjælper-emails komma-separeret:</b><br/>$emailsCS</p>
-					<p><b>Hjælper-emails semikolon-separeret:</b><br/>$emailsSS</p>
-				</td></tr>";
-		}
-	} else {
-		echo "<tr><td><form action='".$_SERVER['REQUEST_URI']."' method='POST'><input type='submit' name='show_emails' value='Vis hjælper-emails' /></form></td></tr>";
-	}
-	
-	echo '</table>';
-	menu_link();
 }
 
 function show_list_noneed() {
@@ -763,6 +793,8 @@ if ($_REQUEST['action'] == 'show_update') {
 	show_blockings();
 } elseif ($_REQUEST['action'] == 'show_list') {
 	show_list();
+} elseif ($_REQUEST['action'] == 'show_list_print') {
+	show_list_print();
 } elseif ($_REQUEST['action'] == 'show_list_noneed') {
 	show_list_noneed();
 } elseif ($_REQUEST['action'] == 'show_evals') {

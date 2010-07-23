@@ -34,6 +34,7 @@ echo '
 	-->
 	<tr><td><a href="jc_signup.php?action=show_mine">Vis mine jobtilmeldinger</a></td><td class="help"></td></tr>
 	' :'').'
+	'.(user_is_admin() ? '<tr><td><a href="jc_signup.php?action=show_list_print">Vis alle jobtilmeldinger</a></td><td class="help"></td></tr>':'').'
 
 	<!--
 	'.(user_is_admin() ? '<tr><td colspan="2">-</td></tr>
