@@ -55,7 +55,7 @@ function show_update() {
 	
 	// show user list for admins
 	if (user_is_admin()) {
-		show_user_table("Vælg bruger der skal vises ledighedsperioder for", "$PHP_SELF?action=show_update", listUsers($site_id, 3));
+		show_user_table("Vælg bruger der skal vises ledighedsperioder for", "$PHP_SELF?action=show_update", listUsers($site_id));
 	}
 	
 	menu_link();
