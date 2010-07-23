@@ -124,8 +124,10 @@ function notifyUser($login, $subject, $message, $siteConfig = null) {
 	mail($to, $subject, $message, $headers);
 }
 
-function notifyAdmin($subject, $message) {
-	global $siteConfig;
+function notifyAdmin($subject, $message, $siteConfig = null) {
+	if ($siteConfig == null) {
+		global $siteConfig;
+	}
 	$to = $siteConfig->config[SiteConfig::$EMAIL];
 	
 	mail($to, $subject, $message, get_mail_headers($siteConfig, true));
@@ -142,7 +144,7 @@ if ((is_numeric($hour) && $hour >= 0 && $hour <= 23) &&
 
 function getTimeText($job, $ts) {
 	if ($job->type == "WN") {
-		return " i tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->get_DD_MM_YYYY();
+		return " i tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".strftime("%a %d/%m-Y", $ts->getStartTS());
 	} else {
 		return "";
 	}
@@ -150,7 +152,7 @@ function getTimeText($job, $ts) {
 
 function getTimeTextShort($job, $ts) {
 	if ($job->type == "WN") {
-		return " kl ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".$ts->get_DD_MM_YYYY();
+		return " kl ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".strftime("%a %d/%m", $ts->getStartTS());
 	} else {
 		return "";
 	}

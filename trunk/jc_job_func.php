@@ -187,9 +187,10 @@ function getJob($job_id) {
 }
 
 function print_job_details(Job $job, $showCreatedUpdatedBy = true) {
-	echo '<h1>Vis job <i>'.$job->name.' (ID '.$job->id.')</i></h1>
+	$owner = getUser($job->ownerID);
+	echo '<h1>Vis job <i>'.$job->name.'</i> (ID '.$job->id.')</h1>
 		<table align="center" class="border1">
-		<tr><th align="left">Ansvarlig:</th><td><a href="jc_user.php?action=show_one&login='.$job->ownerID.'">'.getUser($job->ownerID)->getFullName().'</a></td></tr>
+		<tr><th align="left">Ansvarlig:</th><td><a href="jc_user.php?action=show_one&login='.$job->ownerID.'">'.$owner->getFullName().'</a> ('.$owner->telephone.')</td></tr>
 		<tr><th align="left">Område:</th><td>'.getArea($job->id)->description.' ('.getArea($job->id)->name.')</td></tr>
 		<tr><th align="left">Beskrivelse af opgaven:</th><td>'.nl2br($job->description).'</td></tr>
 		<tr><th align="left">Mødested:</th><td>'.$job->meetplace.'</td></tr>
