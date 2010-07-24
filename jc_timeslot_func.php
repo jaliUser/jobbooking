@@ -99,7 +99,8 @@ function updateContact($timeslot_id, $contact_id) {
 						"\r\n".
 						"Du er netop for job '".$job->name."' blevet tildelt tidsperioden ".$oldTS->getStartHour().":".$oldTS->getStartMin()."-".$oldTS->getEndHour().":".$oldTS->getEndMin()." ".$oldTS->get_DD_MM_YYYY().",\r\n".
 						"hvor der er et resterende behov på ".$oldTS->remainingNeed." personer.\r\n".
-						"Som jobkonsulent er det din opgave at skaffe arbejdskraft til de tidsperioder, som du er tildelt.\r\n";
+						"Som jobkonsulent er det din opgave at skaffe arbejdskraft til de tidsperioder, som du er tildelt.\r\n".
+						"\r\nTildelingen er foretaget af: ".$getUser($login)->getFullName().".\r\n";
 			
 			notifyUser($contact_id, $subject, $message);
 		} else {
@@ -116,7 +117,8 @@ function updateContact($timeslot_id, $contact_id) {
 						"\r\n".
 						"Din tildeling af tidsperioden ".$oldTS->getStartHour().":".$oldTS->getStartMin()."-".$oldTS->getEndHour().":".$oldTS->getEndMin()." ".$oldTS->get_DD_MM_YYYY()." for job '".$job->name."' er netop blevet slettet.\r\n".
 						"Der var et resterende behov på ".$oldTS->remainingNeed." personer.\r\n".
-						"Som jobkonsulent er det din opgave at skaffe arbejdskraft til de tidsperioder, som du er tildelt.\r\n";
+						"Som jobkonsulent er det din opgave at skaffe arbejdskraft til de tidsperioder, som du er tildelt.\r\n".
+						"\r\nSletningen er foretaget af: ".$getUser($login)->getFullName().".\r\n";
 			
 			notifyUser($oldTS->contactID, $subject, $message);
 		}

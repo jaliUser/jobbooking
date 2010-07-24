@@ -226,10 +226,12 @@ function show_list() {
 		}
 		if(user_is_admin() || $job->ownerID == $login) {
 			echo "<a href='$PHP_SELF?action=show_update&job_id=$job->id'>Redigér&nbsp;job</a><br>";
-			if ($job->type == "WN") {
-				echo "<a href='jc_timeslot.php?action=show_update&job_id=$job->id'>Redigér&nbsp;behov</a><br>
-					  <a href='jc_signup.php?action=show_evals&job_id=$job->id'>Redigér&nbsp;tilbagemeldinger</a><br>";
-			}
+		}
+		if(user_is_admin() || $job->ownerID == $login && $job->type == "WN") {
+			echo "<a href='jc_timeslot.php?action=show_update&job_id=$job->id'>Redigér&nbsp;behov</a><br>";
+		}
+		if(user_is_admin() || user_is_consultant() || $job->ownerID == $login && $job->type == "WN") {
+			echo "<a href='jc_signup.php?action=show_evals&job_id=$job->id'>Redigér&nbsp;tilbagemeldinger</a><br>";
 		}
 		if(user_is_admin() && $job->type == "WN") {
 			echo "<a href='jc_timeslot.php?action=show_assign&job_id=$job->id'>Tilknyt&nbsp;jobkonsulenter</a>";
