@@ -359,7 +359,7 @@ function show_update() {
 	reject_public_access();
 	global $PHP_SELF, $login, $site_id, $site_name;
 	
-	if (!user_is_admin() && $login != $_GET['login']) {
+	if (!(user_is_admin() || user_is_consultant()) && $login != $_GET['login']) {
 		echo "Unauthorized access!";
 		exit;
 	}
