@@ -84,7 +84,7 @@ function smsPhoneList($phoneArray, $message, $adminEmailCopy = true) {
 		$failureNumbers = "";
 		foreach ($fixedPhoneArray as $number) {
 			$phoneEmail = $number . $smsEmail;
-			$fixedMessage = $message . " " . $securityCode;
+			$fixedMessage = $message . $securityCode;
 			
 			$sent = mail($phoneEmail, "SMS fra SEE2010 Jobcenter", $fixedMessage, $headers);
 			if ($sent == true) {
@@ -163,7 +163,7 @@ function sendNextdayStatus($sms=true, $mail=false) {
 			$user = getUser($job->ownerID);
 			
 			if ($sms && !empty($user->telephone) && $user->noEmail != 1) {
-				$smsText = "Jobstatus: #$job->id $job->name," . getTimeTextShort($job, $ts) . ": Behov $ts->personNeed, tilmeldt $ts->remainingNeed. Mvh $siteConfig->siteName";
+				$smsText = "Jobstatus: #$job->id $job->name," . getTimeTextShort($job, $ts) . ": Behov $ts->personNeed, rest $ts->remainingNeed. Mvh $siteConfig->siteName";
 				$adminEmailText .= "$user->telephone: $smsText\r\n";
 				$phoneArray = array();
 				$phoneArray[] = $user->telephone;
