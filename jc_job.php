@@ -345,9 +345,21 @@ function show_create() {
 	reject_public_access();
 	global $PHP_SELF, $login, $site_id, $site_name, $usePredefPlaces;
 	html_top($site_name . " - Opret job");
-
+	echo "<h1>Opret job</h1>";
+	
+	$minutesBeforeUpdateFreeze = 60*24*14; //14 days
+	$disabled = "";
+	if (time() + $minutesBeforeUpdateFreeze*60 > getFirstDay($site_id)->getDateTS()) {
+		echo "<p align='center' class='redalert'><b>Bemærk:</b> Tidsgrænsen for oprettelse er overskredet!<br/>
+			Kontakt <a href='mailto:".$siteConfig->config[SiteConfig::$EMAIL]."'>$site_name</a>, hvis du har behov for at oprette et job.</p>";
+		
+		if (!user_is_admin()) {
+			$disabled = "disabled";
+		}
+	}
+	
 	//generate html for all areas
-	$areasHTML = '<select name="area_id">';
+	$areasHTML = '<select name="area_id" '.$disabled.'>';
 	$areas = listAreas($site_id);
 	foreach ($areas as $area) {
 		$area = Area::cast($area);
@@ -356,7 +368,7 @@ function show_create() {
 	$areasHTML .= '</select>';
 
 	//generate html for users with employer role
-	$ownerHTML = '<select name="owner_id">';
+	$ownerHTML = '<select name="owner_id" '.$disabled.'>';
 	if (user_is_admin() || user_is_consultant()) {
 		$employers = listUsers($site_id, 2);
 		$consultants = listUsers($site_id, 4);
@@ -373,52 +385,51 @@ function show_create() {
 	}
 	$ownerHTML .= '</select>';
 	
-	$statusHTML =  '<select name="status">
+	$statusHTML =  '<select name="status" '.$disabled.'>
 					<option value="A">'.Job::jobStatus('A').'</option>
 					<option value="W">'.Job::jobStatus('W').'</option>
 					</select>';
 					
-	$priorityHTML = '<select name="priority">
+	$priorityHTML = '<select name="priority" '.$disabled.'>
 					<option>1</option> <option>2</option> <option selected>3</option> <option>4</option> <option>5</option>
 					</select>';
 	
-	$typeHTML = '<select name="type">
+	$typeHTML = '<select name="type" '.$disabled.'>
 				<option value="WN">'.Job::jobType('WN').'</option>
 				<option value="NN">'.Job::jobType('NN').'</option>
 				</select>';
 	
 	if ($usePredefPlaces) {
 		$places = getPlaces();
-		$meetplacesHTML = '<select name="meetplace-predef">';
+		$meetplacesHTML = '<select name="meetplace-predef" '.$disabled.'>';
 		foreach ($places as $place) {
 			$meetplacesHTML .= "<option>$place</option>";
 		}
 		$meetplacesHTML .= '</select>';
 		
-		$jobplacesHTML = '<select name="jobplace-predef">';
+		$jobplacesHTML = '<select name="jobplace-predef" '.$disabled.'>';
 		foreach ($places as $place) {
 			$jobplacesHTML .= "<option>$place</option>";
 		}
 		$jobplacesHTML .= '</select>'; 
 	}
 
-	echo '<h1>Opret job</h1>
-		<form action="'.$PHP_SELF.'" method="POST">
+	echo '<form action="'.$PHP_SELF.'" method="POST">
 		<table align="center" border="0" cellspacing="3" cellpadding="3">
 		
 		<tr><td>Kontaktperson:</td><td>'.$ownerHTML.'</td></tr>
 		<tr><td>Område:</td><td>'.$areasHTML.'</td></tr>
-		<tr><td>Overskrift:</td><td><input type="text" name="name" size="64" maxlength="64" /> *</td></tr>
-		<tr><td>Beskrivelse af opgaven:</td><td><textarea name="description" cols="48" rows="5"></textarea> *</td></tr>
-		<tr><td>Mødested:</td><td>'.($usePredefPlaces ? $meetplacesHTML.' Hvis andet: ' : '').'<input type="text" name="meetplace" size="25" maxlength="25" /> *</td></tr>
-		<tr><td>Jobsted:</td><td>'.($usePredefPlaces ? $jobplacesHTML.' Hvis andet: ' : '').'<input type="text" name="jobplace" size="25" maxlength="25" /> <span class="help">Udfyldes kun hvis forskelligt fra mødested.</span></td></tr>
-		<tr><td>Bemærkninger:</td><td><textarea name="notes" cols="48" rows="5">'.$notesExample.'</textarea></td></tr>
+		<tr><td>Overskrift:</td><td><input type="text" name="name" size="64" maxlength="64" '.$disabled.'/> *</td></tr>
+		<tr><td>Beskrivelse af opgaven:</td><td><textarea name="description" cols="48" rows="5" '.$disabled.'></textarea> *</td></tr>
+		<tr><td>Mødested:</td><td>'.($usePredefPlaces ? $meetplacesHTML.' Hvis andet: ' : '').'<input type="text" name="meetplace" size="25" maxlength="25" '.$disabled.'/> *</td></tr>
+		<tr><td>Jobsted:</td><td>'.($usePredefPlaces ? $jobplacesHTML.' Hvis andet: ' : '').'<input type="text" name="jobplace" size="25" maxlength="25" '.$disabled.'/> <span class="help">Udfyldes kun hvis forskelligt fra mødested.</span></td></tr>
+		<tr><td>Bemærkninger:</td><td><textarea name="notes" cols="48" rows="5" '.$disabled.'>'.$notesExample.'</textarea></td></tr>
 		<tr><td>Status:</td><td>'.(user_is_admin() ? $statusHTML : 'Afventer <input type="hidden" name="status" value="W">').'</td></tr>
 		'.(user_is_admin() ? '<tr><td>Prioritet:</td><td>'.$priorityHTML.'</td></tr>' : '<input type="hidden" name="priority" value="3">').'
 		'.(user_is_admin() || user_is_consultant() ? '<tr><td>Type:</td><td>'.$typeHTML.'</td></tr>' : '<input type="hidden" name="type" value="WN">').'
 		<tr><td colspan="2" class="help">* markerer et obligatorisk felt</td></tr>
 
-		<tr><td colspan="2"><input type="submit" value="Opret"/></td></tr>
+		<tr><td colspan="2"><input type="submit" value="Opret" '.$disabled.'/></td></tr>
 		<input type="hidden" name="action" value="do_create">
 		
 		</table>
