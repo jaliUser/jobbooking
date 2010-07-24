@@ -14,7 +14,7 @@ echo '
 	<table border="0" cellpadding="2" cellspacing="3" align="left">
 	<tr><th align="left">Handling</th><th></th></tr>
 	
-	'.(user_is_admin() || user_is_employer() || user_is_consultant() ? '<tr><td><a href="jc_job.php?action=show_create">Opret jobopslag</a></td><td class="help"></td></tr>' :'').'
+	'.(user_is_admin() || user_is_employer() ? '<tr><td><a href="jc_job.php?action=show_create">Opret jobopslag</a></td><td class="help"></td></tr>' :'').'
 	<tr><td><a href="jc_job.php?action=show_list&filter=vacant">Vis ledige jobopslag</a></td><td class="help">Jobopslag der stadig mangler folk til.</td></tr>
 	<tr><td><a href="jc_job.php?action=show_list">Vis alle godkendte jobopslag</a></td><td class="help">Inklusiv dem der fuldt besat.</td></tr>
 	<tr><td><a href="jc_job.php?action=show_list_noneed">Vis underlejrjobs</a></td><td class="help"></td></tr>

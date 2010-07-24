@@ -46,7 +46,7 @@ include_once 'includes/dbi4php.php';
 
 //Computopic
 function smsPhoneList($phoneArray, $message, $adminEmailCopy = true) {
-	global $siteConfig;
+	global $login, $siteConfig;
 	$smsEmail = "@smsgw.computopic.dk";
 	$numberPrefix = "45";
 	$limit160 = true;
@@ -98,7 +98,10 @@ function smsPhoneList($phoneArray, $message, $adminEmailCopy = true) {
 		}
 		
 		if ($adminEmailCopy) {
-			$emailText = "Afsendt: $succesNumbers\r\n\r\nFejl: $failureNumbers\r\n\r\nBesked: $message\r\n";
+			$emailText = 	"Afsendt:\r\n$succesNumbers\r\n\r\n".
+							(!empty($failureNumbers) ? "Fejl:\r\n$failureNumbers\r\n\r\n" : "").
+							"Besked:\r\n$message\r\n\r\n".
+							"Afsendelse foretaget af: ".getUser($login)->getFullName()."\r\n";
 			notifyAdmin("SMS afsendelse", $emailText, $siteConfig);
 		}
 	}

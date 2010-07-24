@@ -643,7 +643,7 @@ function show_evals() {
 	$timeslots = listTimeslotsByDate($job->id);
 	$groupedTimeslots = groupTimeslotsByDate($timeslots);
 	
-	echo "<h1>Tilbagemeldinger på <i>$job->name</i></h1>";
+	echo "<h1>Tilbagemeldinger på <i>$job->name</i> (ID $job->id)</h1>";
 	
 	if (!empty($_GET['submit'])) {
 		echo '<p align="center" class="redalert">Din tilbagemelding er nu opdateret.</p>';
