@@ -526,7 +526,12 @@ function show_update() {
 	//generate html for users with employer role
 	$ownerHTML = '<select name="owner_id">';
 	if (user_is_admin()) {
-		$users = listUsers($site_id, 2);
+		$employers = listUsers($site_id, 2);
+		$consultants = listUsers($site_id, 4);
+		$admins = listUsers($site_id, 1);
+		$users = array_merge($employers, $consultants, $admins);
+		//sort(&$users);
+		
 		foreach ($users as $user) {
 			$user = User::cast($user);
 			$ownerHTML .= '<option value="'.$user->login.'" '.($user->login == $job->ownerID ? "selected" : "").'>'.$user->getFullName().'</option>';

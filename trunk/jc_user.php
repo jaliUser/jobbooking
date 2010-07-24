@@ -345,7 +345,7 @@ function do_create() {
 		if($login == "__public__") {
 			do_redirect('login.php?site_id='.$_POST['site_id'].'&user_id='.$_POST['login']);
 		} else {
-			do_redirect($PHP_SELF.'?action=show_list');
+			do_redirect('jc_menu.php');
 		}
 	}
 	else {
