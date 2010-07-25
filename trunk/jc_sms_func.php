@@ -46,13 +46,18 @@ include_once 'includes/dbi4php.php';
 
 //Computopic
 function smsPhoneList($phoneArray, $message, $adminEmailCopy = true) {
-	global $login, $siteConfig;
+	global $login;
+	$site_id = 1; //TODO
+	$siteConfig = getSiteConfig($site_id);
+	
 	$smsEmail = "@smsgw.computopic.dk";
 	$numberPrefix = "45";
 	$limit160 = true;
 	$securityCode = "[SEE2010:42de9b8313162c94]";
+	$ccNumbers = array();
 	
 	$message = trim($message);
+	$message = str_replace("'", "", $message); //remove ' as they will be escaped and string may grow above 160
 	if ($limit160) {
 		$length = strlen($message);
 		if ($length > 160) {
@@ -60,6 +65,7 @@ function smsPhoneList($phoneArray, $message, $adminEmailCopy = true) {
 		}
 	}
 	
+	$phoneArray = array_merge($phoneArray, $ccNumbers);
 	$fixedPhoneArray = array();
 	foreach ($phoneArray as $number) {
 		$number = str_replace(" ", "", $number);
@@ -71,6 +77,7 @@ function smsPhoneList($phoneArray, $message, $adminEmailCopy = true) {
 		} else {
 			//log invalid number
 			notifyAdmin("Ugyldigt nummer: $number", "", $siteConfig);
+			echo "Ugyldigt nummer: $number"; //debug info for cronjob
 		}
 	}
 	
@@ -91,19 +98,22 @@ function smsPhoneList($phoneArray, $message, $adminEmailCopy = true) {
 				$succesNumbers .= "$number, ";
 			} else {
 				$failureNumbers .= "$number, ";
-			}	
-			
-			//debug
-//			echo "$number: $message<br>\r\n";
+			}
 		}
 		
+		$sender = getUser($login)->getFullName();
+		if (empty($login)) {
+			$sender = $_SERVER["REMOTE_ADDR"];
+		}
+		$emailText = 	"Afsendt:\r\n$succesNumbers\r\n\r\n".
+						(!empty($failureNumbers) ? "Fejl:\r\n$failureNumbers\r\n\r\n" : "").
+						"Besked:\r\n$message\r\n\r\n".
+						"Afsendelse foretaget af: $sender\r\n";
+		
 		if ($adminEmailCopy) {
-			$emailText = 	"Afsendt:\r\n$succesNumbers\r\n\r\n".
-							(!empty($failureNumbers) ? "Fejl:\r\n$failureNumbers\r\n\r\n" : "").
-							"Besked:\r\n$message\r\n\r\n".
-							"Afsendelse foretaget af: ".getUser($login)->getFullName()."\r\n";
 			notifyAdmin("SMS afsendelse", $emailText, $siteConfig);
 		}
+		echo $emailText; //debug info for cronjob log
 	}
 }
 
@@ -142,7 +152,7 @@ function sendReminders($sms=true, $mail=false) {
 			
 			$ts = getTimeslot($row[2]);
 			$job = getJob($ts->jobID);
-			$smsText = "Reminder: Du er tilmeldt job $job->id: '$job->name'".getTimeTextShort($job, $ts)." ved $job->meetplace. Mvh $siteConfig->siteName";
+			$smsText = "Reminder: Du er tilmeldt job $job->id: $job->name,".getTimeTextShort($job, $ts)." ved $job->meetplace. Mvh $siteConfig->siteName";
 			
 			if(count($phoneArray) > 0) {
 				smsPhoneList($phoneArray, $smsText);
@@ -177,6 +187,7 @@ function sendNextdayStatus($sms=true, $mail=false) {
 	}
 	
 	notifyAdmin("Job status i morgen", $adminEmailText, $siteConfig);
+	mail("tho@thodata.dk", "Job status i morgen", $adminEmailText);
 }
 
 ?>
