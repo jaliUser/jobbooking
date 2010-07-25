@@ -408,7 +408,9 @@ function show_list() {
 	$users = array_merge($admins, $consultants);
 	
 	$lastDate = null;
+	$dateSumNeed = 0;
 	$dateSumRemaining = 0;
+	$dateSumNeedHours = 0;
 	$dateSumRemainingHours = 0;
 	$timeslots = array();
 	if (!empty($_GET['user_id'])) {
@@ -427,11 +429,15 @@ function show_list() {
 		$timeslot = Timeslot::cast($timeslot);
 				
 		if ($lastDate != null & $lastDate != $timeslot->date) {
-			print_date_sum($dateSumRemaining, $dateSumRemainingHours);
+			print_date_sum($dateSumNeed, $dateSumRemaining, $dateSumNeedHours, $dateSumRemainingHours);
+			$dateSumNeed = 0;
 			$dateSumRemaining = 0;
+			$dateSumNeedHours = 0;
 			$dateSumRemainingHours = 0;
 		}
+		$dateSumNeed += $timeslot->personNeed;
 		$dateSumRemaining += $timeslot->remainingNeed;
+		$dateSumNeedHours += $timeslot->personNeed * $timeslot->duration / 60;
 		$dateSumRemainingHours += $timeslot->remainingNeed * $timeslot->duration / 60;
 		$lastDate = $timeslot->date;
 		
@@ -463,7 +469,7 @@ function show_list() {
 				<td '.($timeslot->remainingNeed > 0 ? 'class="redalert"':'').'>'.round($timeslot->remainingNeed * $timeslot->duration / 60, 1).'</td>
 			</tr>';
 	}
-	print_date_sum($dateSumRemaining, $dateSumRemainingHours);
+	print_date_sum($dateSumNeed, $dateSumRemaining, $dateSumNeedhours, $dateSumRemainingHours);
 	echo '</table>';
 	
 	if (!empty($_GET['user_id'])) {
@@ -473,11 +479,13 @@ function show_list() {
 	menu_link();
 }
 
-function print_date_sum($dateSumRemaining, $dateSumRemainingHours) {
+function print_date_sum($dateSumNeed, $dateSumRemaining, $dateSumNeedHours, $dateSumRemainingHours) {
 	echo '<tr>
-			<td colspan="7">Total</td>
+			<td colspan="6">Total</td>
+			<td>'.$dateSumNeed.'</td>
 			<td>'.$dateSumRemaining.'</td>
-			<td colspan="3">&nbsp;</td>
+			<td colspan="2">&nbsp;</td>
+			<td>'.round($dateSumNeedHours, 1).'</td>
 			<td>'.round($dateSumRemainingHours, 1).'</td>
 		</tr>
 		<tr><th colspan="12">&nbsp;</th></tr>';
