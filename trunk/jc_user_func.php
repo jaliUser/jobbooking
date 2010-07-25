@@ -285,4 +285,25 @@ function existTelephone($telephone) {
 	return $rows[0][0];
 }
 
+function print_create_user() {
+	echo '<h1>Opret bruger</i></h1>
+		<table align="center" border="0" cellspacing="3" cellpadding="3">
+		<tr><td>Brugernavn:</td><td><input type="text" name="login" size="25" maxlength="25" /> * <span class="help">Kun tegnene A-Z og _ er tilladte (IKKE mellemrum, &AElig;, &Oslash; og &Aring;)</span></td></tr>
+		<tr><td>Kodeord:</td><td><input type="password" name="password" size="25" maxlength="32" /> * <span class="help">Minimum 4 karakterer</span></td></tr>
+		<tr><td>Fornavn:</td><td><input type="text" name="firstname" size="25" maxlength="25" /> *</td></tr>
+		<tr><td>Efternavn:</td><td><input type="text" name="lastname" size="25" maxlength="25" /> *</td></tr>
+		<!-- <tr><td>Spejdernet-brugernavn:</td><td><input type="text" name="ext_login" size="25" maxlength="25" /></td></tr> -->
+		<tr><td>E-mail:</td><td><input type="text" name="email" size="25" maxlength="75" /> <span class="help">Vigtig!</span></td></tr>
+		<tr><td>Telefon (helst mobil):</td><td><input type="text" name="telephone" size="25" maxlength="50" /> * <span class="help">Bruges til SMS-service for påmindelse og evt. ændringer af jobs.</span></td></tr>
+		<!-- <tr><td>Adresse/postnr/by:</td><td><input type="text" name="address" size="25" maxlength="75" /> *</td></tr> -->
+		<!-- <tr><td>Alder under lejren:</td><td><input type="text" name="age_range" size="10" maxlength="10" /> *</td></tr> -->
+		<tr><td>Antal:</td><td><input type="text" name="count" size="2" maxlength="3" /> * <span class="help">Hvor mange hjælpere er I?</span></td></tr>
+		<tr><td>Klan/holdnavn/pladsnr:</td><td><input type="text" name="title" size="25" maxlength="75" /></td></tr>
+		<!-- <tr><td>Foretrukne jobkategorier:</td><td>'.$jobcategoryHTML.'</td></tr> -->
+		<tr><td>Gruppe:</td><td><input type="text" name="title" size="25" maxlength="75" /> *</td></tr>
+		<tr><td>Noter:</td><td><textarea name="notes" cols="50" rows="3"></textarea></td></tr>
+		<tr><td colspan="2" class="help">* markerer et obligatorisk felt</td></tr>
+		</table>';
+}
+
 ?>

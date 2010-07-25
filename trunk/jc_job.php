@@ -224,6 +224,7 @@ function show_list() {
 		if(user_is_admin() || user_is_consultant() || $job->ownerID == $login || ($showOthersSignups && user_is_employer())) {
 			echo "<a href='jc_signup.php?action=show_list".($job->type == "NN" ? '_noneed' : '')."&job_id=$job->id'>Vis&nbsp;tilmeldinger</a><br>";
 		}
+		echo '<a href="jc_timeslot.php?action=show_print_vacant&job_id='.$job->id.'">Print ledige tider</a><br/>';
 		if(user_is_admin() || $job->ownerID == $login) {
 			echo "<a href='$PHP_SELF?action=show_update&job_id=$job->id'>Redigér&nbsp;job</a><br>";
 		}
