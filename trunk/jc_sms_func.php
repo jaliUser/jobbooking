@@ -45,7 +45,7 @@ include_once 'includes/dbi4php.php';
 //}
 
 //Computopic
-function smsPhoneList($phoneArray, $message, $adminEmailCopy = true) {
+function smsPhoneList($phoneArray, $message, $adminEmailCopy = true, $useCcNumbers = false) {
 	global $login;
 	$site_id = 1; //TODO
 	$siteConfig = getSiteConfig($site_id);
@@ -54,7 +54,7 @@ function smsPhoneList($phoneArray, $message, $adminEmailCopy = true) {
 	$numberPrefix = "45";
 	$limit160 = true;
 	$securityCode = "[SEE2010:42de9b8313162c94]";
-	$ccNumbers = array();
+	$ccNumbers = array("27284500");
 	
 	$message = trim($message);
 	$message = str_replace("'", "", $message); //remove ' as they will be escaped and string may grow above 160
@@ -65,7 +65,10 @@ function smsPhoneList($phoneArray, $message, $adminEmailCopy = true) {
 		}
 	}
 	
-	$phoneArray = array_merge($phoneArray, $ccNumbers);
+	if ($useCcNumbers) {
+		$phoneArray = array_merge($phoneArray, $ccNumbers);
+	}
+	
 	$fixedPhoneArray = array();
 	foreach ($phoneArray as $number) {
 		$number = str_replace(" ", "", $number);
@@ -118,7 +121,7 @@ function smsPhoneList($phoneArray, $message, $adminEmailCopy = true) {
 }
 
 //will be called periodically
-function sendReminders($sms=true, $mail=false) {
+function sendJobReminders($sms=true, $mail=false) {
 	$site_id = 1; //TODO
 	$siteConfig = getSiteConfig($site_id);
 	$minutesBefore = 60;
@@ -188,6 +191,50 @@ function sendNextdayStatus($sms=true, $mail=false) {
 	
 	notifyAdmin("Job status i morgen", $adminEmailText, $siteConfig);
 	mail("tho@thodata.dk", "Job status i morgen", $adminEmailText);
+}
+
+//will be called periodically
+function sendEvalReminders($sms=true, $mail=true) {
+	$site_id = 1; //TODO
+	$siteConfig = getSiteConfig($site_id);
+	$minutesBefore = 0;
+	$checkInterval = 15;
+	
+	//assume method is called 'on minute' (00/15/30/45) and set 00 as seconds
+	$startFrameDate = date("Ymd", mktime() + $minutesBefore*60); //insecurity around midnight???
+	$startFrameTime = date("Hi00", mktime() + $minutesBefore*60);
+	$endFrameTime = date("Hi00", mktime() + $minutesBefore*60 + ($checkInterval-1)*60);
+
+	//timeslots with starttime between startFrameTime (not including) and endFrameTime (including)
+	$sql = "SELECT job.id, job.name, cal_id, cal_date, cal_time, cal_duration FROM webcal_entry
+			LEFT JOIN job ON job.id=webcal_entry.job_id
+			WHERE job_id > 0 AND person_need > 0
+			AND cal_date = ? AND cal_time >= ? AND cal_time <= ?
+			ORDER BY cal_date, cal_time";
+	$rows = dbi_get_cached_rows($sql, array($startFrameDate, $startFrameTime, $endFrameTime));
+	
+	if ($sms) {
+		foreach ($rows as $row) {
+			$numIdx = 0;
+			$phoneArray = array();
+			$signups = listTimeslotSignups($row[2]);
+			foreach ($signups as $signup) {
+				$user = getUser($signup->userID);
+				if (!empty($user->telephone) && $user->noEmail != 1) {
+					$phoneArray[$numIdx] = $user->telephone;
+					$numIdx++;
+				}
+			}
+			
+			$ts = getTimeslot($row[2]);
+			$job = getJob($ts->jobID);
+			$smsText = "Reminder: Du er tilmeldt job $job->id: $job->name,".getTimeTextShort($job, $ts)." ved $job->meetplace. Mvh $siteConfig->siteName";
+			
+			if(count($phoneArray) > 0) {
+				smsPhoneList($phoneArray, $smsText);
+			}
+		}
+	}
 }
 
 ?>
