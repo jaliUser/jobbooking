@@ -445,7 +445,8 @@ function show_list() {
 		$owner = getUser($job->ownerID);
 		
 		echo '<tr><td>
-				<a href="jc_signup.php?action=show_update&job_id='.$timeslot->jobID.'">Tilmeld</a><br/>';
+				<a href="jc_signup.php?action=show_update&job_id='.$timeslot->jobID.'">Tilmeld</a><br/>
+				<a href="jc_timeslot.php?action=show_print_vacant&job_id='.$timeslot->jobID.'">Print ledige tider</a><br/>';
 		if (user_is_admin() || user_is_consultant()) {
 			echo "<a href='jc_signup.php?action=show_list&job_id=$timeslot->jobID'>Vis tilmeldinger</a><br/>
 				  <a href='jc_timeslot.php?action=show_assign&job_id=$timeslot->jobID'>Tildel</a>";
@@ -491,6 +492,85 @@ function print_date_sum($dateSumNeed, $dateSumRemaining, $dateSumNeedHours, $dat
 		<tr><th colspan="12">&nbsp;</th></tr>';
 }
 
+function show_print_vacant() {
+	reject_public_access();
+	global $PHP_SELF, $login, $site_id, $site_name, $siteConfig;
+	html_top($site_name . " - Ledige tidsperioder for job");
+	
+	$job = getJob($_GET['job_id']);
+	$job = Job::cast($job);
+	$days = listDays($site_id);
+
+	echo '<form><p align="center"><input type="button" value="Print side" onclick="window.print();return false;" /></p></form>';
+	
+	print_job_details($job, false);
+	
+	echo "<h1>Ledige tidsperioder for <i><a href=\"jc_job.php?action=show_one&job_id=$job->id\">$job->name</a></i> (ID $job->id)</h1>".
+		'<p class="help">I kolonnerne <i>Behov</i> kan du se det aktuelle behov for personer til de forskellige tidsperioder. Hvis du eller dit hold ønsker at hjælpe med dette job, udfyld det antal personer du/I kan stille med, for en given tidsperiode.</p>';
+		
+	//generate rows for existing timeslots
+	echo '<table align="center" class="border1">
+		<tr><th>Tid</th>';
+	
+	//generate header with days
+	foreach ($days as $day) {
+		$day = Day::cast($day);
+		echo '<th>'.strftime("%a %d/%m", $day->getDateTS()).'</th>';
+	}
+	echo '</tr><tr><td></td>';
+	
+	foreach ($days as $day) {
+		echo '<td><table class="border0" width="100%"><tr><td align="center">'.vertical("Behov").'</td><td align="center">'.vertical("Tilmeld").'</td></tr></table></td>';
+	}
+	echo "</tr>\r\n";
+
+	$timeslots = listTimeslots($job->id);
+	$groupedTimeslots = groupTimeslotsByTime($timeslots);
+	
+	foreach ($groupedTimeslots as $distinctTimeArr) {
+		//avoid empty rows
+		$anyRemainingNeedInDistinctTimeArr = false;
+		for ($dayNo=0; $dayNo<count($days); $dayNo++) {
+			$timeslot = Timeslot::cast($distinctTimeArr[$dayNo]);
+			if ($timeslot->remainingNeed > 0) {
+				$anyRemainingNeedInDistinctTimeArr = true;
+			}
+		}
+		if (!$anyRemainingNeedInDistinctTimeArr) {
+			continue;
+		}
+		
+		//build time-row from first TS in distinctTimeArr
+		$firstTS = $distinctTimeArr[0];
+		echo '<tr><td>'.$firstTS->getStartHour().':'.$firstTS->getStartMin().' - '.$firstTS->getEndHour().':'.$firstTS->getEndMin().'</td>';
+
+		for ($dayNo=0; $dayNo<count($days); $dayNo++) {
+			$timeslot = Timeslot::cast($distinctTimeArr[$dayNo]);
+
+			echo '<td align="center">'.$timeslot->remainingNeed.'&nbsp;&nbsp;';
+			
+			if ($timeslot->remainingNeed > 0) {
+				echo '<input type="text" size="1" maxlength="3"/>';
+			} else {
+				echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+			}
+			
+			echo "</td>\r\n";
+		}
+		echo "</tr>\r\n";
+	}
+	
+	echo '</table>';	
+	
+	if (!empty($_POST['show_user_form'])) {
+		print_create_user();
+	} else {
+		echo '<form method="post" action="'.$_SERVER['REQUEST_URI'].'"><p align="center"><input type="submit" name="show_user_form" value="Vis formular til oprettelse af bruger" /></p></form>';
+	}
+	
+	menu_link();
+}
+
 if ($_REQUEST['action'] == 'show_update') {
 	show_update();
 } elseif ($_REQUEST['action'] == 'do_create') {
@@ -507,6 +587,8 @@ if ($_REQUEST['action'] == 'show_update') {
 	show_unassigned();
 } elseif ($_REQUEST['action'] == 'show_list') {
 	show_list();
+} elseif ($_REQUEST['action'] == 'show_print_vacant') {
+	show_print_vacant();
 } else {
 	echo 'Error: Page parameter missing!';
 }
