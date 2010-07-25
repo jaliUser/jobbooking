@@ -3,7 +3,7 @@ include_once 'includes/dbi4php.php';
 include_once 'includes/classes/Signup.php';
 
 function createSignup(Signup $s) {
-	global $login;
+	global $login, $siteConfig;
 	//cal_id + cal_login is primary key
 	$sql = "INSERT INTO webcal_entry_user (cal_id, cal_login, cal_status, cal_category, cal_percent, count, notes, def_date, def_user, upd_user) 
 			VALUES (?,?,?,?,?,?,?,now(),'$login','$login')";
@@ -25,6 +25,12 @@ function createSignup(Signup $s) {
 					"så det resterende behov er ".$ts->remainingNeed." personer.\r\n";
 		
 		notifyUser($ts->contactID, $subject, $message);
+		
+		if ($user->noEmail != 1 && !empty($user->telephone)) {
+			$smsText = "Ny tilmelding til ID $job->id $job->name,".getTimeTextShort($job, $ts)." så rest behov er ".$ts->remainingNeed." pers. Mvh $siteConfig->siteName";
+			$phoneArray = array($user->telephone);
+			smsPhoneList($phoneArray, $smsText, true, true);
+		}
 	}
 	
 	$subject = "Ny tilmelding til ".$job->name;
@@ -41,7 +47,7 @@ function createSignup(Signup $s) {
 }
 
 function updateSignup(Signup $s) {
-	global $login;
+	global $login, $siteConfig;
 	$oldSignup = getSignup($s->timeslotID, $s->userID);
 	
 	//cal_id + cal_login is primary key
@@ -65,6 +71,12 @@ function updateSignup(Signup $s) {
 					"så det resterende behov er ".$ts->remainingNeed." personer.\r\n";
 		
 		notifyUser($ts->contactID, $subject, $message);
+		
+		if ($user->noEmail != 1 && !empty($user->telephone)) {
+			$smsText = "Opdateret tilmelding til ID $job->id $job->name,".getTimeTextShort($job, $ts)." så rest behov er ".$ts->remainingNeed." pers. Mvh $siteConfig->siteName";
+			$phoneArray = array($user->telephone);
+			smsPhoneList($phoneArray, $smsText, true, true);
+		}
 	}
 	
 	$subject = "Opdateret tilmelding til ".$job->name;
@@ -81,7 +93,7 @@ function updateSignup(Signup $s) {
 }
 
 function deleteSignup(Signup $s) {
-	global $login;
+	global $login, $siteConfig;
 	$oldSignup = getSignup($s->timeslotID, $s->userID);
 	
 	$sql = 'DELETE FROM webcal_entry_user WHERE cal_id=? AND cal_login=?';
@@ -103,6 +115,12 @@ function deleteSignup(Signup $s) {
 					"så det resterende behov er ".$ts->remainingNeed." personer.\r\n";
 		
 		notifyUser($ts->contactID, $subject, $message);
+		
+		if ($user->noEmail != 1 && !empty($user->telephone)) {
+			$smsText = "Slettet tilmelding til ID $job->id $job->name,".getTimeTextShort($job, $ts)." så rest behov er ".$ts->remainingNeed." pers. Mvh $siteConfig->siteName";
+			$phoneArray = array($user->telephone);
+			smsPhoneList($phoneArray, $smsText, true, true);
+		}
 	}
 	
 	$subject = "Slettet tilmelding til ".$job->name;
