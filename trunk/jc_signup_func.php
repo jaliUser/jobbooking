@@ -29,7 +29,7 @@ function createSignup(Signup $s) {
 		if ($user->noEmail != 1 && !empty($user->telephone)) {
 			$smsText = "Ny tilmelding til ID $job->id $job->name,".getTimeTextShort($job, $ts)." så rest behov er ".$ts->remainingNeed." pers. Mvh $siteConfig->siteName";
 			$phoneArray = array($user->telephone);
-			smsPhoneList($phoneArray, $smsText, true, true);
+			smsPhoneList($phoneArray, $smsText, true, false);
 		}
 	}
 	
@@ -75,7 +75,7 @@ function updateSignup(Signup $s) {
 		if ($user->noEmail != 1 && !empty($user->telephone)) {
 			$smsText = "Opdateret tilmelding til ID $job->id $job->name,".getTimeTextShort($job, $ts)." så rest behov er ".$ts->remainingNeed." pers. Mvh $siteConfig->siteName";
 			$phoneArray = array($user->telephone);
-			smsPhoneList($phoneArray, $smsText, true, true);
+			smsPhoneList($phoneArray, $smsText, true, false);
 		}
 	}
 	
@@ -119,7 +119,7 @@ function deleteSignup(Signup $s) {
 		if ($user->noEmail != 1 && !empty($user->telephone)) {
 			$smsText = "Slettet tilmelding til ID $job->id $job->name,".getTimeTextShort($job, $ts)." så rest behov er ".$ts->remainingNeed." pers. Mvh $siteConfig->siteName";
 			$phoneArray = array($user->telephone);
-			smsPhoneList($phoneArray, $smsText, true, true);
+			smsPhoneList($phoneArray, $smsText, true, false);
 		}
 	}
 	
