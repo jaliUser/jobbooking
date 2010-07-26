@@ -382,7 +382,7 @@ function show_list() {
 		$user = getUser($_GET['user_id']);
 		echo "<h1>Tidsperioder tildelt <i>".$user->getFullName()."</i></h1>";
 	} else if (!empty($_GET['filter'])) {
-		html_top($site_name . " - Ledige tidsperioder");
+		html_top($site_name . " - Ledige tidsperioder", $_GET['refresh']);
 		echo "<h1>Ledige tidsperioder</h1>";
 	} else {
 		html_top($site_name . " - Alle tidsperioder");

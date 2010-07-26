@@ -218,7 +218,7 @@ function get_cal_unixtime($cal_date, $cal_time) {
 	return gmmktime($hour, $min, $sec, $month, $day, $year);
 }
 
-function html_top($title) {
+function html_top($title, $refreshInterval = null) {
 	global $PHP_SELF, $site_id;
 	if (empty($site_id)) {
 		echo print_error("SiteID mangler.");
@@ -231,8 +231,11 @@ function html_top($title) {
 		<script type="text/javascript" src="jc_script.js"></script>
 		<title>'.$title.'</title>
 		<meta http-equiv="Pragma" content="no-cache"/>
-		<meta http-equiv="Expires" content="-1"/>
-		</head><body>';
+		<meta http-equiv="Expires" content="-1"/>';
+	if (!empty($refreshInterval)) {
+		echo '<meta http-equiv="refresh" content="'.$refreshInterval.'"/> ';
+	}
+	echo '</head><body>';
 	if ($PHP_SELF != "/jc_menu.php") {
 		echo '<a href="jc_menu.php">Hovedmenu</a> | <a onclick="javascript:history.back()">Tilbage</a>';
 	}
