@@ -2,6 +2,19 @@
 include_once 'includes/dbi4php.php';
 include_once 'includes/classes/Subcamp.php';
 
+function getSubcamp($subcamp_id) {
+	$sql = 'SELECT id, site_id, name, contact_id FROM subcamp WHERE id=?';
+	$rows = dbi_get_cached_rows($sql, array($subcamp_id));
+	
+	$subcamp = null;
+	if(count($rows) == 1) { 
+		$row = $rows[0];
+		$subcamp = new Subcamp($row[0], $row[1], $row[2], $row[3]);
+	}
+	
+	return $subcamp;
+}
+
 function listSubcamps($site_id) {
 	$sql = 'SELECT id, site_id, name, contact_id FROM subcamp WHERE site_id=?';
 	$rows = dbi_get_cached_rows($sql, array($site_id));

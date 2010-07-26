@@ -206,13 +206,19 @@ function getUser($login) {
 	return $user;
 }
 
-function listUsers($site_id, $role_id=null) {
+function listUsers($site_id, $role_id=null, $group_id=null) {
 	if(!empty($role_id)) {
 		$sql = 'SELECT cal_login, cal_passwd, cal_lastname, cal_firstname, cal_is_admin, cal_email, cal_enabled, cal_telephone, cal_address, cal_title, cal_birthday, cal_last_login, role_id, site_id, group_id, count, age_range, qualifications, notes, ext_login, no_email, is_contacted  
 				FROM webcal_user 
 				WHERE site_id=? AND role_id=? 
 				ORDER BY role_id, cal_firstname';
-		$rows = dbi_get_cached_rows($sql, array($site_id, $role_id));		
+		$rows = dbi_get_cached_rows($sql, array($site_id, $role_id));
+	} else if(!empty($group_id)) {
+		$sql = 'SELECT cal_login, cal_passwd, cal_lastname, cal_firstname, cal_is_admin, cal_email, cal_enabled, cal_telephone, cal_address, cal_title, cal_birthday, cal_last_login, role_id, site_id, group_id, count, age_range, qualifications, notes, ext_login, no_email, is_contacted  
+				FROM webcal_user 
+				WHERE site_id=? AND group_id=? 
+				ORDER BY cal_firstname';
+		$rows = dbi_get_cached_rows($sql, array($site_id, $group_id));
 	} else {
 		$sql = 'SELECT cal_login, cal_passwd, cal_lastname, cal_firstname, cal_is_admin, cal_email, cal_enabled, cal_telephone, cal_address, cal_title, cal_birthday, cal_last_login, role_id, site_id, group_id, count, age_range, qualifications, notes, ext_login, no_email, is_contacted  
 				FROM webcal_user 
