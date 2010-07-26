@@ -420,9 +420,9 @@ function show_list() {
 	}
 	
 	foreach ($timeslots as $timeslot) {
-		//if showing vacant OR assigned  AND  remaining=0 OR starttime is passed 
+		//if showing vacant OR assigned  AND  remaining<=0 OR starttime is passed (<0 filters overbooked)
 		if ((!empty($_GET['filter']) || !empty($_GET['user_id'])) && 
-			($timeslot->remainingNeed == 0 || $timeslot->getStartTS() < time()-60*$minutesInPast)) {
+			($timeslot->remainingNeed <= 0 || $timeslot->getStartTS() < time()-60*$minutesInPast)) {
 			continue;
 		}
 		
@@ -470,7 +470,7 @@ function show_list() {
 				<td '.($timeslot->remainingNeed > 0 ? 'class="redalert"':'').'>'.round($timeslot->remainingNeed * $timeslot->duration / 60, 1).'</td>
 			</tr>';
 	}
-	print_date_sum($dateSumNeed, $dateSumRemaining, $dateSumNeedhours, $dateSumRemainingHours);
+	print_date_sum($dateSumNeed, $dateSumRemaining, $dateSumNeedHours, $dateSumRemainingHours);
 	echo '</table>';
 	
 	if (!empty($_GET['user_id'])) {

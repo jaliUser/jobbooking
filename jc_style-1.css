@@ -89,6 +89,12 @@ table.border0 th {
 tr.subth {
 	background-color: khaki;
 }
+.bigsubth {
+	background-color: #99CCFF;
+	font-size: 16px;
+	text-align: center;
+	font-weight: bold;
+}
 .redalert {
 	color: red;
 	/*background-color: red;*/

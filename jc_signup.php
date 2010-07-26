@@ -781,6 +781,113 @@ function show_mine() {
 	menu_link();
 }
 
+function show_subcamp_signups() {
+	reject_public_access();
+	global $PHP_SELF, $login, $site_id, $site_name;
+	html_top("$site_name - Jobtilmeldinger for underlejr");
+	
+	$subcampHTML = '<select name="subcamp_id">';
+		$subcamps = listSubcamps($site_id);
+		foreach ($subcamps as $subcamp) {
+			$selected = ($subcamp->id == $_POST['subcamp_id'] ? 'selected' : '');
+			$subcamp = Subcamp::cast($subcamp);
+			$subcampHTML .= "<option value='$subcamp->id' $selected>$subcamp->name</option>";
+		}
+	$subcampHTML .= '</select>';
+	
+	echo "<form method='post'>
+			<div align='center'><h3>Vælg underlejr:</h3>
+			$subcampHTML
+			<input type='submit' value='Vis tilmeldinger for underlejr'/>
+			</div>
+		</form>";
+		
+	if (empty($_POST['subcamp_id'])) {
+		return;
+	}
+	$subcamp = getSubcamp($_POST['subcamp_id']);
+
+	echo "<h1>Jobtilmeldinger for <i>$subcamp->name</i></h1>
+			<table align='center' width='1000' align='center' border='0'>";
+	
+	$districts = listDistricts($site_id, $subcamp->id);
+	foreach ($districts as $district) {
+		echo "<tr><td><h2 align='center'>$district->name</h2></td></td>
+			  <tr><td>
+				<table name='district' class='border1' width='100%' align='center' border='0'>";
+		
+		$groups = listGroupsinDistrict($district->id);
+		foreach ($groups as $group) {
+			$groupHourSum = 0;
+			echo "<tr><td class='bigsubth'>$group->name</th></tr>
+				  <tr><td>
+					<table name='group' class='border1' width='100%' align='center' border='0'>";
+			
+			$users = listUsers($site_id, null, $group->id);			
+			foreach ($users as $user) {
+				$signups = listUserSignups($user->login, false);
+				
+				echo "<tr>
+						<td colspan='5'><table width='100%' align='center' border='0'>
+							<tr class='subth'>
+								<td width='30%'>Navn</td>
+								<td width='20%'>Brugernavn</td>
+								<td width='15%'>Tlf.</td>
+								<td width='25%'>E-mail</td>
+								<td width='10%'>Antal</td>
+							</tr>
+							<tr>
+								<td>".$user->getFullName()."</td>
+								<td>$user->login</td>
+								<td>$user->telephone</td>
+								<td>$user->email</td>
+								<td>$user->count</td>
+							</tr>
+						</table></td>
+					</tr>";
+				
+				if (count($signups) == 0) {
+					continue;
+				} else {
+					echo "<tr>
+							<th>Dato</th>
+							<th>Tid</th>
+							<th>Personer</th>
+							<th>Timer i alt</th>
+							<th>Job</th>
+						</tr>";
+				}
+				
+				foreach ($signups as $signup) {
+					$signup = Signup::cast($signup);
+					$timeslot = getTimeslot($signup->timeslotID);
+					$job = getJob($timeslot->jobID);
+					
+					echo '<tr>
+							<td>'.strftime("%a %d/%m", $timeslot->getStartTS()).'</td>
+							<td>'.strftime("%H:%M", $timeslot->getStartTS()).strftime("-%H:%M", $timeslot->getEndTS()).'</td>
+							<td>'.$signup->count.'</td>
+							<td>'.round(($signup->count * $timeslot->duration/60),1).'</td>
+							<td><a href="jc_job.php?action=show_one&job_id='.$job->id.'">'.$job->name.'</a></td>
+						</tr>';
+					$groupHourSum += $signup->count * $timeslot->duration/60;
+				}
+			}
+			echo "</table>";
+			if (count($users) > 0) {
+				echo "<tr><td>Total timer for gruppe: $groupHourSum</td></tr>";
+			}
+			echo "</td></tr>"; // end group
+		}
+		echo "</table>
+			</td></tr>"; //end district
+	}
+	
+	echo '</table>'; //end subcamp
+		
+	menu_link();
+}
+
 if ($_REQUEST['action'] == 'show_update') {
 	show_update();
 } elseif ($_REQUEST['action'] == 'do_update') {
@@ -803,6 +910,8 @@ if ($_REQUEST['action'] == 'show_update') {
 	update_evals();
 } elseif ($_REQUEST['action'] == 'show_mine') {
 	show_mine();
+} elseif ($_REQUEST['action'] == 'show_subcamp_signups') {
+	show_subcamp_signups();
 } elseif ($_REQUEST['action'] == 'do_send_sms') {
 	do_send_sms();
 } else {
