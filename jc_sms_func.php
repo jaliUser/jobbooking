@@ -190,11 +190,61 @@ function sendNextdayStatus($sms=true, $mail=false) {
 	}
 	
 	notifyAdmin("Job status i morgen", $adminEmailText, $siteConfig);
-	mail("tho@thodata.dk", "Job status i morgen", $adminEmailText);
 }
 
 //will be called periodically
-function sendEvalReminders($sms=true, $mail=true) {
+function sendEvalMailReminders() {
+	$site_id = 1; //TODO
+	$siteConfig = getSiteConfig($site_id);
+	
+	$timeslots = listTimeslotsSite($site_id);
+	$dateToday = date("Ymd", time());
+	$adminEmailText = "";
+	$notifiedJobs = array();
+	
+	foreach ($timeslots as $ts) {
+		if ($ts->date == $dateToday) {
+			$job = getJob($ts->jobID);
+			if (in_array($job->id, $notifiedJobs)) {
+				continue;
+			}
+			
+			$notifiedJobs[] = $job->id;
+			$user = getUser($job->ownerID);			
+			$subject = "Tilbagemelding på job";
+			$message = "Hej ".$user->getFullNameAndLogin()."\r\n".
+				"\r\n".
+				"Du er kontaktperson på job ID $job->id '$job->name', som har nogle tidsperioder i dag.\r\n".
+				"\r\n".
+				"Husk at registrere din tilbagemelding i Jobdatabasen med hvilke hjælpere, der hhv. mødte op eller udeblev.\r\n".
+				"Som beskrevet i den mail der blev sendt til alle arbejdsgivere 4/7-2010, er det vigtigt, at vi får at vide, \r\n".
+				"hvor mange af de tilmeldte hjælere, der reelt mødte op!\r\n".
+				"\r\n".
+				"Link til tilbagemeldingsside:\r\n".
+				$siteConfig->config[SiteConfig::$SITE_URL]."/jc_signup.php?action=show_evals&job_id=$job->id\r\n\r\n".
+				"Link til tilmeldingliste: \r\n".
+				$siteConfig->config[SiteConfig::$SITE_URL]."/jc_signup.php?action=show_list&job_id=$job->id\r\n\r\n".
+				"(Du skal være logget ind for at kunne se disse sider)\r\n".
+				"\r\n".
+				"Print evt. tilbagemeldingssiden, så du kan krydse af, når du står ude på jobbet.\r\n".
+				"Det er også en god ide at printe tilmeldingslisten, så du har navn/telefonnummer på dine hjælpere \r\n".
+				"og dermed kan komme i kontakt med dem, hvis der skulle blive behov.\r\n".
+				"\r\n".
+				"Hvis du ikke selv er til stede på jobbet, bedes du videresende denne mail til rette vedkommende \r\n".
+				"og give besked om dit brugernavn/kodeord, så han/hun kan indtaste tilbagemeldingen.\r\n".
+				"Alternativt kan du i Jobcenteret aflevere en udskrevet tilmeldingsliste med angivelse af fremmødte.\r\n";
+//			notifyUser($user->login, $subject, $message, $siteConfig);
+			
+			$adminEmailText .= "$message\r\n--------------------------------------------------\r\n";
+		}
+	}
+	
+//	notifyAdmin("Reminder på tilbagemeldinger", $adminEmailText, $siteConfig);
+echo $adminEmailText;
+}
+
+//will be called periodically
+function sendEvalSmsReminders() {
 	$site_id = 1; //TODO
 	$siteConfig = getSiteConfig($site_id);
 	$minutesBefore = 0;
@@ -213,26 +263,17 @@ function sendEvalReminders($sms=true, $mail=true) {
 			ORDER BY cal_date, cal_time";
 	$rows = dbi_get_cached_rows($sql, array($startFrameDate, $startFrameTime, $endFrameTime));
 	
-	if ($sms) {
-		foreach ($rows as $row) {
-			$numIdx = 0;
-			$phoneArray = array();
-			$signups = listTimeslotSignups($row[2]);
-			foreach ($signups as $signup) {
-				$user = getUser($signup->userID);
-				if (!empty($user->telephone) && $user->noEmail != 1) {
-					$phoneArray[$numIdx] = $user->telephone;
-					$numIdx++;
-				}
-			}
+	foreach ($rows as $row) {
+		$phoneArray = array();
+		$ts = getTimeslot($row[2]);
+		$job = getJob($ts->jobID);
+		$user = getUser($job->ownerID);
+		
+		if (!empty($user->telephone) && $user->noEmail != 1) {
+			$phoneArray[0] = $user->telephone;
+			$smsText = "Husk tilbagemelding (antal fremmødte) for dit job, #$job->id $job->name,".getTimeTextShort($job, $ts).". Mvh $siteConfig->siteName";
 			
-			$ts = getTimeslot($row[2]);
-			$job = getJob($ts->jobID);
-			$smsText = "Reminder: Du er tilmeldt job $job->id: $job->name,".getTimeTextShort($job, $ts)." ved $job->meetplace. Mvh $siteConfig->siteName";
-			
-			if(count($phoneArray) > 0) {
-				smsPhoneList($phoneArray, $smsText);
-			}
+			smsPhoneList($phoneArray, $smsText);
 		}
 	}
 }
