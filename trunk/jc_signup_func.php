@@ -27,7 +27,7 @@ function createSignup(Signup $s) {
 		notifyUser($ts->contactID, $subject, $message);
 		
 		if ($user->noEmail != 1 && !empty($user->telephone)) {
-			$smsText = "Ny tilmelding til ID $job->id $job->name,".getTimeTextShort($job, $ts)." så rest behov er ".$ts->remainingNeed." pers. Mvh $siteConfig->siteName";
+			$smsText = date("H:i:s")." - Ny tilmelding til ID $job->id $job->name,".getTimeTextShort($job, $ts)." så rest behov er ".$ts->remainingNeed." pers. Mvh $siteConfig->siteName";
 			$phoneArray = array($user->telephone);
 			smsPhoneList($phoneArray, $smsText, true, false);
 		}
@@ -73,7 +73,7 @@ function updateSignup(Signup $s) {
 		notifyUser($ts->contactID, $subject, $message);
 		
 		if ($user->noEmail != 1 && !empty($user->telephone)) {
-			$smsText = "Opdateret tilmelding til ID $job->id $job->name,".getTimeTextShort($job, $ts)." så rest behov er ".$ts->remainingNeed." pers. Mvh $siteConfig->siteName";
+			$smsText = date("H:i:s")." - Opdateret tilmelding til ID $job->id $job->name,".getTimeTextShort($job, $ts)." så rest behov er ".$ts->remainingNeed." pers. Mvh $siteConfig->siteName";
 			$phoneArray = array($user->telephone);
 			smsPhoneList($phoneArray, $smsText, true, false);
 		}
@@ -117,7 +117,7 @@ function deleteSignup(Signup $s) {
 		notifyUser($ts->contactID, $subject, $message);
 		
 		if ($user->noEmail != 1 && !empty($user->telephone)) {
-			$smsText = "Slettet tilmelding til ID $job->id $job->name,".getTimeTextShort($job, $ts)." så rest behov er ".$ts->remainingNeed." pers. Mvh $siteConfig->siteName";
+			$smsText = date("H:i:s")." - Slettet tilmelding til ID $job->id $job->name,".getTimeTextShort($job, $ts)." så rest behov er ".$ts->remainingNeed." pers. Mvh $siteConfig->siteName";
 			$phoneArray = array($user->telephone);
 			smsPhoneList($phoneArray, $smsText, true, false);
 		}
