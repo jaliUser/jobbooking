@@ -38,6 +38,12 @@ echo '
 	'.(user_is_admin() ? '<tr><td><a href="jc_signup.php?action=show_list_print">Vis alle jobtilmeldinger</a></td><td class="help"></td></tr>':'').'
 	'.(user_is_admin() || user_is_consultant() ? '<tr><td><a href="jc_signup.php?action=show_subcamp_signups">Vis tilmeldinger i underlejr</a></td><td class="help"></td></tr>' :'').'
 
+	'.(user_is_admin() ? '<tr><td colspan="2">-</td></tr>
+	<tr><td><a href="jc_signup.php?action=show_evals_list&filter=missing">Vis manglende tilbagemeldinger</a></td><td class="help"></td></tr>
+	<tr><td><a href="jc_signup.php?action=show_evals_list&filter=existing">Vis udfyldte tilbagemeldinger</a></td><td class="help"></td></tr>
+	<tr><td><a href="jc_signup.php?action=show_evals_list">Vis alle tilbagemeldinger</a></td><td class="help"></td></tr>
+	':'').'
+	
 	<!--
 	'.(user_is_admin() ? '<tr><td colspan="2">-</td></tr>
 	<tr><td><a href="jc_wishes.php?action=show_list">Vis ledige hjælpere</a></td><td class="help"></td></tr>':'').'

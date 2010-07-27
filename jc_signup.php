@@ -684,6 +684,65 @@ function show_evals() {
 	menu_link();
 }
 
+function show_evals_list() {
+	reject_public_access();
+	global $PHP_SELF, $login, $site_id, $site_name;
+	html_top($site_name . " - Tilbagemeldinger på job");
+	
+	if ($_GET['filter'] == "missing") {
+		echo "<h1>Manglende tilbagemeldinger</h1>";
+	} else if ($_GET['filter'] == "existing") {
+		echo "<h1>Udfyldte tilbagemeldinger</h1>";
+	} else {
+		echo "<h1>Alle tilbagemeldinger</h1>";
+	}
+
+	$days = listDays($site_id);
+	$jobs = listJobs($site_id);
+	$users = listUsers($site_id);
+	$timeslots = listTimeslotsSite($site_id);
+	
+	echo "<table align='center' class='border1'>
+			<tr>
+				<th></th>
+				<th>ID</th>
+				<th>Job</th>
+				<th>Dato</th>
+				<th>Tid</th>
+				<th>Navn</th>
+				<th>Kommentar</th>
+				<th title='Tilmeldt'>T</th>
+				<th title='Fremmødt'>F</th>
+			</tr>";
+	foreach ($timeslots as $ts) {
+		$job = $jobs[$ts->jobID];
+		$signups = listTimeslotSignups($ts->id);
+		foreach ($signups as $signup) {
+			if ($_GET['filter'] == "missing" && $signup->percent != null) {
+				continue;
+			} else if ($_GET['filter'] == "existing" && $signup->percent == null) {
+				continue;
+			}
+			
+			$user = $users[$signup->userID];
+			echo "<tr>
+					<td><a href='jc_signup.php?action=show_evals&job_id=$job->id'>Ret</a></td>
+					<td>$job->id</td>
+					<td><a href='jc_job.php?action=show_one&job_id=$job->id'>$job->name</a></td>
+					<td>".$ts->getDateTextNoYear()."</td>
+					<td>".$ts->getTimeText()."</td>
+					<td><a href='jc_user.php?action=show_one&login=$user->login'>".$user->getFullNameAndLogin()."</a></td>
+					<td>$signup->notes</td>
+					<td>$signup->count</td>
+					<td>$signup->percent</td>
+				</tr>";
+		}
+	}
+	echo "</table>";
+	
+	menu_link();
+}
+
 function update_evals() {
 	reject_public_access();
 	global $PHP_SELF;
@@ -920,6 +979,8 @@ if ($_REQUEST['action'] == 'show_update') {
 	show_evals();
 } elseif ($_REQUEST['action'] == 'update_evals') {
 	update_evals();
+} elseif ($_REQUEST['action'] == 'show_evals_list') {
+	show_evals_list();
 } elseif ($_REQUEST['action'] == 'show_mine') {
 	show_mine();
 } elseif ($_REQUEST['action'] == 'show_subcamp_signups') {

@@ -130,7 +130,7 @@ function listJobs($site_id, $status=null, $owner_id=null, $filter=null) {
 		$j->defUser = $row[15];
 		$j->updDate = $row[16];
 		$j->updUser = $row[17];
-		$jobs[] = $j;
+		$jobs[$j->id] = $j;
 	}
 	
 	return $jobs;
