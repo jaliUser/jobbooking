@@ -233,14 +233,13 @@ function sendEvalMailReminders() {
 				"Hvis du ikke selv er til stede på jobbet, bedes du videresende denne mail til rette vedkommende \r\n".
 				"og give besked om dit brugernavn/kodeord, så han/hun kan indtaste tilbagemeldingen.\r\n".
 				"Alternativt kan du i Jobcenteret aflevere en udskrevet tilmeldingsliste med angivelse af fremmødte.\r\n";
-//			notifyUser($user->login, $subject, $message, $siteConfig);
+			notifyUser($user->login, $subject, $message, $siteConfig);
 			
 			$adminEmailText .= "$message\r\n--------------------------------------------------\r\n";
 		}
 	}
 	
-//	notifyAdmin("Reminder på tilbagemeldinger", $adminEmailText, $siteConfig);
-echo $adminEmailText;
+	notifyAdmin("Reminder på tilbagemeldinger", $adminEmailText, $siteConfig);
 }
 
 //will be called periodically
