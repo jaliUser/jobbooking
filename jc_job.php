@@ -128,6 +128,12 @@ function show_list() {
 	$sumRestPers = 0;
 	$sumRestHour = 0;
 	
+	$areaSumNeedPers = 0;
+	$areaSumNeedHour = 0;
+	$areaSumRestPers = 0;
+	$areaSumRestHour = 0;
+	$lastArea = null;
+	
 	if (!empty($_GET['user_id']) && !empty($_GET['status'])) {
 		$title = "Jobs under <i>$area->description</i> der afventer godkendelse";
 	} else if (!empty($_GET['user_id'])) {
@@ -217,7 +223,21 @@ function show_list() {
 			continue;
 		}
 		
+		if (user_is_admin() && $_GET['sort'] == "area" && $lastArea != $area && $lastArea != null) {
+			print_sum_need($areaSumNeedPers, $areaSumRestPers, $areaSumNeedHour, $areaSumRestHour, "Subtotal '$lastArea->name'");
+			$areaSumNeedPers = 0;
+			$areaSumRestPers = 0;
+			$areaSumNeedHour = 0;
+			$areaSumRestHour = 0;
+		}
+		$areaSumNeedPers += $job->totalNeed;
+		$areaSumRestPers += $job->remainingNeed;
+		$areaSumNeedHour += $job->totalHours;
+		$areaSumRestHour += $job->remainingHours;
+		$lastArea = $area;
+		
 		echo "<tr><td>";
+		//start menu links
 		if(user_is_arearesponsible() == false) {
 			echo "<a href='jc_signup.php?action=show_update".($job->type == "NN" ? '_noneed' : '')."&job_id=$job->id'>Tilmeld</a><br>";				
 		}
@@ -240,22 +260,27 @@ function show_list() {
 		if(user_is_arearesponsible() && !empty($_GET['user_id']) && !empty($_GET['status'])) {
 			echo "<a href='$PHP_SELF?action=do_approve&job_id=$job->id'>Godkend</a>";
 		}
+		//end menu links
 		echo "</td>
 				<td>$job->id</td>
 				<td><a href='$PHP_SELF?action=show_one&job_id=$job->id'>$job->name</a></td>";
+		
 		if (strlen($job->description) > 100) {
 			echo "<td title='$job->description'>".nl2br(substr($job->description, 0, 100)) . "... <div align='right'><a href='$PHP_SELF?action=show_one&job_id=$job->id'>Læs mere</a></div></td>";
 		} else {
 			echo "<td>".nl2br($job->description)."</td>";
 		}
+		
 		echo "<td><a href=\"jc_user.php?action=show_one&login=$job->ownerID\">".getUser($job->ownerID)->getFullName()."</a></td>
 				<td>$job->meetplace</td>
 				<td>$job->jobplace</td>";
+		
 		if (strlen($job->notes) > 100) {
 			echo "<td title='$job->notes'>".nl2br(substr($job->notes, 0, 100)) . "... <div align='right'><a href='$PHP_SELF?action=show_one&job_id=$job->id'>Læs mere</a></div></td>";
 		} else {
 			echo "<td>".nl2br($job->notes)."</td>";
 		}
+		
 		echo "<td title='$area->description'>$area->name</td>
 				<td title='Behov'>$job->totalNeed</td>
 				<td title='Rest'>$job->remainingNeed</td>
@@ -271,15 +296,8 @@ function show_list() {
 	}
 	
 	if(user_is_admin() && empty($_GET['filter'])) {
-		echo "<tr><td colspan='9'>Total</td>
-				<td>$sumNeedPers</td>
-				<td>$sumRestPers</td>
-				<td>". ($sumNeedPers > 0 ? round($sumRestPers/$sumNeedPers*100, 0) : 0) ."%</td>
-				<td colspan='2'></td>
-				<td>$sumNeedHour</td>
-				<td>$sumRestHour</td>
-				<td>". ($sumNeedHour > 0 ? round($sumRestHour/$sumNeedHour*100, 0) : 0) ."%</td>
-				</tr>";
+		print_sum_need($areaSumNeedPers, $areaSumRestPers, $areaSumNeedHour, $areaSumRestHour, "Subtotal '$area->name'");
+		print_sum_need($sumNeedPers, $sumRestPers, $sumNeedHour, $sumRestHour, "Total");
 	}
 	echo "</table>";
 	
@@ -289,6 +307,18 @@ function show_list() {
 	}
 	
 	menu_link();
+}
+
+function print_sum_need($sumNeedPers, $sumRestPers, $sumNeedHour, $sumRestHour, $totalText) {
+	echo "<tr><td colspan='9'>$totalText</td>
+			<td>$sumNeedPers</td>
+			<td>$sumRestPers</td>
+			<td>". ($sumNeedPers > 0 ? round($sumRestPers/$sumNeedPers*100, 0) : 0) ."%</td>
+			<td colspan='2'></td>
+			<td>$sumNeedHour</td>
+			<td>$sumRestHour</td>
+			<td>". ($sumNeedHour > 0 ? round($sumRestHour/$sumNeedHour*100, 0) : 0) ."%</td>
+		</tr>";
 }
 
 function show_list_noneed() {
