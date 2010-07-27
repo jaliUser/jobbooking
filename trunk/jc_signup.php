@@ -798,7 +798,8 @@ function show_subcamp_signups() {
 	echo "<form method='post'>
 			<div align='center'><h3>Vælg underlejr:</h3>
 			$subcampHTML
-			<input type='submit' value='Vis tilmeldinger for underlejr'/>
+			<input type='submit' name='all_signups' value='Vis alle tilmeldinger for underlejr'/>
+			<input type='submit' name='only_sums' value='Vis kun timesum for underlejr'/>
 			</div>
 		</form>";
 		
@@ -827,28 +828,30 @@ function show_subcamp_signups() {
 			foreach ($users as $user) {
 				$signups = listUserSignups($user->login, false);
 				
-				echo "<tr>
-						<td colspan='5'><table width='100%' align='center' border='0'>
-							<tr class='subth'>
-								<td width='30%'>Navn</td>
-								<td width='20%'>Brugernavn</td>
-								<td width='15%'>Tlf.</td>
-								<td width='25%'>E-mail</td>
-								<td width='10%'>Antal</td>
-							</tr>
-							<tr>
-								<td>".$user->getFullName()."</td>
-								<td>$user->login</td>
-								<td>$user->telephone</td>
-								<td>$user->email</td>
-								<td>$user->count</td>
-							</tr>
-						</table></td>
-					</tr>";
+				if (!empty($_POST['all_signups'])) {
+					echo "<tr>
+							<td colspan='5'><table width='100%' align='center' border='0'>
+								<tr class='subth'>
+									<td width='30%'>Navn</td>
+									<td width='20%'>Brugernavn</td>
+									<td width='15%'>Tlf.</td>
+									<td width='25%'>E-mail</td>
+									<td width='10%'>Antal</td>
+								</tr>
+								<tr>
+									<td>".$user->getFullName()."</td>
+									<td>$user->login</td>
+									<td>$user->telephone</td>
+									<td>$user->email</td>
+									<td>$user->count</td>
+								</tr>
+							</table></td>
+						</tr>";
+				}
 				
 				if (count($signups) == 0) {
 					continue;
-				} else {
+				} else if (!empty($_POST['all_signups'])) {
 					echo "<tr>
 							<th>Dato</th>
 							<th>Tid</th>
@@ -863,19 +866,28 @@ function show_subcamp_signups() {
 					$timeslot = getTimeslot($signup->timeslotID);
 					$job = getJob($timeslot->jobID);
 					
-					echo '<tr>
-							<td>'.strftime("%a %d/%m", $timeslot->getStartTS()).'</td>
-							<td>'.strftime("%H:%M", $timeslot->getStartTS()).strftime("-%H:%M", $timeslot->getEndTS()).'</td>
-							<td>'.$signup->count.'</td>
-							<td>'.round(($signup->count * $timeslot->duration/60),1).'</td>
-							<td><a href="jc_job.php?action=show_one&job_id='.$job->id.'">'.$job->name.'</a></td>
-						</tr>';
+					if (!empty($_POST['all_signups'])) {
+						echo '<tr>
+								<td>'.strftime("%a %d/%m", $timeslot->getStartTS()).'</td>
+								<td>'.strftime("%H:%M", $timeslot->getStartTS()).strftime("-%H:%M", $timeslot->getEndTS()).'</td>
+								<td>'.$signup->count.'</td>
+								<td>'.round(($signup->count * $timeslot->duration/60),1).'</td>
+								<td><a href="jc_job.php?action=show_one&job_id='.$job->id.'">'.$job->name.'</a></td>
+							</tr>';
+					}
 					$groupHourSum += $signup->count * $timeslot->duration/60;
 				}
 			}
 			echo "</table>";
 			if (count($users) > 0) {
-				echo "<tr><td>Total timer for gruppe: $groupHourSum</td></tr>";
+				if (empty($_POST['all_signups'])) {
+					$persons = 0;
+					foreach ($users as $user) {
+						$persons += $user->count;
+					}
+					echo "<tr><td>Antal brugere: ".count($users)." ($persons pers.)</td></tr>";
+				}
+				echo "<tr><td>Total timer for gruppe: ".round($groupHourSum, 1)."</td></tr>";
 			}
 			echo "</td></tr>"; // end group
 		}
