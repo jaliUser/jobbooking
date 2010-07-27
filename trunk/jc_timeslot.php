@@ -555,7 +555,7 @@ function show_print_vacant() {
 			echo '<td align="center">'.$timeslot->remainingNeed.'&nbsp;&nbsp;';
 			
 			if ($timeslot->remainingNeed > 0) {
-				echo '<input type="text" size="1" maxlength="3"/>';
+				echo '<input type="text" size="1" maxlength="3" disabled/>';
 			} else {
 				echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
 			}

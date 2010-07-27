@@ -144,7 +144,7 @@ if ((is_numeric($hour) && $hour >= 0 && $hour <= 23) &&
 
 function getTimeText($job, $ts) {
 	if ($job->type == "WN") {
-		return " i tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".strftime("%a %d/%m-Y", $ts->getStartTS());
+		return " i tidsperioden ".$ts->getStartHour().":".$ts->getStartMin()."-".$ts->getEndHour().":".$ts->getEndMin()." ".strftime("%a %d/%m-%Y", $ts->getStartTS());
 	} else {
 		return "";
 	}
