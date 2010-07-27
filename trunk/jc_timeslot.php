@@ -460,7 +460,12 @@ function show_list() {
 				<td>'.strftime("%a %d/%m", $timeslot->getStartTS()).'</td>
 				<td>'.date("H:i", $timeslot->getStartTS()).date(" - H:i", $timeslot->getEndTS()).'</td>
 				<td>'.$timeslot->jobID.'</td>
-				<td><a href="jc_job.php?action=show_one&job_id='.$timeslot->jobID.'">'.$job->name.'</a></td>
+				<td title="'.$job->description.'">
+					<a href="jc_job.php?action=show_one&job_id='.$timeslot->jobID.'">'.$job->name.'</a>';
+		if (user_is_admin()) {
+			echo " [<a href='jc_job.php?action=show_update&job_id=$timeslot->jobID'>Ret</a>]";
+		}
+		echo   '</td>
 				<td><a href="jc_user.php?action=show_one&login='.$job->ownerID.'">'.$owner->getFullName().'</a><br/>('.$owner->telephone.')</td>
 				<td>'.$timeslot->personNeed.'</td>
 				<td '.($timeslot->remainingNeed > 0 ? 'class="redalert"':'').'>'.$timeslot->remainingNeed.'</td>
