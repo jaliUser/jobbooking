@@ -377,10 +377,14 @@ function do_create() {
 function show_list() {
 	global $PHP_SELF, $login, $site_id, $site_name;
 	$minutesInPast = 30;
-	if (!empty($_GET['user_id'])) {
-		html_top($site_name . " - Mine tidsperioder");
+	if (!empty($_GET['user_id']) && !empty($_GET['filter'])) {
+		html_top($site_name . " - Mine ledige tidsperioder");
 		$user = getUser($_GET['user_id']);
-		echo "<h1>Tidsperioder tildelt <i>".$user->getFullName()."</i></h1>";
+		echo "<h1>Ledige tidsperioder tildelt <i>".$user->getFullName()."</i></h1>";
+	} else if (!empty($_GET['user_id'])) {
+		html_top($site_name . " - Alle mine tidsperioder");
+		$user = getUser($_GET['user_id']);
+		echo "<h1>Alle tidsperioder tildelt <i>".$user->getFullName()."</i></h1>";
 	} else if (!empty($_GET['filter'])) {
 		html_top($site_name . " - Ledige tidsperioder", $_GET['refresh']);
 		echo "<h1>Ledige tidsperioder</h1>";
@@ -395,13 +399,16 @@ function show_list() {
 			<th>Tid</th>
 			<th>ID</th>
 			<th>Job navn</th>
+			<th>Mødested</th>
 			<th>Kontakt</th>
 			<th title="Person Behov">B</th> 
 			<th title="Person Rest">R</th>
 			<th title="Person rest i procent">R%</th>
-			<th title="Prioritet">P</th>
-			<th title="Time Behov">TB</th>
-			<th title="Time Rest">TR</th>';
+			<th title="Prioritet">P</th>';
+	if (user_is_admin()) {
+		echo '<th title="Time Behov">TB</th>
+			  <th title="Time Rest">TR</th>';
+	}
 	
 	$admins = listUsers($site_id, 1);
 	$consultants = listUsers($site_id, 4);
@@ -421,7 +428,7 @@ function show_list() {
 	
 	foreach ($timeslots as $timeslot) {
 		//if showing vacant OR assigned  AND  remaining<=0 OR starttime is passed (<0 filters overbooked)
-		if ((!empty($_GET['filter']) || !empty($_GET['user_id'])) && 
+		if ((!empty($_GET['filter'])) && 
 			($timeslot->remainingNeed <= 0 || $timeslot->getStartTS() < time()-60*$minutesInPast)) {
 			continue;
 		}
@@ -457,7 +464,7 @@ function show_list() {
 		}
 		
 		echo   '</td>
-				<td>'.strftime("%a %d/%m", $timeslot->getStartTS()).'</td>
+				<td>'.strftime("%a&nbsp;%d/%m", $timeslot->getStartTS()).'</td>
 				<td>'.date("H:i", $timeslot->getStartTS()).date(" - H:i", $timeslot->getEndTS()).'</td>
 				<td>'.$timeslot->jobID.'</td>
 				<td title="'.$job->description.'">
@@ -466,20 +473,23 @@ function show_list() {
 			echo " [<a href='jc_job.php?action=show_update&job_id=$timeslot->jobID'>Ret</a>]";
 		}
 		echo   '</td>
+				<td>'.$job->meetplace.'</td>
 				<td><a href="jc_user.php?action=show_one&login='.$job->ownerID.'">'.$owner->getFullName().'</a><br/>('.$owner->telephone.')</td>
 				<td>'.$timeslot->personNeed.'</td>
 				<td '.($timeslot->remainingNeed > 0 ? 'class="redalert"':'').'>'.$timeslot->remainingNeed.'</td>
 				<td>'.round($timeslot->remainingNeed/$timeslot->personNeed*100, 1).'%</td>
-				<td>'.$job->priority.'</td>
-				<td>'.round($timeslot->personNeed * $timeslot->duration / 60, 1).'</td>
-				<td '.($timeslot->remainingNeed > 0 ? 'class="redalert"':'').'>'.round($timeslot->remainingNeed * $timeslot->duration / 60, 1).'</td>
-			</tr>';
+				<td>'.$job->priority.'</td>';
+		if (user_is_admin()) {
+			echo '<td>'.round($timeslot->personNeed * $timeslot->duration / 60, 1).'</td>
+				  <td '.($timeslot->remainingNeed > 0 ? 'class="redalert"':'').'>'.round($timeslot->remainingNeed * $timeslot->duration / 60, 1).'</td>';
+		}
+		echo '</tr>';
 	}
 	print_date_sum($dateSumNeed, $dateSumRemaining, $dateSumNeedHours, $dateSumRemainingHours);
 	echo '</table>';
 	
 	if (!empty($_GET['user_id'])) {
-		show_user_table("Vælg bruger at se tildelte tidsperioder for", "$PHP_SELF?action=show_list", listUsers($site_id, 4));
+		show_user_table("Vælg bruger at se tildelte tidsperioder for", "$PHP_SELF?action=show_list&vacant=".$_GET['filter'], listUsers($site_id, 4));
 	}
 		
 	menu_link();
@@ -487,14 +497,16 @@ function show_list() {
 
 function print_date_sum($dateSumNeed, $dateSumRemaining, $dateSumNeedHours, $dateSumRemainingHours) {
 	echo '<tr>
-			<td colspan="6">Total</td>
+			<td colspan="7">Total</td>
 			<td>'.$dateSumNeed.'</td>
 			<td>'.$dateSumRemaining.'</td>
-			<td colspan="2">&nbsp;</td>
-			<td>'.round($dateSumNeedHours, 1).'</td>
-			<td>'.round($dateSumRemainingHours, 1).'</td>
-		</tr>
-		<tr><th colspan="12">&nbsp;</th></tr>';
+			<td colspan="2">&nbsp;</td>';
+	if (user_is_admin()) {
+		echo '<td>'.round($dateSumNeedHours, 1).'</td>
+			  <td>'.round($dateSumRemainingHours, 1).'</td>';
+	}
+	echo '</tr>
+		<tr><th colspan="13">&nbsp;</th></tr>';
 }
 
 function show_print_vacant() {

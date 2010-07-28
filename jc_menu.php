@@ -25,7 +25,8 @@ echo '
 	<tr><td colspan="2">-</td></tr>
 	<tr><td><a href="jc_timeslot.php?action=show_list&filter=vacant">Vis ledige tidsperioder</a></td><td class="help"></td></tr>
 	'.(user_is_admin() ? '<tr><td><a href="jc_timeslot.php?action=show_list">Vis alle tidsperioder</a></td><td class="help"></td></tr>' :'').'
-	'.(user_is_admin() || user_is_consultant() ? '<tr><td><a href="jc_timeslot.php?action=show_list&user_id='.$login.'">Vis mine tildelte tidsperioder</a></td><td class="help"></td></tr>' :'').'
+	'.(user_is_admin() || user_is_consultant() ? '<tr><td><a href="jc_timeslot.php?action=show_list&user_id='.$login.'&filter=vacant">Vis mine ledige tildelte tidsperioder</a></td><td class="help"></td></tr>' :'').'
+	'.(user_is_admin() || user_is_consultant() ? '<tr><td><a href="jc_timeslot.php?action=show_list&user_id='.$login.'">Vis alle mine tildelte tidsperioder</a></td><td class="help"></td></tr>' :'').'
 	
 	'.(!user_is_arearesponsible() ? '<tr><td colspan="2">-</td></tr>
 	<!--
