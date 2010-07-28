@@ -418,7 +418,12 @@ function show_list() {
 	$dateSumNeed = 0;
 	$dateSumRemaining = 0;
 	$dateSumNeedHours = 0;
-	$dateSumRemainingHours = 0;
+	$dateSumRemainingHours = 0;	
+	$totalSumNeed = 0;
+	$totalSumRemaining = 0;
+	$totaslSumNeedHours = 0;
+	$totalSumRemainingHours = 0;
+	
 	$timeslots = array();
 	if (!empty($_GET['user_id'])) {
 		$timeslots = listTimeslotsForContact($_GET['user_id']);
@@ -436,7 +441,11 @@ function show_list() {
 		$timeslot = Timeslot::cast($timeslot);
 				
 		if ($lastDate != null & $lastDate != $timeslot->date) {
-			print_date_sum($dateSumNeed, $dateSumRemaining, $dateSumNeedHours, $dateSumRemainingHours);
+			print_date_sum($dateSumNeed, $dateSumRemaining, $dateSumNeedHours, $dateSumRemainingHours, "Dagstotal");
+			$totalSumNeed += $dateSumNeed;
+			$totalSumRemaining += $dateSumRemaining;
+			$totaslSumNeedHours += $dateSumNeedHours;
+			$totalSumRemainingHours += $dateSumRemainingHours;
 			$dateSumNeed = 0;
 			$dateSumRemaining = 0;
 			$dateSumNeedHours = 0;
@@ -485,7 +494,8 @@ function show_list() {
 		}
 		echo '</tr>';
 	}
-	print_date_sum($dateSumNeed, $dateSumRemaining, $dateSumNeedHours, $dateSumRemainingHours);
+	print_date_sum($dateSumNeed, $dateSumRemaining, $dateSumNeedHours, $dateSumRemainingHours, "Dagstotal");
+	print_date_sum($totalSumNeed, $totalSumRemaining, $totaslSumNeedHours, $totalSumRemainingHours, "Total");
 	echo '</table>';
 	
 	if (!empty($_GET['user_id'])) {
@@ -495,9 +505,9 @@ function show_list() {
 	menu_link();
 }
 
-function print_date_sum($dateSumNeed, $dateSumRemaining, $dateSumNeedHours, $dateSumRemainingHours) {
+function print_date_sum($dateSumNeed, $dateSumRemaining, $dateSumNeedHours, $dateSumRemainingHours, $totalText) {
 	echo '<tr>
-			<td colspan="7">Total</td>
+			<td colspan="7">'.$totalText.'</td>
 			<td>'.$dateSumNeed.'</td>
 			<td>'.$dateSumRemaining.'</td>
 			<td colspan="2">&nbsp;</td>';
