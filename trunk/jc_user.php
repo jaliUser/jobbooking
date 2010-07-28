@@ -370,11 +370,16 @@ function show_update() {
 	$user = User::cast(getUser($_GET['login']));
 	$role = getRole($user->login);
 	
-	$rolesHTML = '<select name="role_id" '.(!user_is_admin() ? 'disabled' : '').'>';
+	$rolesHTML = '<select name="role_id" '.(!user_is_admin() ? 'disabled' : '').' onChange="role_id_changed(this);">';
 	$roles = listRoles();
 	foreach ($roles as $role) {
+		if (!empty($_GET['role_id'])) {
+			$selected = ($role->id == $_GET['role_id'] ? "selected" : "");
+		} else {			
+			$selected = ($role->id == $user->roleID ? "selected" : "");
+		}
 		$role = Role::cast($role);
-		$rolesHTML .= '<option value="'.$role->id.'" '.($role->id == $user->roleID ? "selected" : "").'>'.$role->name.'</option>';
+		$rolesHTML .= '<option value="'.$role->id.'" '.$selected.'>'.$role->name.'</option>';
 	}
 	$rolesHTML .= '</select>';
 	  
@@ -429,7 +434,7 @@ function show_update() {
 		<tr><td>Telefon (helst mobil):</td><td><input type="text" name="telephone" size="25" maxlength="50" value="'.$user->telephone.'" /> * <span class="help">Bruges til SMS-service for påmindelse og evt. ændringer af jobs.</span></td></tr>
 		<!-- <tr><td>Adresse/postnr/by:</td><td><input type="text" name="address" size="25" maxlength="75" value="'.$user->address.'" /> *</td></tr> -->';
 
-	if ($user->roleID == 3) {
+	if ($user->roleID == 3 || $_GET['role_id'] == 3) {
 	echo '<!-- <tr><td>Alder under lejren:</td><td><input type="text" name="age_range" size="10" maxlength="10" value="'.$user->ageRange.'" /> *</td></tr> -->
 		<tr><td>Antal:</td><td><input type="text" name="count" size="2" maxlength="3" value="'.$user->count.'" /> * <span class="help">Hvor mange hjælpere er I?</span></td></tr>
 		<tr><td>Kvalifikationer:</td><td>'.$qualificationHTML.'<br><span class="help">Hvis der kr&aelig;ves certifikater, skal disse medbringes på lejren!</span></td></tr>
@@ -452,7 +457,7 @@ function show_update() {
 
 		<tr><td colspan="2"><input type="submit" value="Opdater"/></td></tr>
 		<input type="hidden" name="action" value="do_update">
-		<input type="hidden" name="nextaction" value="'.referer_action().'">
+		<input type="hidden" name="nextaction" value="'.(referer_action() != "show_update" ? referer_action() : 'show_list').'">
 		<input type="hidden" name="nextsort" value="'.referer_sort().'">
 		'.(!user_is_admin() ? '<input type="hidden" name="role_id" value="'.$user->roleID.'" />' : '').'
 		</form>
@@ -461,7 +466,7 @@ function show_update() {
 		<tr><td colspan="2"><br/><br/>Hvis du sletter din brugerprofil, fjernes alle jobopslag, jobtilmeldinger osv.!</td></tr>
 		<tr><td colspan="2"><input type="submit" value="Slet"/></td></tr>
 		<input type="hidden" name="action" value="do_delete">
-		<input type="hidden" name="nextaction" value="'.referer_action().'">
+		<input type="hidden" name="nextaction" value="'.(referer_action() != "show_update" ? referer_action() : 'show_list').'">
 		<input type="hidden" name="nextsort" value="'.referer_sort().'">
 		<input type="hidden" name="login" value="'.$user->login.'" />
 		</form>
