@@ -295,8 +295,10 @@ function show_list() {
 		$sumRestHour += $job->remainingHours;
 	}
 	
-	if(user_is_admin() && empty($_GET['filter'])) {
+	if(user_is_admin() && $_GET['sort'] == "area") {
 		print_sum_need($areaSumNeedPers, $areaSumRestPers, $areaSumNeedHour, $areaSumRestHour, "Subtotal '$area->name'");
+	}
+	if(user_is_admin() && empty($_GET['filter'])) {
 		print_sum_need($sumNeedPers, $sumRestPers, $sumNeedHour, $sumRestHour, "Total");
 	}
 	echo "</table>";
