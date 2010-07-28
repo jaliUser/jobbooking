@@ -69,8 +69,26 @@ function smsPhoneList($phoneArray, $message, $adminEmailCopy = true, $useCcNumbe
 		$phoneArray = array_merge($phoneArray, $ccNumbers);
 	}
 	
-	$fixedPhoneArray = array();
+	//split multiple numbers per user, separated by , or /
+	$explodedPhoneArray = array();
 	foreach ($phoneArray as $number) {
+		$multiNumbers = explode(",", $number);
+		if (count($multiNumbers) > 1) {
+			$explodedPhoneArray = array_merge($explodedPhoneArray, $multiNumbers);
+			continue;
+		} 
+		
+		$multiNumbers = explode("/", $number);
+		if (count($multiNumbers) > 1) {
+			$explodedPhoneArray = array_merge($explodedPhoneArray, $multiNumbers);
+			continue;
+		}
+		
+		$explodedPhoneArray[] = $number;
+	}
+	
+	$fixedPhoneArray = array();
+	foreach ($explodedPhoneArray as $number) {
 		$number = str_replace(" ", "", $number);
 		$number = str_replace("+", "", $number);
 		if (strlen($number) == 8) {
