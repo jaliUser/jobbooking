@@ -305,7 +305,7 @@ function show_list() {
 	
 	// show user list for admins
 	if (user_is_admin() && !empty($_GET['user_id'])) {
-		show_user_table("Vælg bruger der skal vises jobopslag for", "$PHP_SELF?action=show_list", listUsers($site_id, 2));
+		show_user_table("Vælg bruger der skal vises jobopslag for", "$PHP_SELF?action=show_list", listUsers($site_id, 2), $_GET['lovtype']);
 	}
 	
 	menu_link();

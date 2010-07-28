@@ -4,13 +4,22 @@ include_once 'jc_init.php';
 
 //use reject_public_access() for all functions, except show_create() and do_create()
 
+//function sortByRole(User $objA, User $objB) {
+//	if ($objA->roleID == $objB->roleID) {
+//		return 0;
+//	}
+//	return ($objA->roleID < $objB->roleID) ? -1 : 1;
+//}
+
 function show_list() {
 	reject_public_access();
 	global $PHP_SELF, $login, $site_id, $site_name;
 	html_top("$site_name - Brugerliste");
 
 	$roles = listRoles();
-	$users = listUsers($site_id);
+	$users = listUsersByRole($site_id);
+//	usort($users, "sortByRole");
+	
 	echo '<h1>Brugerliste</h1>
 		<table align="center" class="border1">
 		<tr> <th>Brugernavn<br/><span class="help">Ret bruger</span></th> <th>Spejdernet</th> <th>Fornavn<br/><span class="help">Vis bruger</span></th> <th>Efternavn</th> <th>Klan/Pladsnr</th> <th>E-mail</th> <th>Telefon</th> <th>Adresse</th> <th>Alder</th> <th>Gruppe</th> <th>Rolle</th> <th>Antal</th> <th>Underlejr</th> <th>Noter</th> </tr>';

@@ -70,28 +70,66 @@ function referer_sort() {
 	}
 }
 
-function show_user_table($headertext, $link, $users) {
-	global $site_id; 
-	echo '<hr/><h3>'.$headertext.':</h3>
-		<table align="center" class="border1">
-		<tr> <th>Brugernavn</th> <th>Navn</th> <th>E-mail</th> <th>Telefon</th> <th>Alder</th> <th>Gruppe</th> <th>Underlejr</th> </tr>';
-	foreach ($users as $user) {
-		$user = User::cast($user);
-		$role = Role::cast(getRole($user->login));
-		$group = getGroup($user->groupID);
-		$subcamp = getSubcampForUser($user->login); 
-
-		echo "<tr> 
-			<td><a href=\"$link&user_id=$user->login\">$user->login</a></td>
-			<td><a href=\"jc_user.php?action=show_one&login=$user->login\">".$user->getFullName()."</a></td>
-			<td>$user->email</td>
-			<td>$user->telephone</td>
-			<td>$user->birthday</td>
-			<td>$group->name</td>
-			<td>$subcamp->name</td>
-			</tr>";
+function show_user_table($headertext, $link, $users, $lovtype) {
+	global $PHP_SELF, $site_id; 
+	echo "<hr/><h3>$headertext:</h3>";
+	if ($lovtype == "full") {
+		$subcamps = listSubcamps($site_id);
+		$districts = listDistricts($site_id);
+		$groups = listAllGroups($site_id);
+		echo '<table align="center" class="border1">
+			<tr> <th>Brugernavn</th> <th>Navn</th> <th>E-mail</th> <th>Telefon</th> <th>Gruppe</th> <th>Underlejr</th> </tr>';
+		foreach ($users as $user) {
+			$user = User::cast($user);
+			$role = Role::cast(getRole($user->login));
+			$group = $groups[$user->groupID];
+			$district = $districts[$group->districtID];
+			$subcamp = $subcamps[$district->subcampID];
+	
+			echo "<tr> 
+				<td><a href=\"$link&user_id=$user->login\">$user->login</a></td>
+				<td><a href=\"jc_user.php?action=show_one&login=$user->login\">".$user->getFullName()."</a></td>
+				<td>$user->email</td>
+				<td>$user->telephone</td>
+				<td>$group->name</td>
+				<td>$subcamp->name</td>
+				</tr>";
+		}
+		echo '</table>';	
+	} else {
+		$userHTML = "<select name='user_id'>";
+		foreach ($users as $user) {
+			$userHTML .= "<option value='$user->login'>".$user->getFullName()." [$user->login]</option>";
+		}
+		$userHTML .= "</select>";
+		
+		$hiddenFields = "";
+		$ampIndex = strpos($link, "?");
+		if ($ampIndex > 0) {
+			$urlParams = substr($link, $ampIndex+1);
+			$paramArray = explode("&", $urlParams);
+			foreach ($paramArray as $param) {
+				$equalIndex = strpos($param, "=");
+				if ($equalIndex > 0 && strlen($param) > $equalIndex+1) {
+					$nameValue = explode("=", $param);
+					$hiddenFields .= "<input type='hidden' name='$nameValue[0]' value='$nameValue[1]' />";
+				}
+			}
+		}
+		
+		echo "<div align='center'>
+				<form method='get' action='$link'>
+					Vælg bruger: $userHTML <input type='submit' value='Vælg' />
+					$hiddenFields
+				</form>
+				<p>eller</p>
+				<form method='get' action='$PHP_SELF'>
+					<input type=hidden name='lovtype' value='full' />
+					<input type='submit' value='Vis fuld brugerliste' />
+					$hiddenFields
+				</form>
+			</div>";
 	}
-	echo '</table>';	
 }
 
 function get_mail_headers($siteConfig, $withoutCC = false) {

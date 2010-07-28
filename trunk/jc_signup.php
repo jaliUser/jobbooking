@@ -76,7 +76,7 @@ function show_blockings() {
 	
 	// show user list for admins
 	if (user_is_admin() || user_is_consultant()) {
-		show_user_table("Vælg bruger der skal blokeres for", "$PHP_SELF?action=show_blockings", listUsers($site_id));
+		show_user_table("Vælg bruger der skal blokeres for", "$PHP_SELF?action=show_blockings", listUsers($site_id), $_GET['lovtype']);
 	}
 	
 	menu_link();
@@ -214,7 +214,7 @@ function show_update() {
 	
 	// show user list for admins
 	if (user_is_admin() || user_is_consultant()) {
-		show_user_table("Vælg bruger der skal tilmeldes for", "$PHP_SELF?action=show_update&job_id=$job->id", listUsers($site_id));
+		show_user_table("Vælg bruger der skal tilmeldes for", "$PHP_SELF?action=show_update&job_id=$job->id", listUsers($site_id), $_GET['lovtype']);
 	}
 	
 	menu_link();
@@ -371,7 +371,7 @@ function show_update_noneed() {
 	
 	// show user list for admins
 	if (user_is_admin() || user_is_consultant()) {
-		show_user_table("Vælg bruger der skal tilmeldes for", "$PHP_SELF?action=show_update&job_id=$job->id", listUsers($site_id));
+		show_user_table("Vælg bruger der skal tilmeldes for", "$PHP_SELF?action=show_update&job_id=$job->id", listUsers($site_id), $_GET['lovtype']);
 	}
 	
 	menu_link();
@@ -834,7 +834,7 @@ function show_mine() {
 	
 	// show user list for admins
 	if (user_is_admin() || user_is_consultant()) {
-		show_user_table("Vælg bruger der skal vises jobtilmeldinger for", "$PHP_SELF?action=show_mine".(!empty($_GET['show_block']) ? '&show_block=1':''), listUsers($site_id));
+		show_user_table("Vælg bruger der skal vises jobtilmeldinger for", "$PHP_SELF?action=show_mine".(!empty($_GET['show_block']) ? '&show_block=1':''), listUsers($site_id), $_GET['lovtype']);
 	}
 	
 	menu_link();

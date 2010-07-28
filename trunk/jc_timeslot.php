@@ -499,7 +499,7 @@ function show_list() {
 	echo '</table>';
 	
 	if (!empty($_GET['user_id'])) {
-		show_user_table("Vælg bruger at se tildelte tidsperioder for", "$PHP_SELF?action=show_list&vacant=".$_GET['filter'], listUsers($site_id, 4));
+		show_user_table("Vælg bruger at se tildelte tidsperioder for", "$PHP_SELF?action=show_list&vacant=".$_GET['filter'], listUsers($site_id, 4), $_GET['lovtype']);
 	}
 		
 	menu_link();

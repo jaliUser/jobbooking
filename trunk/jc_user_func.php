@@ -224,9 +224,26 @@ function listUsers($site_id, $role_id=null, $group_id=null) {
 		$sql = 'SELECT cal_login, cal_passwd, cal_lastname, cal_firstname, cal_is_admin, cal_email, cal_enabled, cal_telephone, cal_address, cal_title, cal_birthday, cal_last_login, role_id, site_id, group_id, count, age_range, qualifications, notes, ext_login, no_email, is_contacted  
 				FROM webcal_user 
 				WHERE site_id=? 
-				ORDER BY role_id, cal_firstname';
+				ORDER BY cal_firstname';
 		$rows = dbi_get_cached_rows($sql, array($site_id));	
 	}
+	
+	$users = array(); 
+	for ($i=0; $i<count($rows); $i++) { 
+		$row = $rows[$i];
+		$u = new User($row[0], $row[1], $row[2], $row[3], $row[4], $row[5], $row[6], $row[7], $row[8], $row[9], $row[10], $row[11], $row[12], $row[13], $row[14], $row[15], $row[16], $row[17], $row[18], $row[19], $row[20], $row[21]);
+		$users[$row[0]] = $u;
+	}
+	
+	return $users;
+}
+
+function listUsersByRole($site_id) {
+	$sql = 'SELECT cal_login, cal_passwd, cal_lastname, cal_firstname, cal_is_admin, cal_email, cal_enabled, cal_telephone, cal_address, cal_title, cal_birthday, cal_last_login, role_id, site_id, group_id, count, age_range, qualifications, notes, ext_login, no_email, is_contacted  
+			FROM webcal_user 
+			WHERE site_id=? 
+			ORDER BY role_id, cal_firstname';
+	$rows = dbi_get_cached_rows($sql, array($site_id));	
 	
 	$users = array(); 
 	for ($i=0; $i<count($rows); $i++) { 
