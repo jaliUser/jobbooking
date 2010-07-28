@@ -494,15 +494,17 @@ function show_list_print() {
 	$days = listDays($site_id);
 	
 	foreach ($jobs as $job) {
+		$dummy1;
+		$dummy2;
 		print_job_details($job);
-		print_job_signups($job, $users, $days);
+		print_job_signups($job, $users, $days, $dummy1, $dummy2, $_GET['filter']);
 		echo '<div style="page-break-after:always"></div>';
 	}
 	
 	menu_link();
 }
 
-function print_job_signups(Job $job, $users, $days, &$emails = null, &$phoneNumbers = null) {
+function print_job_signups(Job $job, $users, $days, &$emails = null, &$phoneNumbers = null, $filter = null) {
 	$emails = "";
 	$phoneNumbers = "";
 	
@@ -519,6 +521,10 @@ function print_job_signups(Job $job, $users, $days, &$emails = null, &$phoneNumb
 	$groupedTimeslots = groupTimeslotsByDate($timeslots);
 	foreach ($days as $key => $day) {
 		$day = Day::cast($day);
+		if ($filter != null && $day->getDateYMD() <= date("Ymd")) {
+			continue;
+		}
+		
 		$distinctDateArr = array();
 		$distinctDateArr = ($groupedTimeslots[$key] != null ? $groupedTimeslots[$key] : array());
 		//Avoid printing days with no need (empty timeslots may exist)
