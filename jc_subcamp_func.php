@@ -23,7 +23,7 @@ function listSubcamps($site_id) {
 	for ($i=0; $i<count($rows); $i++) { 
 		$row = $rows[$i];
 		$r = new Subcamp($row[0], $row[1], $row[2], $row[3]);
-		$subcamps[] = $r;
+		$subcamps[$r->id] = $r;
 	}
 	
 	return $subcamps;

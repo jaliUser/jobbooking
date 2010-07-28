@@ -24,7 +24,7 @@ function listAllGroups($site_id) {
 	for ($i=0; $i<count($rows); $i++) { 
 		$row = $rows[$i];
 		$r = new Group($row[0], $row[1], $row[2], $row[3]);
-		$groups[] = $r;
+		$groups[$r->id] = $r;
 	}
 	
 	return $groups;
