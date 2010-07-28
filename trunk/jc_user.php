@@ -370,7 +370,7 @@ function show_update() {
 	$user = User::cast(getUser($_GET['login']));
 	$role = getRole($user->login);
 	
-	$rolesHTML = '<select name="role_id" disabled>';
+	$rolesHTML = '<select name="role_id" '.(!user_is_admin() ? 'disabled' : '').'>';
 	$roles = listRoles();
 	foreach ($roles as $role) {
 		$role = Role::cast($role);
@@ -454,7 +454,7 @@ function show_update() {
 		<input type="hidden" name="action" value="do_update">
 		<input type="hidden" name="nextaction" value="'.referer_action().'">
 		<input type="hidden" name="nextsort" value="'.referer_sort().'">
-		<input type="hidden" name="role_id" value="'.$user->roleID.'" />
+		'.(!user_is_admin() ? '<input type="hidden" name="role_id" value="'.$user->roleID.'" />' : '').'
 		</form>
 
 		<form action="'.$PHP_SELF.'" method="POST" onsubmit="return OkCancel(\'Er du sikker på du vil slette?\')">			
