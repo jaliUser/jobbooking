@@ -71,7 +71,7 @@ function referer_sort() {
 }
 
 function show_user_table($headertext, $link, $users, $lovtype) {
-	global $PHP_SELF, $site_id; 
+	global $PHP_SELF, $site_id, $login; 
 	echo "<hr/><h3>$headertext:</h3>";
 	if ($lovtype == "full") {
 		$subcamps = listSubcamps($site_id);
@@ -125,6 +125,7 @@ function show_user_table($headertext, $link, $users, $lovtype) {
 				<p>eller</p>
 				<form method='get' action='$PHP_SELF'>
 					<input type=hidden name='lovtype' value='full' />
+					<input type=hidden name='user_id' value='$login' />
 					<input type='submit' value='Vis fuld brugerliste' />
 					$hiddenFields
 				</form>
