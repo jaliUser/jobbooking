@@ -164,13 +164,13 @@ function listTimeslotsByDate($job_id) {
 }
 
 function listTimeslotsForContact($user_id) {
-	$sql = 'SELECT we.cal_id, cal_date, cal_time, cal_duration, job_id, person_need, contact_id, SUM(count)
+	$sql = "SELECT we.cal_id, we.cal_date, we.cal_time, we.cal_duration, we.job_id, we.person_need, we.contact_id, SUM(weu.count)
 			FROM webcal_entry we
-			LEFT JOIN webcal_entry_user weu
-			ON we.cal_id=weu.cal_id 
-			WHERE contact_id=? and job_id > 0
+			LEFT JOIN webcal_entry_user weu ON we.cal_id=weu.cal_id
+			LEFT JOIN job j ON we.job_id=j.id 
+			WHERE contact_id=? AND job_id > 0 AND j.status='A' 
 			GROUP BY we.cal_id
-			ORDER BY cal_date, cal_time, cal_id';
+			ORDER BY cal_date, cal_time, cal_id";
 	$rows = dbi_get_cached_rows($sql, array($user_id));
 		
 	$tsArr = array();
@@ -210,13 +210,13 @@ function listTimeslotsUnassigned($site_id) {
 }
 
 function listTimeslotsSite($site_id) {
-	$sql = 'SELECT we.cal_id, cal_date, cal_time, cal_duration, job_id, person_need, contact_id, SUM(count)
+	$sql = "SELECT we.cal_id, cal_date, cal_time, cal_duration, job_id, person_need, contact_id, SUM(count)
 			FROM webcal_entry we
 			LEFT JOIN webcal_entry_user weu ON we.cal_id=weu.cal_id
 			LEFT JOIN job j ON we.job_id=j.id 
-			WHERE person_need IS NOT NULL AND j.id=we.job_id AND j.site_id=?  
+			WHERE person_need IS NOT NULL AND j.id=we.job_id AND j.status='A' AND j.site_id=?  
 			GROUP BY we.cal_id
-			ORDER BY cal_date, cal_time, cal_id';
+			ORDER BY cal_date, cal_time, cal_id";
 	$rows = dbi_get_cached_rows($sql, array($site_id));
 		
 	$tsArr = array();
