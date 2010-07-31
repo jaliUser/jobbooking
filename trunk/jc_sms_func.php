@@ -134,7 +134,6 @@ function smsPhoneList($phoneArray, $message, $adminEmailCopy = true, $useCcNumbe
 		if ($adminEmailCopy) {
 			notifyAdmin("SMS afsendelse", $emailText, $siteConfig);
 		}
-		echo $emailText; //debug info for cronjob log
 	}
 }
 
