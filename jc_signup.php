@@ -684,29 +684,69 @@ function show_evals() {
 	$signups = listJobSignups($job->id);
 	$timeslots = listTimeslotsByDate($job->id);
 	$groupedTimeslots = groupTimeslotsByDate($timeslots);
+	$signupCount = 0;
+	$maxSignupsPerForm = (200-10) / 2;
+	
+	$tsIDsWithSignups = array();
+	foreach ($timeslots as $ts) {
+		$tsIDsWithSignups[$ts->id] = false;
+	}
+	foreach ($signups as $signup) {
+		$tsIDsWithSignups[$signup->timeslotID] = true;  
+	}
 	
 	echo "<h1>Tilbagemeldinger på <i>$job->name</i> (ID $job->id)</h1>";
+	if (count($signups) > $maxSignupsPerForm) {
+		echo "<p align='center' class='redalert'>
+			Bemærk: Dette job har mange tilmeldinger, så grundet begrænsninger på serveren, er denne side delt op i sektioner, <br>
+			med en Opdatér-knap for hver 95 rækker. Indtast kun tilbagemeldinger for én sektion ad gangen.
+		</p>";
+	}
 	
 	if (!empty($_GET['submit'])) {
 		echo '<p align="center" class="redalert">Din tilbagemelding er nu opdateret.</p>';
 	}
 	
-	echo '<table align="center" class="border1" >
-			<form action="'.$PHP_SELF.'" method="POST">';
+	echo "<table align='center' class='border1'>";
+	printStartEvalForm();
 	
 	foreach ($days as $key => $day) {
 		$day = Day::cast($day);
-		echo '<tr><th>'.strftime("%a %d/%m", $day->getDateTS()).'</th><th>Kommentar</th><th>Tilmeldt</th><th>Fremmødt</th></tr>';
-	
 		$distinctDateTimeslotArr = $groupedTimeslots[$key];
+		$dayHasSignups = false;
+		foreach ($distinctDateTimeslotArr as $timeslot) {
+			//TODO: use dictionery
+			foreach ($signups as $signup) {
+				$signup = Signup::cast($signup);
+				if ($signup->timeslotID == $timeslot->id) {
+					$dayHasSignups = true;
+				}
+			}
+		}
+		if (!$dayHasSignups) {
+			continue;
+		}
+		
+		echo '<tr><th>'.strftime("%a %d/%m", $day->getDateTS()).'</th><th>Kommentar</th><th>Tilmeldt</th><th>Fremmødt</th></tr>';
 		foreach ($distinctDateTimeslotArr as $timeslot) {
 			$timeslot = Timeslot::cast($timeslot);
+			if ($tsIDsWithSignups[$timeslot->id] == false) {
+				continue;
+			}
+			
 			echo '<tr class="subth"><td colspan="4">'.$timeslot->getStartHour().':'.$timeslot->getStartMin().' - '.$timeslot->getEndHour().':'.$timeslot->getEndMin().'</td></tr>';
 			
 			//TODO: use dictionery
 			foreach ($signups as $signup) {
 				$signup = Signup::cast($signup);
 				if ($signup->timeslotID == $timeslot->id) {
+					$signupCount++;
+					if ($signupCount > $maxSignupsPerForm) {
+						printEndEvalForm($job);
+						printStartEvalForm();
+						$signupCount = 0;
+					}
+					
 					$user = getUser($signup->userID);
 					echo "<tr><td><a href='jc_user.php?action=show_one&login=$user->login'>".$user->getFullName()."</a></td>
 							  <td><input type='text' name='notes-$signup->timeslotID--$signup->userID' value='$signup->notes' size='100' maxlength='255' /></td>
@@ -717,13 +757,20 @@ function show_evals() {
 		}
 	}
 	
-	echo '<tr><td colspan="4"><input type="submit" value="Opdatér"/></td></tr>
+	printEndEvalForm($job);
+	echo '</table>';
+	menu_link();
+}
+
+function printStartEvalForm() {
+	echo "<form action='$PHP_SELF' method='post'>";
+}
+
+function printEndEvalForm($job) {
+	echo '<tr><td colspan="4" align="center"><input type="submit" value="Opdatér"/></td></tr>
 		<input type="hidden" name="action" value="update_evals">
 		<input type="hidden" name="job_id" value="'.$job->id.'">
 		</form>';
-	echo '</table>';
-	
-	menu_link();
 }
 
 function show_evals_list() {
@@ -743,6 +790,8 @@ function show_evals_list() {
 	$jobs = listJobs($site_id);
 	$users = listUsers($site_id);
 	$timeslots = listTimeslotsSite($site_id);
+	$signupSum = 0;
+	$showupSum = 0;
 	
 	echo "<table align='center' class='border1'>
 			<tr>
@@ -755,6 +804,7 @@ function show_evals_list() {
 				<th>Kommentar</th>
 				<th title='Tilmeldt'>T</th>
 				<th title='Fremmødt'>F</th>
+				<th title='Fremmødt i procent'>F%</th>
 			</tr>";
 	foreach ($timeslots as $ts) {
 		$job = $jobs[$ts->jobID];
@@ -777,10 +827,23 @@ function show_evals_list() {
 					<td>$signup->notes</td>
 					<td>$signup->count</td>
 					<td ".($signup->percent < $signup->count ? "class='redalert'":"").">$signup->percent</td>
+					<td>";
+			if ($signup->percent != null) {
+				echo round($signup->percent / $signup->count * 100, 1)."%";
+			}
+			echo "</td>
 				</tr>";
+			$signupSum += $signup->count;
+			$showupSum += $signup->percent;
 		}
 	}
-	echo "</table>";
+	echo "<tr>
+			<td colspan='7'></td>
+			<td>$signupSum</td>
+			<td>$showupSum</td>
+			<td>".(round($showupSum / $signupSum * 100, 1))."%</td>
+		</tr>
+		</table>";
 	
 	menu_link();
 }
@@ -809,7 +872,7 @@ function update_evals() {
 	foreach ($timeslots as $timeslot) {
 		//TODO: use dictionery
 		foreach ($signups as $signup) {
-			if ($signup->timeslotID == $timeslot->id) {
+			if ($signup->timeslotID == $timeslot->id && isset($_POST["percent-$signup->timeslotID--$signup->userID"])) {
 				if ($_POST["percent-$signup->timeslotID--$signup->userID"] != $signup->percent || $_POST["notes-$signup->timeslotID--$signup->userID"] != $signup->notes) {
 					$signup->percent = $_POST["percent-$signup->timeslotID--$signup->userID"];
 					$signup->notes = $_POST["notes-$signup->timeslotID--$signup->userID"];
