@@ -406,6 +406,42 @@ function do_update_noneed() {
 	do_redirect($PHP_SELF.'?action=show_update_noneed&job_id='.$_POST['job_id'].'&user_id='.$_POST['user_id'].'&submit=1');
 }
 
+function show_move() {
+	reject_public_access();
+	global $PHP_SELF, $login, $site_id;
+	html_top($site_name . " - Flytning af tilmeldinger");
+	
+	$job = getJob($_GET['job_id']);
+	$job = Job::cast($job);
+	$jobs = listJobs($site_id);
+	
+	
+	$days = listDays($site_id);
+	$fromTimeslots = listTimeslots($job->id);
+	
+	$fromHTML = "<select name='from_ts'>";
+	foreach ($fromTimeslots as $ts) {
+		if (!$ts->personNeed > 0) {
+			continue;
+		}
+		$signups = listTimeslotSignups($ts->id);
+		$fromHTML .= "<option value='$ts->id'>".$ts->getDateText()." - ".$ts->getTimeText()." (".count($signups)." tilmeldinger)</option>";
+	}
+	$fromHTML = "/select>";
+	
+	
+	echo "<h1>Flytning af tilmeldinger for <i><a href=\"jc_job.php?action=show_one&job_id=$job->id\">$job->name</a></i> (ID $job->id)</h1>";
+	echo "<table align='center' class='border1'>
+		<form action='$PHP_SELF' method='post'>
+			<tr><td>$fromHTML</td></tr>
+			<tr><td>$toHTML</td></tr>
+		</form></table>";
+	
+	print_job_signups($job, listUsers($site_id), $days);
+	
+	menu_link();
+}
+
 function do_send_sms() {
 	reject_public_access();
 	global $PHP_SELF;
@@ -740,7 +776,7 @@ function show_evals_list() {
 					<td><a href='jc_user.php?action=show_one&login=$user->login'>".$user->getFullNameAndLogin()."</a></td>
 					<td>$signup->notes</td>
 					<td>$signup->count</td>
-					<td>$signup->percent</td>
+					<td ".($signup->percent < $signup->count ? "class='redalert'":"").">$signup->percent</td>
 				</tr>";
 		}
 	}
@@ -991,6 +1027,8 @@ if ($_REQUEST['action'] == 'show_update') {
 	show_mine();
 } elseif ($_REQUEST['action'] == 'show_subcamp_signups') {
 	show_subcamp_signups();
+} elseif ($_REQUEST['action'] == 'show_move') {
+	show_move();
 } elseif ($_REQUEST['action'] == 'do_send_sms') {
 	do_send_sms();
 } else {
