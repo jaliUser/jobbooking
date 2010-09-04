@@ -25,7 +25,8 @@ function emailNewPassword($login, $password, $site_id) {
 				"Du (eller en anden) har bedt om nyt kodeord til din bruger i Jobdatabasen på ".$siteConfig->siteName.".\r\n".	
 				"\r\n".
 				"Brugernavn: ".$login."\r\n".
-				"Nyt kodeord: ".$password."\r\n";
+				"Nyt kodeord: ".$password."\r\n".
+				"(Bemærk der er forskel på store og små bogstaver, både i brugernavn og kodeord!)\r\n";
 	notifyUser($login, $subject, $message, $siteConfig); //giving siteConfig since user is not logged in
 }
 
