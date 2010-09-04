@@ -120,7 +120,7 @@ function show_helpers_limit() {
 			<th>'.sortHeader("signupsDuration", "Timer").'</th>
 			<th title="Timer/person">'.sortHeader("signupsDurationEach", "T/p").'</th>
 			<th title="Fremmødte timer">FT</th>
-			<th title="Ingen email">IM</th>
+			<th title="Beløb doneres til NBN">NBN</th>
 			<th title="Er kontaktet">EK</th>
 		</tr>';
 	$emailSumOver = null;
@@ -429,22 +429,21 @@ function show_update() {
 	if ($user->roleID == 3) {
 	echo '<!-- <tr><td>Alder under lejren:</td><td><input type="text" name="age_range" size="10" maxlength="10" value="'.$user->ageRange.'" /> *</td></tr> -->
 		<tr><td>Antal:</td><td><input type="text" name="count" size="2" maxlength="3" value="'.$user->count.'" /> * <span class="help">Hvor mange hjælpere er I?</span></td></tr>
-		<tr><td>Kvalifikationer:</td><td>'.$qualificationHTML.'<br> <!-- <span class="help">Hvis der kr&aelig;ves certifikater, skal disse medbringes på lejren!</span> --> </td></tr>
-		<tr><td>Specielle kvalifikationer:</td><td><input type="text" name="qualifications" size="25" maxlength="255" value="'.$user->qualifications.'" /></td></tr>
+		<!-- <tr><td>Kvalifikationer:</td><td>'.$qualificationHTML.'<br> <span class="help">Hvis der kr&aelig;ves certifikater, skal disse medbringes på lejren!</span> </td></tr> -->
+		<!-- <tr><td>Specielle kvalifikationer:</td><td><input type="text" name="qualifications" size="25" maxlength="255" value="'.$user->qualifications.'" /></td></tr> -->
 		<tr><td>Team navn:</td><td><input type="text" name="title" size="25" maxlength="75" value="'.$user->title.'" /></td></tr>
 		<tr><td>Afdeling:</td><td>'.$groupsHTML.' *</td></tr>
-		<!-- <tr><td>Foretrukne jobkategorier:</td><td>'.$jobcategoryHTML.'</td></tr> -->';
+		<!-- <tr><td>Foretrukne jobkategorier:</td><td>'.$jobcategoryHTML.'</td></tr> -->
+		<tr><td>Beløb doneres til Nothing But Nets:</td><td><input type="checkbox" name="no_email" '.char2checkbox($user->noEmail).' /></td></tr>';
 	}	
 	
 	if (user_is_admin()) {
-		echo '<tr><td>Ingen email:</td><td><input type="checkbox" name="no_email" '.char2checkbox($user->noEmail).' /></td></tr>
-			  <tr><td>Er kontaktet:</td><td><input type="checkbox" name="is_contacted" '.char2checkbox($user->isContacted).' /></td></tr>';
+		echo '<tr><td>Er kontaktet:</td><td><input type="checkbox" name="is_contacted" '.char2checkbox($user->isContacted).' /></td></tr>';
 	} else {
-		echo '<input type="hidden" name="no_email" '.char2checkbox($user->noEmail).' />
-			  <input type="hidden" name="is_contacted" '.char2checkbox($user->isContacted).' />';
+		echo '<input type="hidden" name="is_contacted" '.char2checkbox($user->isContacted).' />';
 	}
 	
-	echo '<tr><td>Noter:</td><td><textarea name="notes" cols="50" rows="3">'.$user->notes.'</textarea></td></tr>
+	echo '<tr><td>Noter/kontonummer:</td><td><textarea name="notes" cols="50" rows="3">'.$user->notes.'</textarea></td></tr>
 		<tr><td colspan="2" class="help">* markerer et obligatorisk felt</td></tr>
 
 		<tr><td colspan="2"><input type="submit" value="Opdater"/></td></tr>
