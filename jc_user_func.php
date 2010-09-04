@@ -271,6 +271,40 @@ function listUsersWithSignupInfo($site_id, $role_id = null) {
 	return $users;
 }
 
+function listUsersWithEvalInfo($site_id, $role_id = null) {
+	$users = listUsers($site_id, $role_id);
+	
+	if(!empty($role_id)) {
+		$sql = 'SELECT u.cal_login, 
+				SUM(we.cal_duration*weu.cal_percent/60)
+				FROM webcal_user u 
+				LEFT JOIN webcal_entry_user weu on weu.cal_login=u.cal_login
+				LEFT JOIN webcal_entry we on we.cal_id=weu.cal_id
+				WHERE site_id=? AND role_id=? AND job_id > 0
+				GROUP BY cal_login';
+		$rows = dbi_get_cached_rows($sql, array($site_id, $role_id));
+	} else {
+		$sql = 'SELECT u.cal_login, 
+				SUM(we.cal_duration*weu.cal_percent/60) 
+				FROM webcal_user u 
+				LEFT JOIN webcal_entry_user weu on weu.cal_login=u.cal_login
+				LEFT JOIN webcal_entry we on we.cal_id=weu.cal_id
+				WHERE site_id=? AND job_id > 0
+				GROUP BY cal_login';
+		$rows = dbi_get_cached_rows($sql, array($site_id));
+	}
+	
+	//attach signup info to each user having signups (for jobs with id > 0)
+	for ($i=0; $i<count($rows); $i++) { 
+		$row = $rows[$i];		
+		if ($users[$row[0]] != null) {
+			$users[$row[0]]->signupsDuration = round($row[1], 1);
+		}
+	}
+	
+	return $users;
+}
+
 function existEmail($email) {
 	$sql = 'SELECT count(cal_login) FROM webcal_user WHERE cal_email=?';
 	$rows = dbi_get_cached_rows($sql, array($email));

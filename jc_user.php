@@ -82,6 +82,7 @@ function show_helpers_limit() {
 	
 	$hourLimit = 7;
 	$users = listUsersWithSignupInfo($site_id, 3);
+	$usersEval = listUsersWithEvalInfo($site_id, 3);
 	
 	switch ($_GET['sort']) {
 		case "login":
@@ -118,7 +119,7 @@ function show_helpers_limit() {
 			<th title="Tilmeldinger">'.sortHeader("signups", "Tilme.").'</th>
 			<th>'.sortHeader("signupsDuration", "Timer").'</th>
 			<th title="Timer/person">'.sortHeader("signupsDurationEach", "T/p").'</th>
-			<!-- <th>Foretrukne</th> -->
+			<th title="Fremmødte timer">FT</th>
 			<th title="Ingen email">IM</th>
 			<th title="Er kontaktet">EK</th>
 		</tr>';
@@ -128,6 +129,7 @@ function show_helpers_limit() {
 	$countUnder = 0;
 	foreach ($users as $user) {
 		$user = User::cast($user);
+		$userEval = $usersEval[$user->login];
 		
 		if ($user->signupsDurationEach >= $hourLimit) {
 			if ($user->email != "" && !$user->noEmail) {
@@ -161,13 +163,13 @@ function show_helpers_limit() {
 			<td>$user->signups</td>
 			<td>$user->signupsDuration</td>
 			<td>$user->signupsDurationEach</td>
-			<!-- <td>$catString</td>-->
+			<td>$userEval->signupsDuration</td>
 			<td>".one2x($user->noEmail)."</td>
 			<td>".one2x($user->isContacted)."</td>
 			</tr>";		
 	}
 
-	echo "<tr><td colspan='13'>
+	echo "<tr><td colspan='14'>
 			Antal <i>over $hourLimit</i>: $countOver<br/>
 			<b>Alle <i>over $hourLimit</i> kommasepareret:</b> $emailSumOver<br/><br/>
 			<b>Alle <i>over $hourLimit</i> semikolonsepareret:</b> ".str_replace(",",";",$emailSumOver)."
