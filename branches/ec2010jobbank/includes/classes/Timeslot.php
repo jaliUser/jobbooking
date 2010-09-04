@@ -107,6 +107,18 @@ class Timeslot {
 		}
 	}
 	
+	function getTimeText() {
+		return $this->getStartHour().":".$this->getStartMin()."-".$this->getEndHour().":".$this->getEndMin();
+	}
+	
+	function getDateText() {
+		return strftime("%a&nbsp;%d/%m-%Y", $this->getStartTS());
+	}
+	
+	function getDateTextNoYear() {
+		return strftime("%a&nbsp;%d/%m", $this->getStartTS());
+	}
+	
 //	function setEndTime($duration) {
 //		$startTS = get_cal_unixtime($this->date, $this->startTime);
 //		$endTS = $startTS + $duration*60;

@@ -515,6 +515,81 @@ function show_list_noneed() {
 	menu_link();
 }
 
+function show_evals_list() {
+	reject_public_access();
+	global $PHP_SELF, $login, $site_id, $site_name;
+	html_top($site_name . " - Tilbagemeldinger på job");
+	
+	if ($_GET['filter'] == "missing") {
+		echo "<h1>Manglende tilbagemeldinger</h1>";
+	} else if ($_GET['filter'] == "existing") {
+		echo "<h1>Udfyldte tilbagemeldinger</h1>";
+	} else {
+		echo "<h1>Alle tilbagemeldinger</h1>";
+	}
+
+	$days = listDays($site_id);
+	$jobs = listJobs($site_id);
+	$users = listUsers($site_id);
+	$timeslots = listTimeslotsSite($site_id);
+	$signupSum = 0;
+	$showupSum = 0;
+	
+	echo "<table align='center' class='border1'>
+			<tr>
+				<th></th>
+				<th>ID</th>
+				<th>Job</th>
+				<th>Dato</th>
+				<th>Tid</th>
+				<th>Navn</th>
+				<th>Kommentar</th>
+				<th title='Tilmeldt'>T</th>
+				<th title='Fremmødt'>F</th>
+				<th title='Fremmødt i procent'>F%</th>
+			</tr>";
+	foreach ($timeslots as $ts) {
+		$job = $jobs[$ts->jobID];
+		$signups = listTimeslotSignups($ts->id);
+		foreach ($signups as $signup) {
+			if ($_GET['filter'] == "missing" && $signup->percent != null) {
+				continue;
+			} else if ($_GET['filter'] == "existing" && $signup->percent == null) {
+				continue;
+			}
+			
+			$user = $users[$signup->userID];
+			echo "<tr>
+					<td><a href='jc_signup.php?action=show_evals&job_id=$job->id'>Ret</a></td>
+					<td>$job->id</td>
+					<td><a href='jc_job.php?action=show_one&job_id=$job->id'>$job->name</a></td>
+					<td>".$ts->getDateTextNoYear()."</td>
+					<td>".$ts->getTimeText()."</td>
+					<td><a href='jc_user.php?action=show_one&login=$user->login'>".$user->getFullNameAndLogin()."</a></td>
+					<td>$signup->notes</td>
+					<td>$signup->count</td>
+					<td ".($signup->percent < $signup->count ? "class='redalert'":"").">$signup->percent</td>
+					<td>";
+			if ($signup->percent != null) {
+				echo round($signup->percent / $signup->count * 100, 1)."%";
+			}
+			echo "</td>
+				</tr>";
+			$signupSum += $signup->count;
+			$showupSum += $signup->percent;
+		}
+	}
+	echo "<tr>
+			<td colspan='7'></td>
+			<td>$signupSum</td>
+			<td>$showupSum</td>
+			<td>".(round($showupSum / $signupSum * 100, 1))."%</td>
+		</tr>
+		</table>";
+	
+	menu_link();
+}
+
 function show_evals() {
 	reject_public_access();
 	global $PHP_SELF, $login, $site_id, $site_name;
@@ -529,6 +604,8 @@ function show_evals() {
 	$groupedTimeslots = groupTimeslotsByDate($timeslots);
 	
 	echo "<h1>Tilbagemeldinger på <i>$job->name</i></h1>";
+	
+	echo '<p align="center" class="redalert">Ved hold/flere end 1 fremmødt, angiv venligst navnene på de resterende i kommentar-feltet.</p>';
 	
 	if (!empty($_GET['submit'])) {
 		echo '<p align="center" class="redalert">Din tilbagemelding er nu opdateret.</p>';
@@ -684,6 +761,8 @@ if ($_REQUEST['action'] == 'show_update') {
 	show_evals();
 } elseif ($_REQUEST['action'] == 'update_evals') {
 	update_evals();
+} elseif ($_REQUEST['action'] == 'show_evals_list') {
+	show_evals_list();
 } elseif ($_REQUEST['action'] == 'show_mine') {
 	show_mine();
 } else {

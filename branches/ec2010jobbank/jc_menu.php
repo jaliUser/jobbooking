@@ -47,6 +47,12 @@ echo '
 	' :'').'
 	-->
 	
+	'.(user_is_admin() ? '<tr><td colspan="2">-</td></tr>
+	<tr><td><a href="jc_signup.php?action=show_evals_list&filter=missing">Vis manglende tilbagemeldinger</a></td><td class="help"></td></tr>
+	<tr><td><a href="jc_signup.php?action=show_evals_list&filter=existing">Vis udfyldte tilbagemeldinger</a></td><td class="help"></td></tr>
+	<tr><td><a href="jc_signup.php?action=show_evals_list">Vis alle tilbagemeldinger</a></td><td class="help"></td></tr>
+	':'').'
+	
 	'.(user_is_admin() ? '<tr><td colspan="2">-</td></tr>' :'').'
 	'.(user_is_admin() ? '<tr><td><a href="jc_user.php?action=show_create">Opret bruger</a></td><td class="help"></td></tr>' :'').'
 	'.(user_is_admin() ? '<tr><td><a href="jc_user.php?action=show_list">Vis brugere</a></td><td class="help"></td></tr>' :'').'
