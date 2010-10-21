@@ -433,9 +433,9 @@ function show_update() {
 		<!-- <tr><td>Specielle kvalifikationer:</td><td><input type="text" name="qualifications" size="25" maxlength="255" value="'.$user->qualifications.'" /></td></tr> -->
 		<tr><td>Team navn:</td><td><input type="text" name="title" size="25" maxlength="75" value="'.$user->title.'" /></td></tr>
 		<tr><td>Afdeling:</td><td>'.$groupsHTML.' *</td></tr>
-		<!-- <tr><td>Foretrukne jobkategorier:</td><td>'.$jobcategoryHTML.'</td></tr> -->
-		<tr><td>Beløb doneres til Nothing But Nets:</td><td><input type="checkbox" name="no_email" '.char2checkbox($user->noEmail).' /></td></tr>';
+		<!-- <tr><td>Foretrukne jobkategorier:</td><td>'.$jobcategoryHTML.'</td></tr> -->';
 	}	
+	echo '<tr><td>Beløb doneres til Nothing But Nets:</td><td><input type="checkbox" name="no_email" '.char2checkbox($user->noEmail).' /></td></tr>';
 	
 	if (user_is_admin()) {
 		echo '<tr><td>Er kontaktet:</td><td><input type="checkbox" name="is_contacted" '.char2checkbox($user->isContacted).' /></td></tr>';
