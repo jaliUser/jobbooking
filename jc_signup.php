@@ -100,7 +100,7 @@ function show_update() {
 	}
 	
 	echo "<h1>Tilmelding til <i><a href=\"jc_job.php?action=show_one&job_id=$job->id\">$job->name</a></i> (ID $job->id) for <i><a href=\"jc_user.php?action=show_one&login=$user->login\">".$user->getFullName()."</a></i> (".$user->count." pers.)</h1>".
-		'<p class="help">I kolonnerne <i>Behov</i> kan du se det aktuelle behov for personer til de forskellige tidsperioder. Hvis du eller dit hold ønsker at hjælpe med dette job, udfyld det antal personer du/I kan stille med, for en given tidsperiode. Efter du har klikket på <i>Opdatér</i>, vil du se behovet blive reduceret med det antal personer du har tilmeldt.</p>';
+		'<p class="help">I kolonnerne <i>Behov</i> kan du se det aktuelle behov for personer til de forskellige tidsperioder. Hvis du ønsker at hjælpe med dette job, så kryds af for en eller flere tidsperioder. Efter du har klikket på <i>Opdatér</i>, vil du se behovet blive reduceret med 1.</p>';
 	
 	$firstDay = $days[0];
 	if (time() + $minutesBeforeUpdateFreeze*60 > $firstDay->getDateTS()) {
@@ -113,7 +113,7 @@ function show_update() {
 	if (!empty($_GET['submit'])) {
 		echo '<p align="center" class="redalert">Din tilmelding er nu opdateret.<br/>
 			Du kan se dine jobtilmeldinger nederst på siden,<br/>
-			og det resterende behov for dette job er reduceret med antallet for din tilmelding.</p>';
+			og behovet for dette job er nu justeret med din tilmelding/framelding.</p>';
 	}
 	
 	//generate rows for existing timeslots
@@ -151,19 +151,19 @@ function show_update() {
 			echo '<td align="center">'.$timeslot->remainingNeed.'&nbsp;&nbsp;';
 			
 			//if signup exist
-			if ($signup->count > 0) {
+			if ($signup->count == 1) {
 				//if now + minutesBeforeUpdateFreeze is past timeslot time, lock field
 				if (time() + $minutesBeforeUpdateFreeze*60 > $timeslot->getStartTS() && !(user_is_admin() || user_is_consultant())) {
-					echo '<input type="text" value="'.$signup->count.'" size="1" maxlength="3" disabled/>';
+					echo '<input type="checkbox" checked="checked" disabled/>';
 				//else allow editing existing signup
 				} else {
-					echo '<input type="text" name="signup-'.$timeslot->id.'" value="'.$signup->count.'" size="1" maxlength="3"/>';
+					echo '<input type="checkbox" name="signup-'.$timeslot->id.'" checked="checked"/>';
 					$hiddenPercent .= "$timeslot->id=$signup->percent;";
 					$hiddenNotes .= "$timeslot->id=$signup->notes;";
 				}
 			//if no signup, make field for creating new signup, unless timeslot time is past now and user is not admin
 			} else if ($timeslot->remainingNeed > 0 && (time() < $timeslot->getStartTS() || user_is_admin())) {
-				echo '<input type="text" name="signup-'.$timeslot->id.'" size="1" maxlength="3"/>';
+				echo '<input type="checkbox" name="signup-'.$timeslot->id.'"/>';
 			//empty spaces just to align columns
 			} else {
 				echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
@@ -253,16 +253,14 @@ function do_update() {
 	$timeslots = listTimeslots($_POST['job_id']);
 	foreach ($timeslots as $ts) {
 		$ts = Timeslot::cast($ts);
-		if (!isset($_POST['signup-'.$ts->id])) {
-			continue;
+		if (isset($_POST['signup-'.$ts->id])) {
+			$count = 1;
+		}
+		else {
+			$count = 0;
 		}
 		
-		if (!Signup::isValidCount($_POST['signup-'.$ts->id])) {
-			echo print_error("Ugyldigt antal for ".date("d/m H:i", $ts->getStartTS()).date(" - H:i", $ts->getEndTS()));
-			exit;
-		}
-
-		$signup = new Signup($ts->id, $_POST['user_id'], 'A', null, $percentArray[$ts->id], $_POST['signup-'.$ts->id], $notesArray[$ts->id]);
+		$signup = new Signup($ts->id, $_POST['user_id'], 'A', null, $percentArray[$ts->id], $count, $notesArray[$ts->id]);
 		
 		//check user has not more than X blockings
 		$userBlockSignups = listJobUserSignups(-1, $_POST['user_id']);
@@ -583,8 +581,7 @@ function print_job_signups(Job $job, $users, $days, &$emails = null, &$phoneNumb
 				<th width="5%">Rest</th>
 				<th width="10%">Jobkonsulent</th>
 				<th width="10%">Telefon</th>
-				<th width="10%">Klannavn</th>
-				<th width="3%">Antal</th>
+				<th width="13%">Klannavn</th>
 				<th width="22%">Tilmeldt</th>
 			</tr>';
 		
@@ -598,7 +595,7 @@ function print_job_signups(Job $job, $users, $days, &$emails = null, &$phoneNumb
 					<td>'.$timeslot->personNeed.'</td>
 					<td '.($timeslot->remainingNeed > 0 ? 'class="redalert"':'').'>'.$timeslot->remainingNeed.'</td>
 					<td>'.$contact->firstname.'</td>
-					<td colspan="4"></td>
+					<td colspan="3"></td>
 			  	  </tr>';
 
 				$signups = listTimeslotSignups($timeslot->id);
@@ -624,7 +621,6 @@ function print_job_signups(Job $job, $users, $days, &$emails = null, &$phoneNumb
 					echo "</td><td colspan=\"4\"><a href=\"jc_user.php?action=show_one&login=$user->login\">".$user->getFullName()."</a></td>
 							<td>$user->telephone</td>
 							<td>$user->title</td>
-							<td>$signup->count</td>
 							<td>$signup->defDate <span class='help'>$defUserLink</span></td>
 						</tr>";
 				}
@@ -904,8 +900,7 @@ function show_mine() {
 	echo '<table align="center" class="border1">
 			<tr>
 				<th>Dato</th>
-				<th>Tid</th>
-				<th>Personer</th>';
+				<th>Tid</th>';
 	if (empty($_GET['show_block'])) {
 		echo   "<th>Job</th>
 				<th>Mødested</th>
@@ -922,8 +917,7 @@ function show_mine() {
 		$job = getJob($timeslot->jobID);
 		
 		echo '<tr><td>'.strftime("%a %d/%m", $timeslot->getStartTS()).'</td>
-				  <td>'.strftime("%H:%M", $timeslot->getStartTS()).strftime("-%H:%M", $timeslot->getEndTS()).'</td>
-				  <td>'.$signup->count.'</td>';
+				  <td>'.strftime("%H:%M", $timeslot->getStartTS()).strftime("-%H:%M", $timeslot->getEndTS()).'</td>';
 		if (empty($_GET['show_block'])) {
 			$owner = getUser($job->ownerID);
 			echo '<td><a href="jc_job.php?action=show_one&job_id='.$job->id.'">'.$job->name.'</a></td>

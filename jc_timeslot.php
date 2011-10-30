@@ -538,7 +538,7 @@ function show_print_vacant() {
 	print_job_details($job, false);
 	
 	echo "<h1>Ledige tidsperioder for <i><a href=\"jc_job.php?action=show_one&job_id=$job->id\">$job->name</a></i> (ID $job->id)</h1>".
-		'<p class="help">I kolonnerne <i>Behov</i> kan du se det aktuelle behov for personer til de forskellige tidsperioder. Hvis du eller dit hold ønsker at hjælpe med dette job, udfyld det antal personer du/I kan stille med, for en given tidsperiode.</p>';
+		'<p class="help">I kolonnerne <i>Behov</i> kan du se det aktuelle behov for personer til de forskellige tidsperioder. Hvis du ønsker at hjælpe med dette job, så kryds af for en eller flere tidsperioder.</p>';
 		
 	//generate rows for existing timeslots
 	echo '<table align="center" class="border1">
@@ -582,7 +582,7 @@ function show_print_vacant() {
 			echo '<td align="center">'.$timeslot->remainingNeed.'&nbsp;&nbsp;';
 			
 			if ($timeslot->remainingNeed > 0) {
-				echo '<input type="text" size="1" maxlength="3" disabled/>';
+				echo '<input type="checkbox" disabled/>';
 			} else {
 				echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
 			}
