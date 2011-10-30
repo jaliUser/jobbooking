@@ -22,7 +22,7 @@ function show_list() {
 	
 	echo '<h1>Brugerliste</h1>
 		<table align="center" class="border1">
-		<tr> <th>Brugernavn<br/><span class="help">Ret bruger</span></th> <th>Spejdernet</th> <th>Fornavn<br/><span class="help">Vis bruger</span></th> <th>Efternavn</th> <th>Klan/Pladsnr</th> <th>E-mail</th> <th>Telefon</th> <th>Adresse</th> <th>Alder</th> <th>Gruppe</th> <th>Rolle</th> <th>Antal</th> <th>Underlejr</th> <th>Noter</th> </tr>';
+		<tr> <th>Brugernavn<br/><span class="help">Ret bruger</span></th> <th>Spejdernet</th> <th>Fornavn<br/><span class="help">Vis bruger</span></th> <th>Efternavn</th> <th>Klan/Pladsnr</th> <th>E-mail</th> <th>Telefon</th> <th>Adresse</th> <th>Alder</th> <th>Gruppe</th> <th>Rolle</th> <th>Underlejr</th> <th>Noter</th> </tr>';
 	$lastRole = null;
 	$emailSum = null;
 	$userCount = 0;
@@ -61,7 +61,6 @@ function show_list() {
 			<td>$user->ageRange</td>
 			<td>".($group != null ? $group->name : '')."</td>
 			<td>$role->name</td>
-			<td>$user->count</td>
 			<td>".($subcamp != null ? $subcamp->name : '')."</td>
 			<td>$user->notes</td>
 			</tr>";
@@ -257,7 +256,7 @@ function show_create() {
 
 	if (empty($_GET['role_id']) || $_GET['role_id'] == 3) {
 	echo '<!-- <tr><td>Alder under lejren:</td><td><input type="text" name="age_range" size="10" maxlength="10" /> *</td></tr> -->
-		<tr><td>Antal:</td><td><input type="text" name="count" size="2" maxlength="3" /> * <span class="help">Hvor mange hjælpere er I?</span></td></tr>
+		<input type="hidden" name="count" value="1" />
 		<tr><td>Kvalifikationer:</td><td>'.$qualificationHTML.'<br><span class="help">Hvis der kr&aelig;ves certifikater, skal disse medbringes på lejren!</span></td></tr>
 		<tr><td>Specielle kvalifikationer:</td><td><input type="text" name="qualifications" size="25" maxlength="255" /></td></tr>
 		<tr><td>Klan/holdnavn/pladsnr:</td><td><input type="text" name="title" size="25" maxlength="75" /></td></tr>
@@ -445,7 +444,7 @@ function show_update() {
 
 	if ($user->roleID == 3 || $_GET['role_id'] == 3) {
 	echo '<!-- <tr><td>Alder under lejren:</td><td><input type="text" name="age_range" size="10" maxlength="10" value="'.$user->ageRange.'" /> *</td></tr> -->
-		<tr><td>Antal:</td><td><input type="text" name="count" size="2" maxlength="3" value="'.$user->count.'" /> * <span class="help">Hvor mange hjælpere er I?</span></td></tr>
+		<input type="hidden" name="count" value="'.$user->count.'" />
 		<tr><td>Kvalifikationer:</td><td>'.$qualificationHTML.'<br><span class="help">Hvis der kr&aelig;ves certifikater, skal disse medbringes på lejren!</span></td></tr>
 		<tr><td>Specielle kvalifikationer:</td><td><input type="text" name="qualifications" size="25" maxlength="255" value="'.$user->qualifications.'" /></td></tr>
 		<tr><td>Klan/holdnavn/pladsnr:</td><td><input type="text" name="title" size="25" maxlength="75" value="'.$user->title.'" /></td></tr>
@@ -606,7 +605,6 @@ function show_one() {
 		<tr><th align="left">Telefon:</th><td>'.$user->telephone.'</td></tr>
 		<tr><th align="left">Adresse/postnr/by:</th><td>'.$user->address.'</td></tr>
 		<tr><th align="left">Alder under lejren:</th><td>'.$user->ageRange.'</td></tr>
-		<tr><th align="left">Antal:</th><td>'.$user->count.'</td></tr>
 		<tr><th align="left">Kvalifikationer:</th><td>'.$qualificationHTML.'</td></tr>
 		<tr><th align="left">Specielle kvalifikationer:</th><td>'.$user->qualifications.'</td></tr>
 		<tr><th align="left">Klan/holdnavn/pladsnr:</th><td>'.$user->title.'</td></tr>
