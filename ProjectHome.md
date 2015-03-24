@@ -1,0 +1,1 @@
+Initially designed for scout camps
